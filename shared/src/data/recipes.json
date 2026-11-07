@@ -1,0 +1,57 @@
+[
+  {
+    "id": "shelter",
+    "name": "Radiation shelter",
+    "icon": "\ud83d\udee1\ufe0f",
+    "fact": "shield",
+    "cost": {
+      "ice": 3,
+      "soil": 2,
+      "scrap": 3
+    }
+  },
+  {
+    "id": "greenhouse",
+    "name": "Greenhouse",
+    "icon": "\ud83c\udf31",
+    "fact": "grow",
+    "cost": {
+      "glass": 3,
+      "soil": 2,
+      "ice": 2,
+      "seeds": 1
+    }
+  },
+  {
+    "id": "radio",
+    "name": "Radio repair",
+    "icon": "\ud83d\udce1",
+    "fact": "comms",
+    "cost": {
+      "antenna": 1,
+      "battery": 1,
+      "circuit": 1
+    }
+  },
+  {
+    "id": "panel",
+    "name": "Extra solar panel",
+    "icon": "\u26a1",
+    "fact": "power",
+    "cost": {
+      "scrap": 2,
+      "glass": 1
+    }
+  },
+  {
+    "id": "oxygen",
+    "name": "Ice melter + oxygen maker",
+    "icon": "\ud83d\udca8",
+    "fact": "oxygen",
+    "cost": {
+      "scrap": 2,
+      "ice": 2,
+      "circuit": 1
+    }
+  }
+]

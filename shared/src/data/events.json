@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "id": "shelter",
+      "name": "Everyone into the shelter",
+      "cost": {
+        "food": 10
+      },
+      "benefit": "Only +3 dose; needs a built shelter"
+    },
+    {
+      "id": "work",
+      "name": "Keep working on the radio",
+      "cost": {
+        "dose": 30
+      },
+      "benefit": "+3 radio progress; flare dose depends on its class"
+    },
+    {
+      "id": "ice",
+      "name": "Stack ice around the hab",
+      "cost": {
+        "ice": 2
+      },
+      "benefit": "Less flare dose now; shielding improves next time"
+    }
+  ]
+}

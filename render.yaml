@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: outpost-down-crew
+    runtime: node
+    buildCommand: npm ci
+    startCommand: npm run server
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 24
