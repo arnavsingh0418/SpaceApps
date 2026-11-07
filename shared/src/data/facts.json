@@ -4,14 +4,10 @@
     "title": "A wall of water",
     "text": "Radiation is energy that can harm living things. Water, ice, and Mars soil can help shield a crew, but cannot stop every particle.",
     "question": "What helps shield the crew?",
-    "answers": [
-      "Water and soil",
-      "A bigger window",
-      "A louder radio"
-    ],
+    "answers": ["Water and soil", "A bigger window", "A louder radio"],
     "correct": 0,
     "source": "NASA \u00b7 Radiation shielding",
-    "url": "https://www.nasa.gov/humans-in-space/space-radiation/"
+    "url": "https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf"
   },
   {
     "id": "comms",
@@ -46,11 +42,7 @@
     "title": "A dusty blanket",
     "text": "Dust blocks sunlight from solar panels. On Mars, wind sometimes cleared dust from rover panels and helped their power recover.",
     "question": "What helps a dusty panel make more power?",
-    "answers": [
-      "Clean off its dust",
-      "Add more dust",
-      "Put it in the dark"
-    ],
+    "answers": ["Clean off its dust", "Add more dust", "Put it in the dark"],
     "correct": 0,
     "source": "NASA \u00b7 Opportunity and dust",
     "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/"
@@ -72,7 +64,7 @@
   {
     "id": "plants",
     "title": "Space changes plants, too",
-    "text": "In OSD-658, scientists exposed small plants to simulated space radiation and studied their gene activity. This helps them investigate how space affects future crops.",
+    "text": "In OSD-658, radiation made seedlings turn on repair instructions in their cells. Scientists study these tiny plants to learn how space affects future crops.",
     "question": "Why study plants and radiation?",
     "answers": [
       "To learn how space affects crops",

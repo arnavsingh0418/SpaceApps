@@ -79,7 +79,7 @@ Science boundaries: flare X-ray class is not a Mars particle-dose forecast; dose
 
 ## Deploy
 
-Client: `npm run build` produces `dist/`, usable on GitHub Pages, Netlify, or Vercel. The included GitHub Actions workflow tests and deploys to Pages. Enable **Settings → Pages → Source: GitHub Actions** if the repository does not have Pages enabled. Relative asset URLs support the `/TEST_nasa/` subpath. No secrets are needed for the client.
+Client: `npm run build` produces `dist/`, usable on GitHub Pages, Netlify, or Vercel. The included GitHub Actions workflows run checks on every push and offer manual publication to Pages. Enable **Settings → Pages → Source: GitHub Actions** if the repository does not have Pages enabled. Relative asset URLs support the `/TEST_nasa/` subpath. No secrets are needed for the client.
 
 Server: use the included `render.yaml` blueprint or deploy the Node app to another WebSocket-capable host. Build: `npm ci`. Start: `npm run server`. Health: `/`. The host's `PORT` is used automatically. Rooms are stored in memory, so run one instance without autoscaling; a persistent shared room store is outside this prototype's scope. Render free services can sleep; solo play remains available. Set `VITE_CREW_SERVER=wss://your-crew-server.example` before building the client, or enter the server URL in the lobby.
 

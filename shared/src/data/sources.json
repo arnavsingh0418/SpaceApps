@@ -11,7 +11,7 @@
   },
   {
     "title": "OSDR \u00b7 OSD-658",
-    "use": "Arabidopsis plants exposed to simulated galactic cosmic radiation; gene-expression research informs our crop science log. No claim of human risk or Mars crop yield is inferred.",
+    "use": "OSD-658 found a radiation-dose-dependent DNA-repair response in Arabidopsis seedlings. This laboratory study informs our plant science log, not a claim about human risk or Mars crop yields.",
     "url": "https://osdr.nasa.gov/bio/repo/data/studies/OSD-658"
   },
   {
@@ -38,5 +38,10 @@
     "title": "Mars facts \u00b7 NASA",
     "use": "A sol is roughly 24 hours 39 minutes. Mars has very thin air; nights are cold. Launch opportunities occur about every 26 months. The 15-sol return window is fictional, with a return vehicle already on Mars.",
     "url": "https://science.nasa.gov/mars/facts/"
+  },
+  {
+    "title": "NASA \u00b7 Radiation protection",
+    "use": "Water and regolith can reduce exposure. Shield effectiveness depends on particle type, thickness, and secondary radiation; no shelter eliminates all exposure.",
+    "url": "https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf"
   }
 ]
