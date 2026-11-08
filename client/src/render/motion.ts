@@ -1,6 +1,15 @@
 import * as THREE from "three";
 import { B, stations, type Game } from "../../../shared/src/sim";
 import { ParticlePool } from "./particles";
+export type ActorState = {
+  speed: number; // horizontal m/s
+  gait: "walk" | "sprint" | "crouch";
+  grounded: boolean;
+  vy: number;
+  landAgo: number; // seconds since the last landing
+  landImpact: number; // 0..1
+  heading?: number; // set for the local player (controller decides facing)
+};
 export class WorldMotion {
   time = 0;
   reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -107,111 +116,169 @@ export class WorldMotion {
       setTimeout(() => el.remove(), 600);
     }
   }
-  actor(g: THREE.Group, p: Game["players"][string], s: Game, dt: number) {
+  /**
+   * Pose an astronaut every frame from how it is actually moving.
+   * `st` comes from the local controller for you, or is estimated for other players.
+   */
+  actor(
+    g: THREE.Group,
+    p: Game["players"][string],
+    s: Game,
+    dt: number,
+    st: ActorState,
+  ) {
+    const damp = (from: number, to: number, k = 14) =>
+      THREE.MathUtils.damp(from, to, k, dt);
+    const get = (n: string) => g.getObjectByName(n);
+    const R = this.reduced ? 0.35 : 1;
     const dx = g.position.x - Number(g.userData.px ?? g.position.x),
       dz = g.position.z - Number(g.userData.pz ?? g.position.z),
-      traveled = Math.hypot(dx, dz);
+      traveled = Math.min(2, Math.hypot(dx, dz));
     g.userData.px = g.position.x;
     g.userData.pz = g.position.z;
-    const moving = Math.hypot(p.move.x, p.move.z) > 0.01 && traveled > 0.0001;
-    const stride = 1.05;
-    const gait =
-      Number(g.userData.gait || 0) + (moving ? traveled / stride : 0);
+    const moving = st.speed > 0.35;
+    const sprint = st.gait === "sprint" && moving,
+      crouchHeld = st.gait === "crouch",
+      pickup = Number(g.userData.crouch || 0) > this.time;
+    const stride = sprint ? 1.7 : crouchHeld ? 0.75 : 1.15;
+    const before = Number(g.userData.gait || 0);
+    const gait = before + (moving && st.grounded ? traveled / stride : 0);
     g.userData.gait = gait;
-    if (Math.hypot(p.move.x, p.move.z) > 0.01) {
+    const ph = gait * Math.PI;
+
+    // Facing
+    if (st.heading !== undefined) {
+      g.rotation.y = st.heading;
+    } else if (Math.hypot(p.move.x, p.move.z) > 0.01) {
       const angle = Math.atan2(p.move.x, p.move.z);
       g.rotation.y +=
-        Math.atan2(
-          Math.sin(angle - g.rotation.y),
-          Math.cos(angle - g.rotation.y),
-        ) *
-        (1 - Math.exp(-8 * dt));
+        Math.atan2(Math.sin(angle - g.rotation.y), Math.cos(angle - g.rotation.y)) *
+        (1 - Math.exp(-12 * dt));
     }
-    const swing =
-      moving && !this.reduced
-        ? Math.sin(gait * Math.PI) * 0.46
-        : moving
-          ? Math.sin(gait * Math.PI) * 0.16
-          : 0;
-    for (const [part, sign] of [
-      ["armL", 1],
-      ["armR", -1],
-      ["legL", -1],
-      ["legR", 1],
-    ] as const) {
-      const limb = g.getObjectByName(part);
-      if (!limb) continue;
-      const leg = part.startsWith("leg");
-      limb.rotation.x = moving
-        ? swing * sign * (leg ? 1 : 0.72)
-        : THREE.MathUtils.damp(limb.rotation.x, 0, 8, dt);
+    g.rotation.x = 0;
+    g.rotation.z = 0;
+
+    const amp = (sprint ? 0.95 : crouchHeld ? 0.4 : 0.6) * R * Math.min(1, st.speed / 2.5);
+    const sin = Math.sin(ph),
+      cos = Math.cos(ph);
+    // Targets (radians). Negative x = limb swings forward, positive knee = shin bends back.
+    let hipL = -sin * amp,
+      hipR = sin * amp,
+      kneeL = Math.max(0, cos) * amp * 1.2 + 0.05,
+      kneeR = Math.max(0, -cos) * amp * 1.2 + 0.05,
+      armL = sin * amp * 0.85,
+      armR = -sin * amp * 0.85,
+      elbow = sprint ? -1.25 : moving ? -0.35 : -0.12,
+      armOut = 0.12,
+      lean = sprint ? 0.24 : moving ? 0.06 : 0,
+      hipsY = 0.8 - (moving ? Math.abs(sin) * (sprint ? 0.07 : 0.035) * R : 0);
+    if (!moving) {
+      // idle: soft breathing and a relaxed stance
+      const breathe = Math.sin(this.time * 2.1) * 0.012 * R;
+      hipsY += breathe * 0.3;
+      armL = armR = 0.04 + breathe;
+      hipL = hipR = 0;
+      kneeL = kneeR = 0.05;
     }
-    // Keep the suit's root planted; walking lives in the limbs, not a bouncing body.
-    g.position.y = 0;
-    g.rotation.x = THREE.MathUtils.damp(
-      g.rotation.x,
-      moving && !this.reduced ? 0.04 : 0,
-      6,
-      dt,
-    );
-    g.rotation.z = THREE.MathUtils.damp(
-      g.rotation.z,
-      0,
-      8,
-      dt,
-    );
-    const crouch = Number(g.userData.crouch || 0) - this.time;
-    g.scale.set(
-      1.35,
-      1.35 *
-        (1 - (crouch > 0 ? 0.22 * Math.sin((crouch / 0.5) * Math.PI) : 0)),
-      1.35,
-    );
-    const visor = g.getObjectByName("visor") as THREE.Mesh<
-      THREE.SphereGeometry,
-      THREE.MeshStandardMaterial
-    >;
+    if (crouchHeld || pickup) {
+      hipsY -= 0.26;
+      hipL += -0.75;
+      hipR += -0.75;
+      kneeL += 1.15;
+      kneeR += 1.15;
+      lean = 0.42;
+      elbow = -0.6;
+    }
+    if (!st.grounded) {
+      if (st.vy > 0) {
+        // take-off: tuck one knee, arms up
+        hipL = -0.85;
+        kneeL = 1.25;
+        hipR = -0.15;
+        kneeR = 0.45;
+        armL = armR = -2.2 * R;
+        elbow = -0.5;
+      } else {
+        // falling: legs reach for the ground, arms out for balance
+        hipL = -0.35;
+        hipR = -0.05;
+        kneeL = 0.5;
+        kneeR = 0.2;
+        armL = armR = -0.6;
+        armOut = 0.9;
+        elbow = -0.3;
+      }
+      lean = 0.1;
+    }
+    // landing squash
+    const sinceLand = st.landAgo;
+    if (st.grounded && sinceLand < 0.28) {
+      const k = (1 - sinceLand / 0.28) * (0.35 + st.landImpact * 0.65) * R;
+      hipsY -= 0.22 * k;
+      hipL -= 0.5 * k;
+      hipR -= 0.5 * k;
+      kneeL += 0.9 * k;
+      kneeR += 0.9 * k;
+      lean += 0.25 * k;
+    }
+    const carry = get("carried");
+    const carrying = Object.values(p.bag).some((n) => n && n > 0);
+    if (carry) carry.visible = carrying;
+    if (carrying && st.grounded) {
+      armL = armR = -1.15 + sin * 0.08;
+      elbow = -0.35;
+      armOut = 0.05;
+    }
+
+    const set = (n: string, v: number, k = 18) => {
+      const o = get(n);
+      if (o) o.rotation.x = damp(o.rotation.x, v, k);
+    };
+    const air = st.grounded ? 22 : 10;
+    set("legL", hipL, air);
+    set("legR", hipR, air);
+    set("kneeL", kneeL, air);
+    set("kneeR", kneeR, air);
+    set("armL", armL, air);
+    set("armR", armR, air);
+    set("elbowL", elbow);
+    set("elbowR", elbow);
+    for (const [n, sgn] of [["armL", -1], ["armR", 1]] as const) {
+      const o = get(n);
+      if (o) o.rotation.z = damp(o.rotation.z, sgn * armOut, 10);
+    }
+    const hips = get("hips"),
+      upper = get("upper"),
+      head = get("head");
+    if (hips) hips.position.y = damp(hips.position.y, hipsY, st.grounded ? 20 : 12);
+    if (upper) upper.rotation.x = damp(upper.rotation.x, lean, 10);
+    if (head) head.rotation.x = damp(head.rotation.x, -lean * 0.6, 10);
+
+    const visor = get("visor") as THREE.Mesh<THREE.SphereGeometry, THREE.MeshStandardMaterial>;
     if (visor)
       visor.material.emissiveIntensity =
-        0.6 + Math.pow(Math.max(0, Math.sin(this.time * 1.2)), 24) * 0.8;
-    const carry = g.getObjectByName("carried");
-    if (carry) {
-      carry.visible = Object.values(p.bag).some((n) => n && n > 0);
-      if (carry.visible) {
-        const armL = g.getObjectByName("armL"),
-          armR = g.getObjectByName("armR");
-        if (armL) armL.rotation.x = -1.1 + swing * 0.12;
-        if (armR) armR.rotation.x = -1.1 - swing * 0.12;
-      }
-    }
+        0.5 + Math.pow(Math.max(0, Math.sin(this.time * 1.2)), 24) * 0.8;
+    const light = get("packLight") as THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
+    if (light) light.material.color.setHex(Math.sin(this.time * 3) > 0 ? 0x7ee05a : 0x3f8a2c);
+
     const building = p.task?.kind === "build",
-      tool = g.getObjectByName("wrench");
+      tool = get("wrench");
     if (tool) tool.visible = building;
     if (building) {
-      const arm = g.getObjectByName("armR");
+      const arm = get("armR");
       if (arm) arm.rotation.x = -1.2 + Math.sin(this.time * 14) * 0.5;
       if (!this.reduced && this.time > Number(g.userData.sparkAt || 0)) {
-        this.particles.emit(p.x, 0.9, p.z + 0.8, 0xffc83d, 3, 0.035, 0.45);
+        this.particles.emit(p.x, g.position.y + 0.9, p.z + 0.8, 0xffc83d, 3, 0.035, 0.45);
         g.userData.sparkAt = this.time + 0.15;
       }
     }
-    if (
-      moving &&
-      !this.reduced &&
-      traveled < 1.2 &&
-      Math.floor(gait) !== Math.floor(gait - traveled / stride)
-    ) {
-      this.particles.emit(
-        g.position.x,
-        0.08,
-        g.position.z,
-        0xe0a982,
-        3,
-        0.09,
-        0.5,
-        0,
-        0.35,
-      );
+    // footsteps + dust, and a bigger puff on landing
+    if (moving && st.grounded && !this.reduced && Math.floor(gait) !== Math.floor(before)) {
+      this.particles.emit(g.position.x, g.position.y + 0.08, g.position.z, 0xe0a982, sprint ? 5 : 3, 0.09, 0.5, 0, 0.35);
+      dispatchEvent(new CustomEvent("footstep"));
+    }
+    if (st.grounded && sinceLand < dt * 1.5 && st.landImpact > 0.05 && !this.reduced) {
+      this.particles.emit(g.position.x, g.position.y + 0.1, g.position.z, 0xe0a982, 10 + Math.round(st.landImpact * 14), 0.12, 0.7, 0, 0.6);
       dispatchEvent(new CustomEvent("footstep"));
     }
   }
