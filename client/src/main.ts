@@ -4,6 +4,7 @@ import "@fontsource/nunito-sans/latin-700.css";
 import "@fontsource/nunito-sans/latin-800.css";
 import "./style.css";
 import { World } from "./render/world";
+import { LocalController } from "./render/controller";
 import { Arrival } from "./render/arrival";
 import { missionBriefing, fieldManual } from "./ui/briefing";
 import { CrewConnection } from "./net/crew";
@@ -198,7 +199,7 @@ function start(resume = false) {
   fixed = 0;
   saveAt = game.elapsed;
   inputAt = 0;
-  lastMove = "";
+  controllerSeed = -1; // snap the movement controller to the (re)started game
   firstPlan = !resume;
   goalsOpen = chatOpen = false;
   unread = lastMessages = 0;
@@ -920,8 +921,11 @@ let last = performance.now(),
   redraw = 0,
   saveAt = 0,
   inputAt = 0,
-  lastMove = "",
-  manualMode = false;
+  manualMode = false,
+  controllerSeed = -1,
+  jumpTipShown = false,
+  lookTipShown = false;
+const controller = new LocalController();
 function updateTutorial() {
   if (tutorial >= 4) {
     world.objectiveTarget = !game.learned.includes("grow")
@@ -992,12 +996,56 @@ function update(dt: number, render = true) {
         (keys.has("s") || keys.has("arrowdown") ? 1 : 0) -
         (keys.has("w") || keys.has("arrowup") ? 1 : 0) +
         joy.z;
-    const moving = modal || document.hidden ? { x: 0, z: 0 } : { x, z };
-    const sig = JSON.stringify(moving);
-    if (sig !== lastMove || (connection && game.elapsed - inputAt > 1)) {
-      act({ type: "move", ...moving });
-      lastMove = sig;
-      inputAt = game.elapsed;
+    // Minecraft-style movement runs locally every frame; the sim just receives positions.
+    const me = game.players[id];
+    const canMove = !modal && !document.hidden && game.phase === "day" && !!me;
+    // Movement is relative to where the camera looks (W = away from the camera).
+    const cy = Math.cos(world.yaw),
+      sy = Math.sin(world.yaw);
+    const input = canMove
+      ? {
+          x: x * cy + z * sy,
+          z: -x * sy + z * cy,
+          forward: z < -0.3,
+          sprint: keys.has("shift"),
+          crouch: keys.has("c"),
+          jump: keys.has(" "),
+        }
+      : { x: 0, z: 0, sprint: false, crouch: false, jump: false };
+    if (modal) world.releaseMouse();
+    if (me) {
+      const drift = Math.hypot(me.x - controller.x, me.z - controller.z);
+      if (controllerSeed !== game.seed || drift > (connection ? 6 : 4)) {
+        controller.reset(me.x, me.z, world.terrain.heightAt(me.x, me.z));
+        controllerSeed = game.seed;
+      }
+      const jumped = controller.update(dt, input, game.allocation.heat < 1, (px, pz) =>
+        world.terrain.heightAt(px, pz),
+      );
+      if (jumped) {
+        act({ type: "jump" });
+        if (!jumpTipShown) {
+          jumpTipShown = true;
+          toast("Mars gravity is 38% of Earth's: big jumps!");
+        }
+      }
+      if (game.phase === "day" && (!connection || game.elapsed - inputAt > 0.05 || jumped)) {
+        act({
+          type: "pos",
+          x: controller.x,
+          z: controller.z,
+          mx: controller.vx,
+          mz: controller.vz,
+          gait: controller.gait,
+        });
+        inputAt = game.elapsed;
+      }
+    }
+    world.local = started ? controller : null;
+    world.lookAllowed = () => started && !modal && !arrival && game.phase === "day";
+    if (started && !modal && !lookTipShown && game.phase === "day") {
+      lookTipShown = true;
+      toast("Click the game, then move mouse to look");
     }
     fixed += dt;
     while (fixed >= 0.1) {
@@ -1072,7 +1120,15 @@ function update(dt: number, render = true) {
     world.motion.update(game, id, world.actors, dt);
     for (const [key, actor] of world.actors) {
       const p = game.players[key];
-      if (p) world.motion.actor(actor, p, game, dt);
+      if (p)
+        world.motion.actor(actor, p, game, dt, {
+          speed: Math.hypot(p.move.x, p.move.z) * B.speed,
+          gait: p.gait || "walk",
+          grounded: true,
+          vy: 0,
+          landAgo: 99,
+          landImpact: 0,
+        });
     }
   }
 }

@@ -1,6 +1,7 @@
 import { WorldMotion } from "./motion";
 import { placeLabels } from "./labels";
 import { Terrain } from "./terrain";
+import { LocalController, jumpArc } from "./controller";
 import * as THREE from "three";
 import {
   initBuilders,
@@ -16,6 +17,7 @@ import {
 } from "./builders.js";
 import {
   B,
+  gaitSpeed,
   stations,
   icons,
   itemNames,
@@ -38,6 +40,9 @@ export class World {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 1600);
   terrain = new Terrain();
+  /** Your own movement controller (set by main.ts once a mission starts). */
+  local: LocalController | null = null;
+  cameraFollow: THREE.Vector3 | null = null;
   renderer: THREE.WebGLRenderer;
   actors = new Map<string, THREE.Group>();
   pickups = new Map<string, THREE.Object3D>();
@@ -55,11 +60,15 @@ export class World {
   raycaster = new THREE.Raycaster();
   pointer = new THREE.Vector2();
   motion: WorldMotion;
-  zoom = 20;
+  zoom = 9;
   stepRemainder = 0;
   predictMovement = true;
   lastSeed = -1;
+  /** Camera orbit around the player (radians). yaw 0 = camera south of the player, looking north. */
   yaw = 0;
+  pitch = 0.36;
+  /** main.ts decides when mouse-look is allowed (in a mission, no menu/modal open). */
+  lookAllowed: () => boolean = () => false;
   menu = true;
   last = 0;
   fps = 60;
@@ -90,12 +99,13 @@ export class World {
         event.preventDefault();
         this.zoom = THREE.MathUtils.clamp(
           this.zoom + event.deltaY * 0.012,
-          12,
-          28,
+          4.5,
+          24,
         );
       },
       { passive: false },
     );
+    this.setupMouseLook();
     const arrow = new THREE.Mesh(
       new THREE.ConeGeometry(0.18, 0.45, 5),
       new THREE.MeshBasicMaterial({ color: 0xffc83d }),
@@ -240,6 +250,50 @@ export class World {
       this.camera.updateProjectionMatrix();
     });
   }
+  /** Rotate the camera by a mouse/touch delta in pixels. */
+  look(dx: number, dy: number) {
+    this.yaw -= dx * 0.0028;
+    this.pitch = THREE.MathUtils.clamp(this.pitch + dy * 0.0022, -0.12, 1.25);
+  }
+  /**
+   * Fortnite/Minecraft-style mouse look: click the game to capture the mouse (pointer lock),
+   * move it to orbit the camera, Esc releases it. Falls back to click-drag (and touch drag
+   * on phones) when pointer lock is unavailable.
+   */
+  private setupMouseLook() {
+    const canvas = this.renderer.domElement;
+    canvas.addEventListener("click", () => {
+      if (!this.lookAllowed() || document.pointerLockElement === canvas) return;
+      try {
+        const req = canvas.requestPointerLock() as unknown as Promise<void> | undefined;
+        req?.catch?.(() => {});
+      } catch {}
+    });
+    addEventListener("mousemove", (e) => {
+      if (document.pointerLockElement === canvas && this.lookAllowed())
+        this.look(e.movementX, e.movementY);
+    });
+    const drags = new Map<number, { x: number; y: number }>();
+    canvas.addEventListener("pointerdown", (e) => {
+      drags.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    });
+    canvas.addEventListener("pointermove", (e) => {
+      const d = drags.get(e.pointerId);
+      if (!d) return;
+      const dx = e.clientX - d.x,
+        dy = e.clientY - d.y;
+      d.x = e.clientX;
+      d.y = e.clientY;
+      if (document.pointerLockElement === canvas || !this.lookAllowed()) return;
+      if (e.pointerType === "touch" || e.buttons & 1) this.look(dx * 1.4, dy * 1.4);
+    });
+    const end = (e: PointerEvent) => drags.delete(e.pointerId);
+    canvas.addEventListener("pointerup", end);
+    canvas.addEventListener("pointercancel", end);
+  }
+  releaseMouse() {
+    if (document.pointerLockElement === this.renderer.domElement) document.exitPointerLock();
+  }
   addLabel(id: string, obj: THREE.Object3D, text: string, height: number) {
     const el = document.createElement("div");
     el.className = "world-label";
@@ -290,24 +344,40 @@ export class World {
         g!.position.set(p.x, 0, p.z);
       }
       const player = g!;
-      const speed = s.allocation.heat < 1 ? B.coldSpeed : B.speed;
+      const local = p.id === id ? this.local : null;
+      if (local) {
+        // Your own astronaut: drawn straight from the per-frame controller (no 10 Hz lag).
+        player.position.set(local.x, local.y, local.z);
+        this.motion.actor(player, p, s, dt, {
+          speed: local.speed,
+          gait: local.gait,
+          grounded: local.grounded,
+          vy: local.vy,
+          landAgo: local.time - local.landedAt,
+          landImpact: local.landImpact,
+          heading: local.heading,
+        });
+        continue;
+      }
+      const speed = gaitSpeed(p.gait, s.allocation.heat < 1);
       let x = p.x;
       let z = p.z;
-      if (this.predictMovement && s.phase === "day") {
+      if (this.predictMovement && s.phase === "day" && p.posAt === undefined) {
         x += p.move.x * speed * this.stepRemainder;
         z += p.move.z * speed * this.stepRemainder;
       } else {
+        // Other players: glide between network updates.
         const shown = (player.userData.shown ||= { x: p.x, z: p.z }) as {
           x: number;
           z: number;
         };
-        const dx = p.x - shown.x,
-          dz = p.z - shown.z,
-          dist = Math.hypot(dx, dz),
-          step = Math.min(dist, Math.max(speed, dist / 0.12) * dt);
-        if (dist > 1e-5) {
-          shown.x += (dx / dist) * step;
-          shown.z += (dz / dist) * step;
+        const k = 1 - Math.exp(-12 * dt);
+        if (Math.hypot(p.x - shown.x, p.z - shown.z) > 12) {
+          shown.x = p.x;
+          shown.z = p.z;
+        } else {
+          shown.x += (p.x - shown.x) * k;
+          shown.z += (p.z - shown.z) * k;
         }
         x = shown.x;
         z = shown.z;
@@ -317,10 +387,27 @@ export class World {
         x *= B.worldRadius / radius;
         z *= B.worldRadius / radius;
       }
-      player.position.x = x;
-      player.position.z = z;
-      this.motion.actor(player, p, s, dt);
-      player.position.y = this.terrain.heightAt(x, z);
+      const prevX = player.position.x,
+        prevZ = player.position.z;
+      const seen = Math.hypot(x - prevX, z - prevZ) / Math.max(dt, 1e-3);
+      player.userData.seen = THREE.MathUtils.damp(
+        Number(player.userData.seen || 0),
+        Math.min(seen, 20),
+        10,
+        dt,
+      );
+      const airtime = (2 * B.jumpSpeed) / B.marsGravity;
+      const since = s.elapsed - (p.jumpAt ?? -99);
+      const lift = since < airtime ? jumpArc(since) : 0;
+      player.position.set(x, this.terrain.heightAt(x, z) + lift, z);
+      this.motion.actor(player, p, s, dt, {
+        speed: Number(player.userData.seen),
+        gait: p.gait || "walk",
+        grounded: lift <= 0,
+        vy: B.jumpSpeed - B.marsGravity * since,
+        landAgo: since >= airtime ? since - airtime : 99,
+        landImpact: 0.4,
+      });
     }
     for (const [key, obj] of this.pickups)
       if (!s.items.some((i) => i.id === key)) {
@@ -491,19 +578,28 @@ export class World {
       const target = actor
         ? actor.position.clone()
         : new THREE.Vector3(p.x, this.terrain.heightAt(p.x, p.z), p.z);
-      const offset = new THREE.Vector3(
-        Math.sin(this.yaw) * this.zoom,
-        this.zoom * 0.55,
-        Math.cos(this.yaw) * this.zoom,
-      );
-      const desired = target.clone().add(offset);
-      // Never let the camera dip below a hill between it and the player.
-      desired.y = Math.max(
-        desired.y,
-        this.terrain.heightAt(desired.x, desired.z) + 3,
-      );
-      this.camera.position.lerp(desired, 1 - Math.exp(-6 * dt));
-      this.camera.lookAt(target.x, target.y + 1.2, target.z - 2);
+      // Third-person orbit camera behind the player, a little over the right shoulder.
+      // Smooth only the followed point, so turning the mouse is instant (no swing).
+      const follow = (this.cameraFollow ||= target.clone());
+      follow.lerp(target, 1 - Math.exp(-18 * dt));
+      const cp = Math.cos(this.pitch),
+        sp = Math.sin(this.pitch);
+      const right = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
+      const shoulder = right.multiplyScalar(Math.min(1.1, this.zoom * 0.09));
+      const focus = follow.clone().add(new THREE.Vector3(0, 2.3, 0)).add(shoulder);
+      const desired = focus
+        .clone()
+        .add(
+          new THREE.Vector3(
+            Math.sin(this.yaw) * cp * this.zoom,
+            sp * this.zoom,
+            Math.cos(this.yaw) * cp * this.zoom,
+          ),
+        );
+      // Never let the camera dip into a hill.
+      desired.y = Math.max(desired.y, this.terrain.heightAt(desired.x, desired.z) + 0.8);
+      this.camera.position.copy(desired);
+      this.camera.lookAt(focus);
       // Shadows follow the player across the big map.
       this.sun.position.set(target.x - 18, target.y + 30, target.z + 15);
       this.sun.target.position.copy(target);

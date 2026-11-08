@@ -47,7 +47,19 @@ export type Player = Point & {
   task?: { kind: string; target: string; at: number };
   move: Point;
   joined: number;
+  /** walk | sprint | crouch, set by the player's own client (Minecraft-style movement). */
+  gait?: Gait;
+  /** s.elapsed when this player last jumped; clients draw the arc from it. */
+  jumpAt?: number;
+  /** s.elapsed of the last client-reported position; the sim stops integrating while fresh. */
+  posAt?: number;
 };
+export type Gait = "walk" | "sprint" | "crouch";
+/** Speed for a gait (m/s). Cold suits (no heater power) slow everyone down. */
+export function gaitSpeed(gait: Gait | undefined, cold: boolean) {
+  const base = cold ? B.coldSpeed : B.speed;
+  return base * (gait === "sprint" ? B.sprintMultiplier : gait === "crouch" ? B.crouchMultiplier : 1);
+}
 export type Pickup = Point & {
   id: string;
   kind: Item;
@@ -274,6 +286,46 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (!Number.isFinite(x) || !Number.isFinite(z)) return;
     const len = Math.max(1, Math.hypot(x, z));
     p.move = { x: x / len, z: z / len };
+    if (a.gait === "walk" || a.gait === "sprint" || a.gait === "crouch") p.gait = a.gait;
+    return;
+  }
+  if (a.type === "pos") {
+    // The moving player's own client is authoritative for its position so movement feels
+    // instant. Guard against teleports: accept at most one sprint second plus slack per report.
+    if (s.phase !== "day") return;
+    const x = Number(a.x),
+      z = Number(a.z);
+    if (!Number.isFinite(x) || !Number.isFinite(z)) return;
+    const since = Math.max(0.05, s.elapsed - (p.posAt ?? s.elapsed - 1));
+    const maxStep = gaitSpeed("sprint", false) * Math.min(1, since) * 1.6 + 1.5;
+    let dx = x - p.x,
+      dz = z - p.z;
+    const d = Math.hypot(dx, dz);
+    if (d > maxStep) {
+      dx *= maxStep / d;
+      dz *= maxStep / d;
+    }
+    p.x += dx;
+    p.z += dz;
+    const r = Math.hypot(p.x, p.z);
+    if (r > B.worldRadius) {
+      p.x *= B.worldRadius / r;
+      p.z *= B.worldRadius / r;
+    }
+    const mx = Number(a.mx),
+      mz = Number(a.mz);
+    if (Number.isFinite(mx) && Number.isFinite(mz)) {
+      const len = Math.max(1, Math.hypot(mx, mz));
+      p.move = { x: mx / len, z: mz / len };
+    }
+    if (a.gait === "walk" || a.gait === "sprint" || a.gait === "crouch") p.gait = a.gait;
+    p.posAt = s.elapsed;
+    return;
+  }
+  if (a.type === "jump") {
+    if (s.phase !== "day") return;
+    if (p.jumpAt !== undefined && s.elapsed - p.jumpAt < B.jumpCooldown) return;
+    p.jumpAt = s.elapsed;
     return;
   }
   if (a.type === "role") {
@@ -605,7 +657,9 @@ export function tick(s: Game, dt: number) {
   if (s.phase !== "day") return;
   s.clock += dt;
   for (const p of Object.values(s.players)) {
-    const speed = s.allocation.heat < 1 ? B.coldSpeed : B.speed;
+    // A client that is reporting its own position drives this player directly.
+    if (p.posAt !== undefined && s.elapsed - p.posAt < 0.5) continue;
+    const speed = gaitSpeed(p.gait, s.allocation.heat < 1);
     p.x += p.move.x * speed * dt;
     p.z += p.move.z * speed * dt;
     const r = Math.hypot(p.x, p.z);
