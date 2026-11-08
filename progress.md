@@ -62,3 +62,12 @@ Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.
 - Supplied loop and 11 event/state captures report zero page errors. Reviewed flare and full-screen debrief images.
 - All 33 tests pass, including displayed-cost/simulation agreement, concise storm countdowns, and guest next-sol permissions.
 
+
+## Task 6 complete
+- Camera uses a damped follow and bounded wheel zoom; instanced rocks and fixed particle pools remain in use. Added local favicon and bundled dependency/font notices.
+- 36 screen/size combinations passed geometry, minimum-text, label-width/overlap, and console checks at 1600x900, 1280x720 and 390x844. Real controls covered goals/chat open-close, roles, gauge focus, fullscreen/Escape, phone joystick and touch pickup.
+- Visual review caught a toast covering a flare option; dialogs now suppress toasts. A fresh 12-screen phone pass has zero layout failures, copy warnings or console errors. Reviewed the corrected phone flare image.
+- Persistent REPL imports were unavailable in this host (ESM/CJS loader errors); the installed Playwright CLI performed interactive checks instead. Context7/Playwright MCP were not exposed.
+- Optional bloom/vignette GPU passes skipped: no reliable target-hardware GPU timing is available. Warm world lighting remains; 60 fps on a particular laptop is not certified by software-rendered browser QA.
+- Shared simulation and balance files have no diff from the pre-redesign checkpoint.
+

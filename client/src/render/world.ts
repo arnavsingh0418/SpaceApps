@@ -1,5 +1,5 @@
-import {WorldMotion} from './motion';
-import {placeLabels} from './labels';
+import { WorldMotion } from "./motion";
+import { placeLabels } from "./labels";
 import * as THREE from "three";
 import {
   initBuilders,
@@ -46,16 +46,21 @@ export class World {
     { obj: THREE.Object3D; el: HTMLElement; height: number }
   >();
   devil = new THREE.Group();
-  objectiveTarget: {x:number;z:number}|null=null;
+  objectiveTarget: { x: number; z: number } | null = null;
   objectiveMarker = new THREE.Group();
-  hovered='';nearest='';
-  raycaster=new THREE.Raycaster();pointer=new THREE.Vector2();
+  hovered = "";
+  nearest = "";
+  raycaster = new THREE.Raycaster();
+  pointer = new THREE.Vector2();
   motion: WorldMotion;
-  zoom=20;cameraVelocity=new THREE.Vector3();lastSeed=-1;
+  zoom = 20;
+  cameraVelocity = new THREE.Vector3();
+  lastSeed = -1;
   yaw = 0;
   menu = true;
   last = 0;
   fps = 60;
+  frameMs = 0;
   sun: THREE.DirectionalLight;
   sky = new THREE.Color(0xe0a982);
   constructor() {
@@ -71,11 +76,38 @@ export class World {
     this.scene.background = this.sky;
     this.scene.fog = new THREE.Fog(0xd99a72, 48, 135);
     initBuilders(this.scene);
-    this.motion=new WorldMotion(this.scene);
-    addEventListener('game-effect',event=>{const e=(event as CustomEvent).detail;this.motion.cue(e.kind,e.target,e.id,this.actors,this.pickups);});
-    this.renderer.domElement.addEventListener('wheel',event=>{event.preventDefault();this.zoom=THREE.MathUtils.clamp(this.zoom+event.deltaY*.012,12,28);},{passive:false});
-    const arrow=new THREE.Mesh(new THREE.ConeGeometry(.18,.45,5),new THREE.MeshBasicMaterial({color:0xffc83d}));arrow.rotation.z=Math.PI;arrow.position.y=3.3;this.objectiveMarker.add(arrow);
-    const markerRing=new THREE.Mesh(new THREE.TorusGeometry(.8,.055,4,28),new THREE.MeshBasicMaterial({color:0xffc83d}));markerRing.rotation.x=-Math.PI/2;markerRing.position.y=.04;this.objectiveMarker.add(markerRing);this.scene.add(this.objectiveMarker);
+    this.motion = new WorldMotion(this.scene);
+    addEventListener("game-effect", (event) => {
+      const e = (event as CustomEvent).detail;
+      this.motion.cue(e.kind, e.target, e.id, this.actors, this.pickups);
+    });
+    this.renderer.domElement.addEventListener(
+      "wheel",
+      (event) => {
+        event.preventDefault();
+        this.zoom = THREE.MathUtils.clamp(
+          this.zoom + event.deltaY * 0.012,
+          12,
+          28,
+        );
+      },
+      { passive: false },
+    );
+    const arrow = new THREE.Mesh(
+      new THREE.ConeGeometry(0.18, 0.45, 5),
+      new THREE.MeshBasicMaterial({ color: 0xffc83d }),
+    );
+    arrow.rotation.z = Math.PI;
+    arrow.position.y = 3.3;
+    this.objectiveMarker.add(arrow);
+    const markerRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.8, 0.055, 4, 28),
+      new THREE.MeshBasicMaterial({ color: 0xffc83d }),
+    );
+    markerRing.rotation.x = -Math.PI / 2;
+    markerRing.position.y = 0.04;
+    this.objectiveMarker.add(markerRing);
+    this.scene.add(this.objectiveMarker);
     this.scene.add(new THREE.HemisphereLight(0xfff0e0, 0x7a3a20, 1.1));
     this.sun = new THREE.DirectionalLight(0xffe2c4, 2.5);
     this.sun.position.set(-18, 30, 15);
@@ -209,12 +241,36 @@ export class World {
       this.devil.add(m);
     }
     this.scene.add(this.devil);
-    this.renderer.domElement.addEventListener('pointermove',event=>{
-      this.pointer.set(event.clientX/innerWidth*2-1,-event.clientY/innerHeight*2+1);this.raycaster.setFromCamera(this.pointer,this.camera);
-      const entries=Array.from(this.labels.entries()).filter(([key])=>!this.actors.has(key));const hits=this.raycaster.intersectObjects(entries.map(([,l])=>l.obj),true);this.hovered='';
-      if(hits[0]){let obj:THREE.Object3D|null=hits[0].object;while(obj){const found=entries.find(([,l])=>l.obj===obj);if(found){this.hovered=found[0];break;}obj=obj.parent;}}
+    this.renderer.domElement.addEventListener("pointermove", (event) => {
+      this.pointer.set(
+        (event.clientX / innerWidth) * 2 - 1,
+        (-event.clientY / innerHeight) * 2 + 1,
+      );
+      this.raycaster.setFromCamera(this.pointer, this.camera);
+      const entries = Array.from(this.labels.entries()).filter(
+        ([key]) => !this.actors.has(key),
+      );
+      const hits = this.raycaster.intersectObjects(
+        entries.map(([, l]) => l.obj),
+        true,
+      );
+      this.hovered = "";
+      if (hits[0]) {
+        let obj: THREE.Object3D | null = hits[0].object;
+        while (obj) {
+          const found = entries.find(([, l]) => l.obj === obj);
+          if (found) {
+            this.hovered = found[0];
+            break;
+          }
+          obj = obj.parent;
+        }
+      }
     });
-    this.renderer.domElement.addEventListener('pointerleave',()=>this.hovered='');
+    this.renderer.domElement.addEventListener(
+      "pointerleave",
+      () => (this.hovered = ""),
+    );
     this.camera.position.set(18, 13, 26);
     this.camera.lookAt(0, 1, -3);
     addEventListener("resize", () => {
@@ -226,7 +282,7 @@ export class World {
   addLabel(id: string, obj: THREE.Object3D, text: string, height: number) {
     const el = document.createElement("div");
     el.className = "world-label";
-    el.hidden=true;
+    el.hidden = true;
     el.textContent = text;
     document.querySelector("#labels")!.append(el);
     this.labels.set(id, { obj, el, height });
@@ -244,9 +300,21 @@ export class World {
     });
   }
   update(s: Game, id: string, dt: number) {
-    if(this.lastSeed!==s.seed){for(const[k,o]of this.buildings)if(k!=='hab'){this.remove(k,o);this.buildings.delete(k);}this.lastSeed=s.seed;}
-    for(const[k,o]of this.panels)if(!s.panels.some(p=>p.id===k)){this.remove(k,o);this.panels.delete(k);}
-    this.motion.update(s,id,this.actors,dt);
+    const renderBegin = performance.now();
+    if (this.lastSeed !== s.seed) {
+      for (const [k, o] of this.buildings)
+        if (k !== "hab") {
+          this.remove(k, o);
+          this.buildings.delete(k);
+        }
+      this.lastSeed = s.seed;
+    }
+    for (const [k, o] of this.panels)
+      if (!s.panels.some((p) => p.id === k)) {
+        this.remove(k, o);
+        this.panels.delete(k);
+      }
+    this.motion.update(s, id, this.actors, dt);
     for (const [key, obj] of this.actors)
       if (!s.players[key]) {
         this.remove(key, obj);
@@ -265,8 +333,7 @@ export class World {
         new THREE.Vector3(p.x, 0, p.z),
         1 - Math.exp(-14 * dt),
       );
-      this.motion.actor(player,p,s,dt);
-
+      this.motion.actor(player, p, s, dt);
     }
     for (const [key, obj] of this.pickups)
       if (!s.items.some((i) => i.id === key)) {
@@ -310,10 +377,23 @@ export class World {
           1.2,
         );
       }
-      o.userData.count=i.count;
-      o.position.set(i.x,0,i.z);
-      o.children[0].position.y=.55+(this.motion.reduced?0:Math.sin(this.motion.time*2+i.x)*.15);o.children[0].rotation.y=this.motion.reduced?0:this.motion.time*.35+i.x;
-      const ring=o.children[1] as THREE.Mesh<THREE.TorusGeometry,THREE.MeshBasicMaterial>;ring.material.transparent=true;ring.material.opacity=(i.id===this.nearest)?0.95:0.5;ring.scale.setScalar(this.motion.reduced?1:1+Math.sin(this.motion.time*3)*.05);
+      o.userData.count = i.count;
+      o.position.set(i.x, 0, i.z);
+      o.children[0].position.y =
+        0.55 +
+        (this.motion.reduced ? 0 : Math.sin(this.motion.time * 2 + i.x) * 0.15);
+      o.children[0].rotation.y = this.motion.reduced
+        ? 0
+        : this.motion.time * 0.35 + i.x;
+      const ring = o.children[1] as THREE.Mesh<
+        THREE.TorusGeometry,
+        THREE.MeshBasicMaterial
+      >;
+      ring.material.transparent = true;
+      ring.material.opacity = i.id === this.nearest ? 0.95 : 0.5;
+      ring.scale.setScalar(
+        this.motion.reduced ? 1 : 1 + Math.sin(this.motion.time * 3) * 0.05,
+      );
       const label = this.labels.get(i.id);
       if (label)
         label.el.textContent = `${icons[i.kind]} ${itemNames[i.kind]} ×${i.count}${i.damaged ? " · damaged" : ""}`;
@@ -324,12 +404,41 @@ export class World {
         o = panel(p.x, p.z, 0, 0);
         this.panels.set(p.id, o!);
         this.addLabel(p.id, o!, "", 1.7);
-        const meter=new THREE.Group();meter.name='clean-meter';meter.position.set(0,.08,.35);
-        for(let n=0;n<4;n++){const segment=new THREE.Mesh(new THREE.BoxGeometry(.28,.025,.1),new THREE.MeshBasicMaterial({color:0xffc83d}));segment.position.x=-.5+n*.33;meter.add(segment);}o!.children[1].add(meter);
+        const meter = new THREE.Group();
+        meter.name = "clean-meter";
+        meter.position.set(0, 0.08, 0.35);
+        for (let n = 0; n < 4; n++) {
+          const segment = new THREE.Mesh(
+            new THREE.BoxGeometry(0.28, 0.025, 0.1),
+            new THREE.MeshBasicMaterial({ color: 0xffc83d }),
+          );
+          segment.position.x = -0.5 + n * 0.33;
+          meter.add(segment);
+        }
+        o!.children[1].add(meter);
       }
       const m = o!.children[1] as THREE.Mesh;
-      const panelColor=new THREE.Color(0x1e3a8a).lerp(new THREE.Color(0x8a5a44),1-p.clean);if(p.covered)panelColor.setHex(0x5e4c40);(m.material as THREE.MeshStandardMaterial).color.lerp(panelColor,1-Math.exp(-dt*4));
-      const meter=m.getObjectByName('clean-meter');if(meter){meter.visible=!this.menu&&(p.clean<.6||Math.hypot(s.players[id].x-p.x,s.players[id].z-p.z)<4);meter.children.forEach((seg,i)=>{(seg as THREE.Mesh<THREE.BoxGeometry,THREE.MeshBasicMaterial>).material.color.setHex(i<p.clean*4?0xffc83d:0x241812);});}
+      const panelColor = new THREE.Color(0x1e3a8a).lerp(
+        new THREE.Color(0x8a5a44),
+        1 - p.clean,
+      );
+      if (p.covered) panelColor.setHex(0x5e4c40);
+      (m.material as THREE.MeshStandardMaterial).color.lerp(
+        panelColor,
+        1 - Math.exp(-dt * 4),
+      );
+      const meter = m.getObjectByName("clean-meter");
+      if (meter) {
+        meter.visible =
+          !this.menu &&
+          (p.clean < 0.6 ||
+            Math.hypot(s.players[id].x - p.x, s.players[id].z - p.z) < 4);
+        meter.children.forEach((seg, i) => {
+          (
+            seg as THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>
+          ).material.color.setHex(i < p.clean * 4 ? 0xffc83d : 0x241812);
+        });
+      }
       this.labels.get(p.id)!.el.textContent = p.covered
         ? "🛡️ Covered · no sunlight"
         : `⚡ ${Math.round(p.clean * 100)}% clean`;
@@ -350,40 +459,111 @@ export class World {
             );
             tank.position.set(-10 + Math.cos(a) * 3, 0.65, 2 + Math.sin(a) * 3);
             tank.castShadow = true;
-            tank.position.sub(o.position);o.add(tank);
+            tank.position.sub(o.position);
+            o.add(tank);
           }
         } else if (k === "greenhouse") o = greenhouse(8, -1);
         else if (k === "radio") o = dish(-9, -7, false);
         else o = crate(6, 6, 0x7dd3fc, 1.3);
-        o.userData.born=this.motion.time;this.buildings.set(k, o);
+        o.userData.born = this.motion.time;
+        this.buildings.set(k, o);
       }
     this.devil.position.set(s.devil.x, 0, s.devil.z);
     this.devil.rotation.y = s.elapsed * 1.5;
-    for(const[k,o]of this.buildings){if(k==='hab')continue;const t=Math.min(1,(this.motion.time-Number(o.userData.born||0))/.65);const back=1+2.70158*Math.pow(t-1,3)+1.70158*Math.pow(t-1,2);o.scale.setScalar(this.motion.reduced?1:Math.max(.01,back));}
-    const sunset=Math.max(0,(s.clock/B.solSeconds-.7)/.3);const skyColor=new THREE.Color(0xe0a982).lerp(new THREE.Color(0xab6953),sunset*.6).lerp(new THREE.Color(0x9c5a3a),this.motion.storm*.7);
-    this.sky.lerp(skyColor,1-Math.exp(-dt*2));this.scene.fog!.color.copy(this.sky);this.sun.intensity=THREE.MathUtils.lerp(2.5-sunset*.8,1.05,this.motion.storm);this.sun.color.setHex(0xffe2c4).lerp(new THREE.Color(0xffaa76),sunset);
+    for (const [k, o] of this.buildings) {
+      if (k === "hab") continue;
+      const t = Math.min(
+        1,
+        (this.motion.time - Number(o.userData.born || 0)) / 0.65,
+      );
+      const back =
+        1 + 2.70158 * Math.pow(t - 1, 3) + 1.70158 * Math.pow(t - 1, 2);
+      o.scale.setScalar(this.motion.reduced ? 1 : Math.max(0.01, back));
+    }
+    const sunset = Math.max(0, (s.clock / B.solSeconds - 0.7) / 0.3);
+    const skyColor = new THREE.Color(0xe0a982)
+      .lerp(new THREE.Color(0xab6953), sunset * 0.6)
+      .lerp(new THREE.Color(0x9c5a3a), this.motion.storm * 0.7);
+    this.sky.lerp(skyColor, 1 - Math.exp(-dt * 2));
+    this.scene.fog!.color.copy(this.sky);
+    this.sun.intensity = THREE.MathUtils.lerp(
+      2.5 - sunset * 0.8,
+      1.05,
+      this.motion.storm,
+    );
+    this.sun.color.setHex(0xffe2c4).lerp(new THREE.Color(0xffaa76), sunset);
     const p = s.players[id];
     if (p && !this.menu) {
       const target = new THREE.Vector3(p.x, 0, p.z);
       const offset = new THREE.Vector3(
         Math.sin(this.yaw) * this.zoom,
-        this.zoom*.55,
+        this.zoom * 0.55,
         Math.cos(this.yaw) * this.zoom,
       );
-      const desired=target.clone().add(offset);this.cameraVelocity.addScaledVector(desired.sub(this.camera.position),dt*36);this.cameraVelocity.multiplyScalar(Math.exp(-dt*10));this.camera.position.addScaledVector(this.cameraVelocity,dt);
-      if(!this.motion.reduced&&this.motion.shake>0){this.camera.position.x+=Math.sin(this.motion.time*100)*.04;this.camera.position.y+=Math.cos(this.motion.time*93)*.025;}
-      if(!this.motion.reduced&&this.motion.storm>.1)this.camera.position.x+=Math.sin(this.motion.time*36)*.008*this.motion.storm;
+      const desired = target.clone().add(offset);
+      this.cameraVelocity.addScaledVector(
+        desired.sub(this.camera.position),
+        dt * 36,
+      );
+      this.cameraVelocity.multiplyScalar(Math.exp(-dt * 10));
+      this.camera.position.addScaledVector(this.cameraVelocity, dt);
+      if (!this.motion.reduced && this.motion.shake > 0) {
+        this.camera.position.x += Math.sin(this.motion.time * 100) * 0.04;
+        this.camera.position.y += Math.cos(this.motion.time * 93) * 0.025;
+      }
+      if (!this.motion.reduced && this.motion.storm > 0.1)
+        this.camera.position.x +=
+          Math.sin(this.motion.time * 36) * 0.008 * this.motion.storm;
       this.camera.lookAt(target.x, 1.2, target.z - 2);
     } else if (this.menu) {
       const a = s.elapsed * 0.015;
       this.camera.position.set(19 + Math.sin(a) * 3, 13, 26);
       this.camera.lookAt(0, 1, -2);
     }
-    this.nearest=placeLabels(this.labels,this.camera,s,id,this.menu,this.hovered);
-    for(const[key,l]of this.labels){if(this.actors.has(key)||key.startsWith('panel-')||key==='workbench')continue;const active=key===this.nearest||key===this.hovered;l.obj.traverse(o=>{if(o instanceof THREE.Mesh&&o.material instanceof THREE.MeshStandardMaterial){o.material.emissive.setHex(key.startsWith('item-')?0xffc83d:0x39e6e0);o.material.emissiveIntensity=active?.2+Math.sin(s.elapsed*5)*.07:key.startsWith('item-')?0:.35;}});}
-    this.objectiveMarker.visible=!!this.objectiveTarget&&!this.menu;
-    if(this.objectiveTarget){this.objectiveMarker.position.set(this.objectiveTarget.x,0,this.objectiveTarget.z);this.objectiveMarker.children[0].position.y=3.3+(this.motion.reduced?0:Math.sin(this.motion.time*4)*.12);}
+    this.nearest = placeLabels(
+      this.labels,
+      this.camera,
+      s,
+      id,
+      this.menu,
+      this.hovered,
+    );
+    for (const [key, l] of this.labels) {
+      if (
+        this.actors.has(key) ||
+        key.startsWith("panel-") ||
+        key === "workbench"
+      )
+        continue;
+      const active = key === this.nearest || key === this.hovered;
+      l.obj.traverse((o) => {
+        if (
+          o instanceof THREE.Mesh &&
+          o.material instanceof THREE.MeshStandardMaterial
+        ) {
+          o.material.emissive.setHex(
+            key.startsWith("item-") ? 0xffc83d : 0x39e6e0,
+          );
+          o.material.emissiveIntensity = active
+            ? 0.2 + Math.sin(s.elapsed * 5) * 0.07
+            : key.startsWith("item-")
+              ? 0
+              : 0.35;
+        }
+      });
+    }
+    this.objectiveMarker.visible = !!this.objectiveTarget && !this.menu;
+    if (this.objectiveTarget) {
+      this.objectiveMarker.position.set(
+        this.objectiveTarget.x,
+        0,
+        this.objectiveTarget.z,
+      );
+      this.objectiveMarker.children[0].position.y =
+        3.3 + (this.motion.reduced ? 0 : Math.sin(this.motion.time * 4) * 0.12);
+    }
     this.renderer.render(this.scene, this.camera);
+    this.frameMs = performance.now() - renderBegin;
     this.fps = this.fps * 0.95 + 0.05 / Math.max(0.001, dt);
   }
 }

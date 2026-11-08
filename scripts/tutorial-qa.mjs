@@ -1,13 +1,78 @@
-import {chromium} from 'playwright';
-import fs from 'node:fs/promises';
-import assert from 'node:assert/strict';
-const dir=process.argv[2]||'references/redesign/after/task-2-functional';await fs.mkdir(dir,{recursive:true});
-const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader']});const page=await browser.newPage({viewport:{width:1600,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
-await page.goto('http://127.0.0.1:5173');await page.click('[data-do=solo]');await page.evaluate(()=>window.advanceTime(100));
-const state=async()=>JSON.parse(await page.evaluate(()=>window.render_game_to_text()));assert.equal((await state()).modal,'');assert.equal((await state()).hudGroups,3);
-async function walk(x,z){for(let guard=0;guard<100;guard++){const p=(await state()).player,dx=x-p.x,dz=z-p.z;if(Math.hypot(dx,dz)<.4)return;const key=Math.abs(dx)>Math.abs(dz)?dx>0?'ArrowRight':'ArrowLeft':dz>0?'ArrowDown':'ArrowUp';await page.keyboard.down(key);await page.evaluate(()=>window.advanceTime(100));await page.keyboard.up(key);}throw Error('Could not reach tutorial target');}
-await walk(-3,4);assert.equal((await state()).tutorial,1);await page.keyboard.press('e');await page.evaluate(()=>window.advanceTime(100));assert.equal((await state()).tutorial,2);assert.equal((await state()).player.bag.scrap,6);
-await walk(-7,7);await page.keyboard.press('e');await page.evaluate(()=>window.advanceTime(800));await page.click('[data-do=answer][data-answer="0"]');await page.evaluate(()=>window.advanceTime(100));assert.equal((await state()).tutorial,3);
-await walk(0,-2);await page.keyboard.press('e');await page.click('[data-do=store]');await page.evaluate(()=>window.advanceTime(100));assert.equal((await state()).tutorial,4);await page.click('[data-do=close]');await page.screenshot({path:`${dir}/tutorial-complete.png`});
-await page.evaluate(()=>window.advanceTime(211000));assert.equal((await state()).phase,'summary');await page.click('[data-do=next]');await page.evaluate(()=>window.advanceTime(100));assert.equal((await state()).modal,'power');await page.click('[data-do=pip][data-k=radio][data-v="2"]');await page.locator('[data-row=air]').focus();await page.keyboard.press('+');await page.keyboard.press('-');await page.click('[data-do=lock]');await page.evaluate(()=>window.advanceTime(500));assert.equal((await state()).phase,'day');assert.equal((await state()).modal,'');
-await fs.writeFile(`${dir}/state.json`,JSON.stringify(await state(),null,2));await fs.writeFile(`${dir}/errors.json`,JSON.stringify(errors));assert.deepEqual(errors,[]);console.log('PASS: real-input tutorial, 3 HUD groups, sol summary, second-sol power, keyboard pips, lock-in.');await browser.close();
+import { chromium } from "playwright";
+import fs from "node:fs/promises";
+import assert from "node:assert/strict";
+const dir = process.argv[2] || "references/redesign/after/task-2-functional";
+await fs.mkdir(dir, { recursive: true });
+const browser = await chromium.launch({
+  headless: true,
+  args: ["--enable-unsafe-swiftshader"],
+});
+const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+const errors = [];
+page.on("pageerror", (e) => errors.push(e.message));
+await page.goto("http://127.0.0.1:5173");
+await page.click("[data-do=solo]");
+await page.evaluate(() => window.advanceTime(100));
+const state = async () =>
+  JSON.parse(await page.evaluate(() => window.render_game_to_text()));
+assert.equal((await state()).modal, "");
+assert.equal((await state()).hudGroups, 3);
+async function walk(x, z) {
+  for (let guard = 0; guard < 100; guard++) {
+    const p = (await state()).player,
+      dx = x - p.x,
+      dz = z - p.z;
+    if (Math.hypot(dx, dz) < 0.4) return;
+    const key =
+      Math.abs(dx) > Math.abs(dz)
+        ? dx > 0
+          ? "ArrowRight"
+          : "ArrowLeft"
+        : dz > 0
+          ? "ArrowDown"
+          : "ArrowUp";
+    await page.keyboard.down(key);
+    await page.evaluate(() => window.advanceTime(100));
+    await page.keyboard.up(key);
+  }
+  throw Error("Could not reach tutorial target");
+}
+await walk(-3, 4);
+assert.equal((await state()).tutorial, 1);
+await page.keyboard.press("e");
+await page.evaluate(() => window.advanceTime(100));
+assert.equal((await state()).tutorial, 2);
+assert.equal((await state()).player.bag.scrap, 6);
+await walk(-7, 7);
+await page.keyboard.press("e");
+await page.evaluate(() => window.advanceTime(800));
+await page.click('[data-do=answer][data-answer="0"]');
+await page.evaluate(() => window.advanceTime(100));
+assert.equal((await state()).tutorial, 3);
+await walk(0, -2);
+await page.keyboard.press("e");
+await page.click("[data-do=store]");
+await page.evaluate(() => window.advanceTime(100));
+assert.equal((await state()).tutorial, 4);
+await page.click("[data-do=close]");
+await page.screenshot({ path: `${dir}/tutorial-complete.png` });
+await page.evaluate(() => window.advanceTime(211000));
+assert.equal((await state()).phase, "summary");
+await page.click("[data-do=next]");
+await page.evaluate(() => window.advanceTime(100));
+assert.equal((await state()).modal, "power");
+await page.click('[data-do=pip][data-k=radio][data-v="2"]');
+await page.locator("[data-row=air]").focus();
+await page.keyboard.press("+");
+await page.keyboard.press("-");
+await page.click("[data-do=lock]");
+await page.evaluate(() => window.advanceTime(500));
+assert.equal((await state()).phase, "day");
+assert.equal((await state()).modal, "");
+await fs.writeFile(`${dir}/state.json`, JSON.stringify(await state(), null, 2));
+await fs.writeFile(`${dir}/errors.json`, JSON.stringify(errors));
+assert.deepEqual(errors, []);
+console.log(
+  "PASS: real-input tutorial, 3 HUD groups, sol summary, second-sol power, keyboard pips, lock-in.",
+);
+await browser.close();

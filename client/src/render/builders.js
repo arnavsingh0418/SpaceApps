@@ -27,14 +27,14 @@ export function astronaut(color) {
     new THREE.CapsuleGeometry(0.42, 0.55, 4, 10),
     suit,
   );
-  body.name="body";
+  body.name = "body";
   body.position.y = 1.0;
   g.add(body);
   const head = new THREE.Mesh(
     new THREE.SphereGeometry(0.42, 16, 12),
     mat(0xf5f5f4),
   );
-  head.name="helmet";
+  head.name = "helmet";
   head.position.y = 1.78;
   g.add(head);
   const visor = new THREE.Mesh(
@@ -46,7 +46,7 @@ export function astronaut(color) {
       flatShading: false,
     }),
   );
-  visor.name="visor";
+  visor.name = "visor";
   visor.position.set(0, 1.78, 0.02);
   g.add(visor);
   const pack = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.7, 0.32), white);
@@ -57,17 +57,19 @@ export function astronaut(color) {
       new THREE.CapsuleGeometry(0.15, 0.35, 3, 8),
       suit,
     );
-    leg.name=s<0?"legL":"legR";leg.geometry.translate(0,-.3,0);
+    leg.name = s < 0 ? "legL" : "legR";
+    leg.geometry.translate(0, -0.3, 0);
     leg.position.set(s * 0.18, 0.65, 0);
     g.add(leg);
     const boot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.34), dark);
-    boot.position.set(0,-.57,.04);
+    boot.position.set(0, -0.57, 0.04);
     leg.add(boot);
     const arm = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.12, 0.42, 3, 8),
       suit,
     );
-    arm.geometry.translate(0,-.2,0);arm.position.set(s * 0.52, 1.25, 0);
+    arm.geometry.translate(0, -0.2, 0);
+    arm.position.set(s * 0.52, 1.25, 0);
     arm.rotation.z = s * 0.15;
     arm.name = s < 0 ? "armL" : "armR";
     g.add(arm);
@@ -75,8 +77,29 @@ export function astronaut(color) {
   g.traverse((o) => {
     if (o.isMesh) o.castShadow = true;
   });
-  const carried=new THREE.Mesh(new THREE.BoxGeometry(.6,.5,.5),mat(0x9ca3af));carried.name='carried';carried.position.set(0,1.12,.65);carried.visible=false;g.add(carried);
-  const wrench=new THREE.Group();wrench.name='wrench';const handle=new THREE.Mesh(new THREE.BoxGeometry(.07,.4,.07),mat(0x9ca3af));const jaw=new THREE.Mesh(new THREE.TorusGeometry(.1,.035,4,8,Math.PI*1.5),mat(0x9ca3af));jaw.position.y=.24;wrench.add(handle,jaw);wrench.position.set(0,-.4,.15);wrench.visible=false;g.getObjectByName('armR').add(wrench);
+  const carried = new THREE.Mesh(
+    new THREE.BoxGeometry(0.6, 0.5, 0.5),
+    mat(0x9ca3af),
+  );
+  carried.name = "carried";
+  carried.position.set(0, 1.12, 0.65);
+  carried.visible = false;
+  g.add(carried);
+  const wrench = new THREE.Group();
+  wrench.name = "wrench";
+  const handle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.07, 0.4, 0.07),
+    mat(0x9ca3af),
+  );
+  const jaw = new THREE.Mesh(
+    new THREE.TorusGeometry(0.1, 0.035, 4, 8, Math.PI * 1.5),
+    mat(0x9ca3af),
+  );
+  jaw.position.y = 0.24;
+  wrench.add(handle, jaw);
+  wrench.position.set(0, -0.4, 0.15);
+  wrench.visible = false;
+  g.getObjectByName("armR").add(wrench);
   g.scale.setScalar(1.35);
   S.add(g);
   return g;
