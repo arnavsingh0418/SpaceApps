@@ -2,6 +2,7 @@ import B from "../data/balance.json";
 import recipes from "../data/recipes.json";
 import facts from "../data/facts.json";
 import flares from "../data/donki_flares.json";
+import { fieldMissions, missionAvailable, missionSector, type FieldProgress } from "../expedition";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -111,6 +112,8 @@ export type Game = {
   leakFixed: boolean;
   watering: boolean;
   history: string[];
+  /** Optional for compatibility with pre-expedition saves and older crew rooms. */
+  expedition?: FieldProgress;
 };
 export type Action = { type: string; [key: string]: unknown };
 /** The base layout is spread out by this factor so buildings can be life-sized. */
@@ -205,6 +208,7 @@ export function createGame(seed = 42): Game {
     leakFixed: false,
     watering: false,
     history: [],
+    expedition: { completed: [], surveyed: [], observations: {} },
   };
   const supplies: [Item, number, number, number][] = [
     ["scrap", 6, -3, 4],
@@ -419,6 +423,43 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     return;
   }
   if (s.phase !== "day") return fail("Wait until exploration time.");
+  if (["fieldObserve", "fieldReset", "fieldAnswer"].includes(a.type)) {
+    const m = fieldMissions.find((m) => m.id === a.mission);
+    if (!m) return fail("Unknown field investigation.");
+    if (!close(p, missionSector(m))) return fail("Travel to this field station first.");
+    if (!missionAvailable(s, m)) return fail("This investigation is complete or needs an earlier mission.");
+    const f = (s.expedition ??= { completed: [], surveyed: [], observations: {} });
+    if (a.type === "fieldReset") {
+      if (!f.surveyed.includes(m.id)) f.observations[m.id] = [];
+      return;
+    }
+    if (a.type === "fieldObserve") {
+      if (f.surveyed.includes(m.id)) return;
+      const value = Number(a.value);
+      if (!Number.isFinite(value)) return fail("Choose a valid instrument reading.");
+      const observations = (f.observations[m.id] ??= []);
+      if (m.tool === "tune") {
+        if (value < 0 || value > 100 || Math.abs(value - m.target!) > 5)
+          return fail("Tune the instrument to at least 95% signal.");
+        observations.push(value);
+      } else {
+        if (!Number.isInteger(value) || value < 0 || value >= m.samples.length) return fail("Choose a valid sample.");
+        if (observations.includes(value)) return;
+        if (m.tool === "sequence" && m.order![observations.length] !== value)
+          return fail("Check the process: what needs to happen before that step?");
+        observations.push(value);
+      }
+      if (m.tool === "tune" || observations.length === m.samples.length) f.surveyed.push(m.id);
+      return;
+    }
+    if (!f.surveyed.includes(m.id)) return fail("Collect the instrument readings before making a conclusion.");
+    if (a.answer !== m.correct) return fail("Recheck the evidence. " + m.explanation);
+    f.completed.push(m.id);
+    for (const [kind, count] of Object.entries(m.reward))
+      spawn(s, kind as Item, count, missionSector(m).x + 3, missionSector(m).z + 2);
+    log(s, `FIELD JOURNAL: ${m.title}. ${m.debrief}`);
+    return;
+  }
   if (a.type === "pick") {
     const i = s.items.findIndex((o) => o.id === a.target);
     if (i < 0) return;

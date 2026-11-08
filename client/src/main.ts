@@ -7,6 +7,8 @@ import { World } from "./render/world";
 import { LocalController } from "./render/controller";
 import { Arrival } from "./render/arrival";
 import { missionBriefing, fieldManual } from "./ui/briefing";
+import { expeditionMap, fieldStation, fieldDebrief } from "./ui/expedition";
+import { fieldMissions, fieldProgress, missionAvailable, missionSector, nextFieldMission, sectors } from "../../shared/src/expedition";
 import { CrewConnection } from "./net/crew";
 import {
   createGame,
@@ -47,6 +49,7 @@ let game = createGame(42),
   saved: Game | null = null,
   draft: Allocation = { air: 3, light: 3, radio: 3, heat: 2 };
 let arrival: Arrival | null = null;
+let trackedMission = "", selectedMission = "";
 let gaugeFrom = { power: 11, air: 85, food: 95, dose: 0 },
   gaugeUntil = 0;
 let tutorial = 4,
@@ -107,6 +110,11 @@ function sound(kind = "click") {
 }
 document.addEventListener("input", (event) => {
   const el = event.target as HTMLInputElement;
+  if (el.id === "field-dial") {
+    const signal = Math.max(0, 100 - Math.abs(Number(el.value) - Number(el.dataset.target)));
+    document.querySelector("#field-signal")!.textContent = `${signal}%`;
+    (document.querySelector("#field-meter") as HTMLElement).style.width = `${signal}%`;
+  }
   if (el.id === "master-volume") {
     volume = Number(el.value);
     sfx.volume = volume / 100;
@@ -132,6 +140,9 @@ function act(a: Action) {
 function open(kind: string, title: string, body: string, closable = true) {
   const alreadyOpen = modal === kind;
   modal = kind;
+  stopInput();
+  world.releaseMouse();
+  ui.inert = true;
   act({ type: "move", x: 0, z: 0 });
   root.innerHTML = Modal(title, body, closable);
   if (alreadyOpen) {
@@ -180,7 +191,7 @@ function playLandingSequence() {
   introPlaying = true;
   stopInput();
   sfx.stopLoops();
-  arrival = new Arrival(world.renderer, ui, () => start(), sfx);
+  arrival = new Arrival(world.renderer, ui, () => start(), sfx, world);
 }
 function start(resume = false) {
   clearIntro();
@@ -206,6 +217,7 @@ function start(resume = false) {
   unread = lastMessages = 0;
   lastEvent = "";
   selected = 0;
+  trackedMission = selectedMission = "";
   started = true;
   world.menu = false;
   phase = "";
@@ -277,7 +289,37 @@ function flare() {
   root.querySelector("h2")?.remove();
 }
 function mapScreen() {
-  open("map", "FIELD MAP", screens.fieldMap(game, id));
+  open("map", "Expedition atlas", expeditionMap(game, id, world.mapImage, trackedMission, selectedMission));
+  root.querySelector(".modal")?.classList.add("expedition-modal");
+}
+function openFieldMission(mission: string) {
+  selectedMission = mission;
+  const m = fieldMissions.find((m) => m.id === mission);
+  if (!m) return;
+  open("field", m.title, fieldStation(game, m));
+  root.querySelector(".modal")?.classList.add("field-modal");
+}
+function fieldAction(action: Action, mission: string) {
+  // Crew servers validate the same action; their authoritative state drives the next redraw.
+  if (connection) { connection.send(action); return; }
+  const error = dispatch(game, id, action);
+  if (error) {
+    const feedback = root.querySelector(".field-feedback");
+    if (feedback) feedback.textContent = error;
+    else toast(error);
+    return;
+  }
+  const m = fieldMissions.find((m) => m.id === mission)!;
+  try {
+    saved = structuredClone(game);
+    localStorage.setItem("outpost-save-v1", JSON.stringify({ version: 1, game }));
+  } catch {}
+  if (action.type === "fieldAnswer") {
+    cue("success");
+    open("fieldDebrief", "Investigation complete", fieldDebrief(game, m));
+    root.querySelector(".modal")?.classList.add("field-modal");
+    hudSignature = "";
+  } else openFieldMission(mission);
 }
 function sources() {
   open("sources", "NASA DATA", screens.dataSources(sourceIndex));
@@ -312,6 +354,10 @@ function nearest(): Nearby | null {
   const p = game.players[id];
   if (!p) return null;
   const all: Nearby[] = [];
+  for (const site of sectors) {
+    const m = fieldMissions.find((m) => m.sector === site.id && missionAvailable(game, m));
+    all.push({ type: m ? "field" : "fieldInfo", target: m?.id || site.id, pos: site, text: m ? `Investigate: ${m.title}` : `Inspect ${site.name}` });
+  }
   for (const i of game.items)
     all.push({
       type: "pick",
@@ -349,6 +395,11 @@ function interact() {
     }
   }
   if (n.type === "bench") bench();
+  if (n.type === "field") openFieldMission(n.target);
+  if (n.type === "fieldInfo") {
+    selectedMission = fieldMissions.find((m) => m.sector === n.target && !fieldProgress(game).completed.includes(m.id))?.id || fieldMissions.find((m) => m.sector === n.target)!.id;
+    mapScreen();
+  }
   if (n.type === "learn") learn(n.target);
   if (n.type === "panel")
     open(
@@ -384,7 +435,9 @@ function draw() {
     goals: goalsOpen,
     chat: chatOpen,
     tutorial,
-    guide: !modal && !connection,
+    guide: !modal,
+    mapImage: world.mapImage,
+    trackedMission,
     hint: "",
     prompt: !modal && game.phase === "day" ? n?.text || "" : "",
     controls: game.clock < controlsUntil,
@@ -404,11 +457,13 @@ function draw() {
     game.radio,
     game.aligned,
     game.built,
+    game.expedition,
+    Math.round(game.players[id].x), Math.round(game.players[id].z),
     game.stock,
     game.players[id].bag,
     game.messages,
     game.panels.map((p) => [p.covered, p.clean]),
-    model,
+    { ...model, mapImage: !!model.mapImage },
   ]);
   if (sig !== hudSignature && !document.activeElement?.matches("#ui select")) {
     const active = document.activeElement as HTMLElement | null;
@@ -548,7 +603,17 @@ async function connect(join: boolean) {
     if (!/^wss?:\/\//.test(url)) throw Error("Use a ws:// or wss:// address.");
     const conn = new CrewConnection(url);
     conn.onError = toast;
-    conn.onState = (s) => (game = s);
+    conn.onState = (s) => {
+      const old = JSON.stringify(game.expedition);
+      game = s;
+      if (modal === "field" && selectedMission && old !== JSON.stringify(s.expedition)) {
+        const m = fieldMissions.find((m) => m.id === selectedMission)!;
+        if (fieldProgress(s).completed.includes(m.id)) {
+          open("fieldDebrief", "Investigation complete", fieldDebrief(s, m));
+          root.querySelector(".modal")?.classList.add("field-modal");
+        } else openFieldMission(m.id);
+      }
+    };
     await conn.join(
       name,
       join ? code : undefined,
@@ -653,8 +718,23 @@ document.addEventListener("click", (e) => {
       act({ type: "chat", index: Number(d.index) });
       break;
     case "map":
+      if (modal === "fieldDebrief") selectedMission = nextFieldMission(game, trackedMission)?.id || selectedMission;
       mapScreen();
       break;
+    case "selectSite": {
+      selectedMission = fieldMissions.find((m) => m.sector === d.site && missionAvailable(game, m))?.id || fieldMissions.find((m) => m.sector === d.site)!.id;
+      mapScreen(); break;
+    }
+    case "selectMission": selectedMission = d.mission!; mapScreen(); break;
+    case "trackMission": trackedMission = d.mission!; tutorial = 4; close(); draw(); break;
+    case "fieldObserve":
+    case "fieldReset":
+    case "fieldAnswer":
+    case "fieldTune": {
+      selectedMission = d.mission!;
+      fieldAction({ type: d.do === "fieldTune" ? "fieldObserve" : d.do, mission: d.mission, value: d.do === "fieldTune" ? Number((document.querySelector("#field-dial") as HTMLInputElement).value) : Number(d.value), answer: Number(d.answer) }, d.mission!);
+      break;
+    }
     case "skip":
       tutorial = 4;
       world.objectiveTarget = null;
@@ -849,6 +929,7 @@ addEventListener("keydown", (e) => {
     if (document.fullscreenElement) void document.exitFullscreen();
     else void document.documentElement.requestFullscreen();
   }
+  if (modal === "map" && e.key.toLowerCase() === "q") { close(); return; }
   if (modal) return;
   if (e.key === "Tab") {
     goalsOpen = !goalsOpen;
@@ -929,7 +1010,8 @@ let last = performance.now(),
 const controller = new LocalController();
 function updateTutorial() {
   if (tutorial >= 4) {
-    world.objectiveTarget = !game.learned.includes("grow")
+    const field = nextFieldMission(game, trackedMission);
+    world.objectiveTarget = field ? missionSector(field) : !game.learned.includes("grow")
       ? stations.grow
       : !game.built.includes("greenhouse")
         ? stations.workbench
@@ -950,7 +1032,7 @@ function updateTutorial() {
     crate = game.items.find((i) => i.kind === "scrap");
   const done =
     tutorial === 0
-      ? !!crate && distance(p, crate) < 1.7
+      ? (!!crate && distance(p, crate) < B.interactRadius) || Object.values(p.bag).some((n) => n && n > 0)
       : tutorial === 1
         ? Object.values(p.bag).some((n) => n && n > 0)
         : tutorial === 2
@@ -1050,11 +1132,11 @@ function update(dt: number, render = true) {
     world.lookAllowed = () => started && !modal && !arrival && game.phase === "day";
     if (started && !modal && !lookTipShown && game.phase === "day") {
       lookTipShown = true;
-      toast("Click the game, then move mouse to look");
+      toast(innerWidth <= 760 ? "Drag open space to look; use the joystick to walk." : "Click the game, then move mouse to look");
     }
     fixed += dt;
     while (fixed >= 0.1) {
-      if (!connection && !["pause", "briefing", "help", "sources"].includes(modal) && !document.hidden) {
+      if (!connection && !["pause", "briefing", "help", "sources", "map", "field", "fieldDebrief", "learn"].includes(modal) && !document.hidden) {
         if (game.phase === "day" && game.clock + 0.1 >= B.solSeconds)
           reportBefore = {
             power: game.power,
@@ -1170,6 +1252,8 @@ window.render_game_to_text = () =>
       dose: game.dose,
     },
     learned: game.learned,
+    expedition: fieldProgress(game),
+    trackedMission: nextFieldMission(game, trackedMission)?.id,
     built: game.built,
     event: game.event,
     hudGroups: document.querySelectorAll("[data-hud]").length,

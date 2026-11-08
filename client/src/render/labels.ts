@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sectors } from "../../../shared/src/expedition";
 import {
   distance,
   icons,
@@ -12,6 +13,7 @@ export type WorldLabel = {
 };
 const v = new THREE.Vector3();
 const titles: Record<string, string> = {
+  ...Object.fromEntries(sectors.map((s) => [`field-${s.id}`, s.name])),
   workbench: "Workbench",
   shield: "Shielding",
   comms: "Radio",

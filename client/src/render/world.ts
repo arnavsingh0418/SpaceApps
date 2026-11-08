@@ -1,6 +1,8 @@
 import { WorldMotion } from "./motion";
 import { placeLabels } from "./labels";
 import { Terrain } from "./terrain";
+import { FieldSites, captureFieldMap } from "./fieldSites";
+import { sectors } from "../../../shared/src/expedition";
 import { LocalController, jumpArc } from "./controller";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -55,6 +57,8 @@ export class World {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 1600);
   terrain = new Terrain();
+  fieldSites: FieldSites;
+  mapImage = "";
   /** Your own movement controller (set by main.ts once a mission starts). */
   local: LocalController | null = null;
   brokenDish: THREE.Object3D | null = null;
@@ -133,6 +137,7 @@ export class World {
     this.scene.fog = new THREE.Fog(0xd99a72, 110, 620);
     initBuilders(this.scene);
     this.motion = new WorldMotion(this.scene);
+    this.fieldSites = new FieldSites(this.scene);
     addEventListener("game-effect", (event) => {
       const e = (event as CustomEvent).detail;
       this.motion.cue(e.kind, e.target, e.id, this.actors, this.pickups);
@@ -199,6 +204,7 @@ export class World {
     const bench = workbench(stations.workbench.x, stations.workbench.z);
     solid(bench.group);
     this.addLabel("workbench", bench.top, "🔧 WORKBENCH", 1.4);
+    for (const site of sectors) this.addLabel(`field-${site.id}`, this.fieldSites.groups.get(site.id)!, site.name, 2.2);
     for (const [key, pos] of Object.entries(stations)) {
       if (key === "workbench") continue;
       const g = solid(beacon(pos.x, pos.z));
@@ -679,6 +685,8 @@ export class World {
         }
       });
     }
+    this.fieldSites.update(s, this.terrain, this.motion.time);
+    if (this.terrain.ready && !this.mapImage) this.mapImage = captureFieldMap(this.renderer, this.scene);
     this.objectiveMarker.visible = !!this.objectiveTarget && !this.menu;
     if (this.objectiveTarget) {
       this.objectiveMarker.position.set(

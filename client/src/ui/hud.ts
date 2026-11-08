@@ -3,12 +3,15 @@ import { Gauge, KeyChip, Panel, Button, goalCount, escape } from "./components";
 import { hotbar } from "./hotbar";
 import { eventBanner } from "./events";
 import { tutorialSteps } from "./briefing";
+import { miniMap, missionTracker } from "./expedition";
 export type HudView = {
   selected: number;
   goals: boolean;
   chat: boolean;
   tutorial: number;
   guide: boolean;
+  mapImage: string;
+  trackedMission: string;
   hint: string;
   prompt: string;
   controls: boolean;
@@ -62,5 +65,5 @@ export function hud(s: Game, id: string, v: HudView) {
           "chat-drawer",
         )
       : ""
-  }</section>${guide}<section class="hotbar-group" data-hud="hotbar">${v.prompt ? `<button class="interaction" data-do="interact">${KeyChip("E")} ${escape(v.prompt)}</button>` : ""}${hotbar(s, id, v.selected, v.bounce, v.pickupProgress)}${v.tutorial < 4 ? `<div class="tutorial-hint">${KeyChip(v.tutorial === 0 ? "WASD" : "E")} ${tutorialHints[v.tutorial]}</div>` : v.controls ? `<div class="controls-hint">${KeyChip("WASD")} Walk ${KeyChip("E")} Use ${KeyChip("G")} Drop ${KeyChip("Tab")} Goals</div>` : ""}</section><div id="touch"><div id="joystick"><i></i></div><button data-do="interact" aria-label="Interact">E</button></div>${eventBanner(s)}`;
+  }</section>${miniMap(s, id, v.mapImage, v.trackedMission)}${guide || (v.guide ? missionTracker(s, id, v.trackedMission) : "")}<section class="hotbar-group" data-hud="hotbar">${v.prompt ? `<button class="interaction" data-do="interact">${KeyChip("E")} ${escape(v.prompt)}</button>` : ""}${hotbar(s, id, v.selected, v.bounce, v.pickupProgress)}${v.tutorial < 4 ? `<div class="tutorial-hint">${KeyChip(v.tutorial === 0 ? "WASD" : "E")} ${tutorialHints[v.tutorial]}</div>` : v.controls ? `<div class="controls-hint">${KeyChip("WASD")} Walk ${KeyChip("E")} Use ${KeyChip("Q")} Map ${KeyChip("Shift")} Sprint</div>` : ""}</section><div id="touch"><div id="joystick"><i></i></div><button data-do="interact" aria-label="Interact">E</button></div>${eventBanner(s)}`;
 }

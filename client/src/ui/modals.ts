@@ -10,6 +10,7 @@ import {
 } from "../../../shared/src/sim";
 import sources from "../../../shared/src/data/sources.json";
 import { Button, Panel, KeyChip, escape } from "./components";
+import { expeditionMap } from "./expedition";
 export function titleScreen(hasSave: boolean) {
   return `<div class="menu-top"><b>◈ MARS EXPLORATION PROGRAM</b><span>MISSION 001 / GALE CRATER</span></div><section class="title-screen"><div class="eyebrow">A LITTLE CREW. A BIG PLANET.</div><h1>OUTPOST<br><span>DOWN</span><i>↘</i></h1><div class="menu-actions">${Button("START MISSION ↗", "solo")}${hasSave ? Button("CONTINUE", "resume", "", true) : ""}${Button("PLAY WITH FRIENDS", "crew", "", true)}</div><div class="menu-links">${Button("HOW TO PLAY", "help", "", true)}${Button("NASA DATA", "sources", "", true)}</div></section><div class="mission-stamp"><span>5.4° S / 137.8° E</span><b>GALE CRATER</b></div><footer class="menu-footer">15 SOLS / UP TO 4 CREW</footer>`;
 }
@@ -130,24 +131,7 @@ export function endScreen(s: Game) {
     )}</div><div class="end-stats"><span><b>${s.sol}</b>SOLS</span><span><b>${Math.round(s.dose)}</b>DOSE</span><span><b>${s.radio}/10</b>SIGNAL</span></div><p>${win ? "Your outpost is ready for the return window." : s.air <= 0 ? "Give the air machine more power." : s.food <= 0 ? "Build a greenhouse and keep it lit." : s.dose >= 100 ? "Build shielding and take shelter during flares." : "Finish the buildings and align the radio."}</p><p class="science-copy">Real astronauts plan backup power and radiation shelter. They check supplies before leaving base.</p><div class="menu-grid">${Button("TRY AGAIN", "retry")}${Button("MAIN MENU", "menu", "", true)}</div></div>`;
 }
 export function fieldMap(s: Game, id: string) {
-  const p = s.players[id];
-  return `<div class="map-legend"><span>🏠 Base</span><span>🔹 Science</span><span>🟡 You</span></div><div class="field-map">${Object.entries(
-    {
-      base: { x: 0, z: -2 },
-      shield: { x: -10, z: 2 },
-      radio: { x: -9, z: -7 },
-      garden: { x: 8, z: -1 },
-      solar: { x: -7, z: 7 },
-      oxygen: { x: 6, z: 6 },
-    },
-  )
-    .map(
-      ([key, pos]) =>
-        `<div style="left:${50 + pos.x * 2}%;top:${50 + pos.z * 2}%"><b>${key === "base" ? "🏠" : "🔹"}</b><small>${key}</small></div>`,
-    )
-    .join(
-      "",
-    )}<div class="map-player" style="left:${50 + p.x * 2}%;top:${50 + p.z * 2}%">●</div></div>`;
+  return expeditionMap(s, id, "", "");
 }
 export function buildIndicator(seconds: number) {
   return Panel(

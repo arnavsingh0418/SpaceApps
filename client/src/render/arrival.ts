@@ -1,7 +1,8 @@
 import * as T from "three";
 import { astronaut } from "./builders.js";
-import { arrivalDuration, arrivalStory } from "../ui/arrivalStory";
+import { arrivalDuration, arrivalStory } from "../ui/filmStory";
 import "../ui/arrival.css";
+import "../ui/film.css";
 
 const clamp = T.MathUtils.clamp;
 const mix = T.MathUtils.lerp;
@@ -83,10 +84,10 @@ function flame(parent: T.Object3D, x = 0, y = 0, z = 0) {
   parent.add(g);
   return g;
 }
-function pilot(parent: T.Object3D, scale = 0.8) {
+function pilot(parent: T.Object3D, scale = 0.8, color = 0xf28b32) {
   // The existing builder adds to the gameplay scene. Reparent immediately,
   // keeping its material/geometry ownership exclusive to this sequence.
-  const actor = astronaut(0xf28b32) as T.Group;
+  const actor = astronaut(color) as T.Group;
   actor.scale.setScalar(scale);
   parent.add(actor);
   return actor;
@@ -118,6 +119,28 @@ export class Arrival {
   private space = new T.Group();
   private descent = new T.Group();
   private surface = new T.Group();
+  private prep = new T.Group();
+  private control = new T.Group();
+  private lab = new T.Group();
+  private prepCrew: T.Group[] = [];
+  private controllers: T.Group[] = [];
+  private scientist!: T.Group;
+  private crewOutside: T.Group[] = [];
+  private controlGlobe!: T.Group;
+  private floatingTools: T.Group[] = [];
+  private footprints: T.Mesh[] = [];
+  private voice = new Audio();
+  private voiceSource: MediaElementAudioSourceNode | null = null;
+  private filmBus: GainNode | null = null;
+  private filmMuted = false;
+  private filmVolume = 0.35;
+  private score: OscillatorNode[] = [];
+  private lastBeat = -1;
+  private visibilityChange = () => {
+    if (document.hidden || this.paused) this.voice.pause();
+    else if (!this.voice.ended && this.voice.src)
+      void this.voice.play().catch(() => {});
+  };
   private rocket = new T.Group();
   private booster = new T.Group();
   private launchFlame: T.Group;
@@ -154,22 +177,36 @@ export class Arrival {
     private renderer: T.WebGLRenderer,
     host: HTMLElement,
     private finish: () => void,
-    audio: { context: AudioContext | null; master: GainNode | null },
+    audio: {
+      context: AudioContext | null;
+      master: GainNode | null;
+      muted?: boolean;
+      volume?: number;
+    },
+    private landscape?: {
+      scene: T.Scene;
+      terrain: { ready: boolean; heightAt: (x: number, z: number) => number };
+    },
   ) {
+    this.filmMuted = !!audio.muted;
+    this.filmVolume = audio.volume ?? 0.35;
     host.innerHTML = `<section class="arrival" role="region" aria-label="Journey to Mars" tabindex="-1">
-      <header class="arrival-header"><div class="arrival-brand"><span class="arrival-emblem">↗</span><div>OUTPOST DOWN<small>THE JOURNEY / A FICTIONAL CREWED MISSION</small></div></div>
-        <nav aria-label="Cinematic controls"><button data-arrival="pause">Pause</button><button data-arrival="motion">Motion: full</button><button data-arrival="skip">Skip story ↗</button></nav></header>
+      <header class="arrival-header"><div class="arrival-brand"><span class="arrival-emblem">↗</span><div>OUTPOST DOWN<small>A LITTLE CREW / AN ORIGINAL SHORT FILM</small></div></div>
+        <nav aria-label="Cinematic controls"><button data-arrival="pause">Pause</button><button data-arrival="sound">Sound: on</button><button data-arrival="motion">Motion: full</button><button data-arrival="skip">Skip film ↗</button></nav></header>
+      <div class="film-act" data-act></div><div class="film-curtain" aria-hidden="true"></div><div class="film-vignette" aria-hidden="true"></div><div class="film-telemetry" data-telemetry aria-hidden="true"></div>
       <div class="arrival-location"><span data-place></span><h1 data-title></h1></div>
       <div class="arrival-crosshair" aria-hidden="true">＋</div><div class="arrival-film-edge" aria-hidden="true"></div>
       <footer class="arrival-footer"><div class="arrival-captions"><span class="arrival-eyebrow">MISSION LOG <b data-chapter></b></span><p data-caption role="status" aria-live="polite"></p></div>
         <aside class="arrival-fact"><span>THE SCIENCE BEHIND THE STORY</span><p data-fact></p></aside>
-        <div class="arrival-bottom"><span data-status></span><button data-arrival="next">Next scene →</button></div>
+        <div class="arrival-bottom"><span data-status></span><div><span class="film-time" data-time></span><button data-arrival="previous" aria-label="Previous scene">←</button><button data-arrival="next">Next scene →</button></div></div>
         <div class="arrival-timeline" aria-label="Journey progress">${arrivalStory.map((s) => `<i title="${s.place}"><b></b></i>`).join("")}</div>
       </footer></section>`;
     this.element = host.querySelector(".arrival")!;
     this.element.addEventListener("click", this.onClick);
     this.element.focus({ preventScroll: true });
     this.media.addEventListener("change", this.motionChange);
+    document.addEventListener("visibilitychange", this.visibilityChange);
+    this.voice.preload = "auto";
     document.querySelector<HTMLElement>("#labels")!.hidden = true;
     this.scene.add(new T.HemisphereLight(0xcde5ff, 0x5b362a, 2.2));
     this.lamp = new T.DirectionalLight(0xffdfba, 3.2);
@@ -181,6 +218,9 @@ export class Arrival {
       this.space,
       this.descent,
       this.surface,
+      this.prep,
+      this.control,
+      this.lab,
     );
 
     // Access bridge and launch vehicle.
@@ -480,9 +520,170 @@ export class Arrival {
           { transparent: true, opacity: 0.5, depthWrite: false },
         ),
       );
+    this.buildFilmSets();
     this.startAudio(audio);
     this.updateControls();
     this.update(0);
+  }
+
+  private buildFilmSets() {
+    // Suit room: lockers, illuminated inspection rails, a crew and actual moving glove checks.
+    box(this.prep, 16, 0.2, 12, 0x243746, 0, -0.1, 0);
+    box(this.prep, 16, 7, 0.3, 0x1b303f, 0, 3, -3);
+    for (let i = 0; i < 6; i++) {
+      box(
+        this.prep,
+        1.5,
+        3.7,
+        0.55,
+        i % 2 ? 0x435a67 : 0x304653,
+        -5 + i * 2,
+        1.85,
+        -2.6,
+      );
+      box(this.prep, 0.12, 0.7, 0.12, 0xbdb99c, -4.5 + i * 2, 1.8, -2.22);
+      mesh(
+        this.prep,
+        new T.BoxGeometry(1.25, 0.06, 0.08),
+        0x98ecdd,
+        -5 + i * 2,
+        4,
+        -2.3,
+        { emissive: 0x98ecdd, emissiveIntensity: 1.8 },
+      );
+    }
+    for (const [i, color] of [0xe78b39, 0x71c4bc, 0xb49ee4].entries()) {
+      const actor = pilot(this.prep, 1.15, color);
+      actor.position.set(-2.4 + i * 2.4, 0, 0.4);
+      this.prepCrew.push(actor);
+      box(this.prep, 1.2, 0.12, 0.65, 0x405765, -2.4 + i * 2.4, 0.5, -1);
+    }
+    // Mission Control: rows of consoles, seated operators and a rotating briefing globe.
+    box(this.control, 24, 0.2, 20, 0x10232e, 0, -0.1, 0);
+    box(this.control, 24, 9, 0.3, 0x122c3c, 0, 4, -6);
+    for (let row = 0; row < 2; row++)
+      for (let col = 0; col < 3; col++) {
+        const x = (col - 1) * 4.6,
+          z = row * 4;
+        box(this.control, 3.2, 1, 1.4, 0x2d4654, x, 0.7, z);
+        mesh(
+          this.control,
+          new T.BoxGeometry(1.2, 0.8, 0.1),
+          0x7ce5cf,
+          x,
+          1.6,
+          z - 0.4,
+          { emissive: 0x39a990, emissiveIntensity: 0.8 },
+        );
+        for (let i = 0; i < 3; i++)
+          box(
+            this.control,
+            0.18,
+            0.04,
+            0.12,
+            [0x9cf1cb, 0xf2cb7d, 0xe87868][i],
+            x - 0.4 + i * 0.4,
+            1.23,
+            z + 0.25,
+          );
+        const actor = pilot(this.control, 0.85, col % 2 ? 0x699aa4 : 0xd19c59);
+        actor.position.set(x, 0, z + 1.5);
+        actor.rotation.y = Math.PI;
+        actor.getObjectByName("armL")!.rotation.x = -0.8;
+        actor.getObjectByName("armR")!.rotation.x = -0.8;
+        this.controllers.push(actor);
+      }
+    this.controlGlobe = this.planet(true);
+    this.controlGlobe.scale.setScalar(0.32);
+    this.controlGlobe.position.set(0, 4.7, -4.4);
+    this.control.add(this.controlGlobe);
+    for (const x of [-7, 7]) {
+      mesh(
+        this.control,
+        new T.BoxGeometry(5.4, 3.1, 0.1),
+        0x235669,
+        x,
+        4.4,
+        -5.7,
+        { emissive: 0x16384d },
+      );
+      for (let i = 0; i < 8; i++)
+        box(
+          this.control,
+          3 + (i % 3) * 0.4,
+          0.07,
+          0.1,
+          i % 3 ? 0x78bfb8 : 0xf2ca75,
+          x,
+          3.4 + i * 0.27,
+          -5.6,
+        );
+    }
+    // Transit lab: two plant trays, differing growth, water lines and restrained floating tools.
+    box(this.lab, 14, 0.2, 10, 0x263d49, 0, -0.1, 0);
+    box(this.lab, 14, 7, 0.3, 0x122c39, 0, 3, -3);
+    box(this.lab, 5.5, 0.15, 2, 0x516c78, 1, 1.1, 0);
+    for (const [index, x] of [-0.5, 2.2].entries()) {
+      box(this.lab, 2.1, 0.25, 1.5, 0x172e2f, x, 1.3, 0);
+      box(this.lab, 1.8, 0.04, 1.3, 0x634434, x, 1.46, 0);
+      for (let i = 0; i < 5; i++) {
+        const height = index ? 0.25 : 0.55;
+        rod(
+          this.lab,
+          V(x - 0.7 + i * 0.35, 1.5, 0),
+          V(x - 0.7 + i * 0.35, 1.5 + height, 0),
+          0.035,
+          0x76a74b,
+        );
+        const leaf = mesh(
+          this.lab,
+          new T.SphereGeometry(0.2, 8, 6),
+          0x8ebd59,
+          x - 0.7 + i * 0.35,
+          1.6 + height,
+          0,
+        );
+        leaf.scale.set(1, 0.25, 0.5);
+      }
+      mesh(
+        this.lab,
+        new T.BoxGeometry(2.1, 0.08, 1.5),
+        index ? 0x445766 : 0xc5a9f0,
+        x,
+        3.2,
+        0,
+        { emissive: index ? 0x152838 : 0x9e7ee0, emissiveIntensity: 0.8 },
+      );
+      for (const dx of [-1, 1])
+        rod(this.lab, V(x + dx, 1.2, -0.6), V(x + dx, 3.2, -0.6), 0.04);
+    }
+    this.scientist = pilot(this.lab, 1.2, 0x71c4bc);
+    this.scientist.position.set(-2.5, 0.25, 0.3);
+    this.scientist.rotation.y = 0.5;
+    for (let i = 0; i < 3; i++) {
+      const item = new T.Group();
+      box(item, 0.2, 0.5, 0.12, 0xb7c3b5);
+      item.position.set(3.9 + i * 0.35, 2.8, -1.2);
+      this.lab.add(item);
+      this.floatingTools.push(item);
+    }
+    for (const [i, color] of [0x71c4bc, 0xb49ee4].entries()) {
+      const a = pilot(this.surface, 0.8, color);
+      a.position.set(3.2 + i * 1.5, 0, 4.5);
+      this.crewOutside.push(a);
+    }
+    for (let i = 0; i < 18; i++) {
+      const print = mesh(
+        this.surface,
+        new T.PlaneGeometry(0.18, 0.32),
+        0x763f30,
+        2 + (i % 2) * 0.35,
+        0.012,
+        3.9 + i * 0.32,
+      );
+      print.rotation.x = -Math.PI / 2;
+      this.footprints.push(print);
+    }
   }
 
   private capsule() {
@@ -656,9 +857,28 @@ export class Arrival {
       this.updateControls();
     }
     if (action === "next") this.next();
+    if (action === "previous") {
+      this.elapsed = arrivalStory
+        .slice(0, Math.max(0, this.chapter - 1))
+        .reduce((n, s) => n + s.duration, 0);
+      this.update(0);
+    }
+    if (action === "sound") {
+      this.filmMuted = !this.filmMuted;
+      this.filmBus?.gain.setTargetAtTime(
+        this.filmMuted ? 0 : this.filmVolume,
+        this.filmBus.context.currentTime,
+        0.05,
+      );
+      this.voice.muted = this.filmMuted;
+      this.updateControls();
+      if (!this.paused && !document.hidden && !this.voice.ended)
+        void this.voice.play().catch(() => {});
+    }
   };
   togglePause() {
     this.paused = !this.paused;
+    this.visibilityChange();
     this.updateControls();
   }
   next() {
@@ -673,6 +893,10 @@ export class Arrival {
     this.finish();
   }
   private updateControls() {
+    this.element.querySelector('[data-arrival="sound"]')!.textContent = this
+      .filmMuted
+      ? "Sound: off"
+      : "Sound: on";
     this.element.querySelector('[data-arrival="pause"]')!.textContent = this
       .paused
       ? "Play"
@@ -686,8 +910,13 @@ export class Arrival {
     context: AudioContext | null;
     master: GainNode | null;
   }) {
-    const { context: ctx, master } = audio;
-    if (!ctx || !master) return;
+    const { context: ctx } = audio;
+    if (!ctx) return;
+    const master = (this.filmBus = ctx.createGain());
+    master.gain.value = this.filmMuted ? 0 : this.filmVolume;
+    master.connect(ctx.destination);
+    this.voiceSource = ctx.createMediaElementSource(this.voice);
+    this.voiceSource.connect(master);
     this.soundGain = ctx.createGain();
     this.soundGain.gain.value = 0.045;
     this.soundGain.connect(master);
@@ -698,6 +927,7 @@ export class Arrival {
       o.connect(this.soundGain);
       o.start();
       this.soundSources.push(o);
+      this.score.push(o);
     }
     const buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate),
       data = buffer.getChannelData(0);
@@ -740,13 +970,45 @@ export class Arrival {
         `${String(index + 1).padStart(2, "0")} / ${arrivalStory.length}`;
       this.element.querySelector("[data-fact]")!.textContent = shot.fact;
       this.element.querySelector("[data-status]")!.textContent = shot.status;
+      this.element.querySelector("[data-act]")!.textContent = shot.act;
+      this.score.forEach((o, i) =>
+        o.frequency.setTargetAtTime(
+          (["entry", "rattle", "braking", "touchdown"].includes(shot.view)
+            ? 82.41
+            : index > 18
+              ? 130.81
+              : 110) * (i ? 1.5 : 1),
+          o.context.currentTime,
+          1.2,
+        ),
+      );
       this.captionIndex = -1;
     }
     if (caption !== this.captionIndex) {
       this.element.querySelector("[data-caption]")!.textContent =
         shot.lines[caption];
       this.captionIndex = caption;
+      this.voice.pause();
+      this.voice.src = `${import.meta.env.BASE_URL}film/${shot.key}-${caption}.wav`;
+      this.voice.muted = this.filmMuted;
+      if (running) void this.voice.play().catch(() => {});
     }
+    const remaining = Math.max(0, Math.ceil(arrivalDuration - this.elapsed));
+    this.element.querySelector("[data-time]")!.textContent =
+      `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")} LEFT`;
+    this.element.style.setProperty(
+      "--cut",
+      String(this.reduced || this.paused ? 0 : Math.max(0, 1 - local / 0.55)),
+    );
+    this.element.dataset.view = shot.view;
+    const telemetry =
+      this.element.querySelector<HTMLElement>("[data-telemetry]")!;
+    telemetry.textContent =
+      shot.view === "countdown"
+        ? u < 0.5 ? "ALL SYSTEMS\nGO" : `T − ${Math.max(0, Math.ceil((1 - u) * 10))}`
+        : ["entry", "parachute", "braking"].includes(shot.view)
+          ? `${shot.view === "entry" ? "THERMAL SHIELD" : shot.view === "parachute" ? "DESCENT SYSTEM" : "BACKUP THRUST"}\n${shot.view === "braking" ? "FAULT DETECTED" : "TRACKING"}`
+          : "";
     this.element
       .querySelectorAll<HTMLElement>(".arrival-timeline b")
       .forEach(
@@ -755,40 +1017,99 @@ export class Arrival {
       );
     if (this.soundGain)
       this.soundGain.gain.setTargetAtTime(
-        running ? 0.1 : 0,
+        running ? (shot.key === "silence" ? 0.008 : 0.045) : 0,
         this.soundGain.context.currentTime,
         0.15,
       );
     if (this.noiseGain)
       this.noiseGain.gain.setTargetAtTime(
-        [2, 4, 6, 7].includes(index) ? 1.6 : 0.08,
+        ["launch", "entry", "rattle", "braking", "touchdown"].includes(
+          shot.view,
+        )
+          ? 1.2
+          : 0.04,
         this.noiseGain.context.currentTime,
         0.3,
       );
-    this.render(shot.key, this.reduced ? 0.55 : u, local);
+    if (
+      running &&
+      this.filmBus &&
+      Math.floor(this.elapsed / 2) !== this.lastBeat
+    ) {
+      this.lastBeat = Math.floor(this.elapsed / 2);
+      const ctx = this.filmBus.context as AudioContext,
+        osc = ctx.createOscillator(),
+        gain = ctx.createGain();
+      osc.frequency.value = [196, 261.63, 293.66, 220][this.lastBeat % 4];
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(
+        shot.key === "silence" ? 0 : 0.025,
+        ctx.currentTime + 0.02,
+      );
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.4);
+      osc.connect(gain);
+      gain.connect(this.filmBus);
+      osc.start();
+      osc.stop(ctx.currentTime + 1.5);
+      osc.onended = () => {
+        osc.disconnect();
+        gain.disconnect();
+      };
+    }
+    this.render(shot.view, this.reduced ? 0.55 : u, local, shot.key);
   }
-  private render(key: string, u: number, time: number) {
-    this.pad.visible = ["boarding", "launch"].includes(key);
-    this.cabin.visible =
-      key === "cabin" || (key === "entry" && u > 0.48 && u < 0.87);
-    this.space.visible = key === "cruise";
+  private render(key: string, u: number, time: number, shot: string) {
+    this.pad.visible = ["boarding", "launch", "padwide"].includes(key);
+    this.cabin.visible = key === "cabin" || key === "rattle";
+    this.prep.visible = key === "prep";
+    this.control.visible = ["control", "countdown"].includes(key);
+    this.lab.visible = key === "lab";
+    this.space.visible = ["cruise", "orbit", "mars"].includes(key);
     this.descent.visible =
       ["entry", "parachute", "braking"].includes(key) && !this.cabin.visible;
-    this.surface.visible = ["braking", "touchdown", "egress"].includes(key);
-    this.wreck.visible = ["touchdown", "egress"].includes(key);
-    this.explorer.visible = key === "egress";
-    this.ladder.visible = key === "egress";
+    this.surface.visible = [
+      "braking",
+      "touchdown",
+      "egress",
+      "aftermath",
+      "steps",
+      "resolve",
+      "frontier",
+    ].includes(key);
+    this.wreck.visible = this.surface.visible && key !== "braking";
+    this.explorer.visible = ["egress", "steps", "resolve", "frontier"].includes(
+      key,
+    );
+    this.ladder.visible = ["egress", "steps", "resolve", "frontier"].includes(
+      key,
+    );
+    this.crewOutside.forEach(
+      (a) => (a.visible = ["steps", "resolve", "frontier"].includes(key)),
+    );
+    this.footprints.forEach(
+      (p, i) =>
+        (p.visible =
+          ["resolve", "frontier"].includes(key) ||
+          (key === "steps" && i < u * 18)),
+    );
     this.scene.background = new T.Color(
       this.space.visible
         ? 0x060d1c
         : this.pad.visible
           ? 0x6e9da8
-          : this.cabin.visible
+          : this.cabin.visible ||
+              this.prep.visible ||
+              this.control.visible ||
+              this.lab.visible
             ? 0x091722
             : 0xc89471,
     );
     this.scene.fog =
-      this.space.visible || this.cabin.visible
+      this.space.visible ||
+      this.cabin.visible ||
+      this.prep.visible ||
+      this.control.visible ||
+      this.lab.visible
         ? null
         : new T.Fog(this.pad.visible ? 0x6e9da8 : 0xc89471, 45, 140);
     this.lamp.intensity = this.cabin.visible ? 1.4 : 3.2;
@@ -803,6 +1124,42 @@ export class Arrival {
         new T.Vector3(...(target as [number, number, number])),
       );
     };
+    if (key === "prep") {
+      this.prepCrew.forEach((a, i) => {
+        a.getObjectByName("armR")!.rotation.x =
+          -1.1 + Math.sin(cinematicTime * 1.2 + i) * 0.18;
+        a.getObjectByName("elbowR")!.rotation.x = -0.7;
+        a.getObjectByName("head")!.rotation.y =
+          Math.sin(cinematicTime * 0.5 + i) * 0.16;
+      });
+      if (u < 0.5) camera([5.5, 3.2, 8], [4, 2.8, 6], [0, 1.4, 0]);
+      else camera([-3.8, 2.3, 4.6], [-2.8, 2.2, 3.2], [-2, 1.5, 0.3]);
+    }
+    if (this.control.visible) {
+      this.controlGlobe.rotation.y = cinematicTime * 0.15;
+      camera(
+        key === "countdown" ? [5, 5, 5] : [11, 6, 12],
+        [3, 4, 6],
+        [0, 2.8, -2],
+      );
+    }
+    if (key === "lab") {
+      this.scientist.position.y = 0.25 + Math.sin(cinematicTime * 0.7) * 0.09;
+      this.scientist.getObjectByName("armR")!.rotation.x = -1.2;
+      this.floatingTools.forEach((t, i) => {
+        t.rotation.z = cinematicTime * 0.15 + i;
+        t.position.y = 2.8 + Math.sin(cinematicTime + i) * 0.12;
+      });
+      if (u < 0.5) camera([6, 4, 7], [4, 3.2, 5], [0, 1.8, 0]);
+      else camera([-3.8, 2.6, 4.4], [-3, 2.4, 3.5], [-1.5, 1.8, 0.2]);
+    }
+    if (key === "padwide") {
+      this.rocket.position.set(0, 0, 0);
+      this.booster.position.y = 0;
+      this.launchFlame.visible = false;
+      this.boarder.visible = false;
+      camera([30, 13, 35], [21, 12, 28], [-1, 5, 0]);
+    }
     if (key === "boarding") {
       this.rocket.position.set(0, 0, 0);
       this.booster.position.y = 0;
@@ -821,11 +1178,11 @@ export class Arrival {
     if (this.cabin.visible) {
       this.hatch.rotation.y = key === "cabin" ? mix(-1.6, 0, smooth(u * 3)) : 0;
       this.harness.visible = key !== "cabin" || u > 0.25;
-      this.alarm.intensity = key === "entry" ? 2.5 : 0;
+      this.alarm.intensity = key === "rattle" ? 2.5 : 0;
       for (const name of ["armL", "armR"])
         this.seated.getObjectByName(name)!.rotation.x = -0.9;
       camera([3.2, 3.1, 8], [1.2, 2.9, 6], [-0.1, 1.9, 0]);
-      if (key === "entry" && !this.reduced) {
+      if (key === "rattle" && !this.reduced) {
         this.camera.position.x += Math.sin(time * 43) * 0.045;
         this.camera.position.y += Math.sin(time * 37) * 0.027;
         this.camera.rotateZ(Math.sin(time * 29) * 0.009);
@@ -847,6 +1204,11 @@ export class Arrival {
         [23, 13 + this.rocket.position.y, 30],
         [0, this.rocket.position.y + 6, 0],
       );
+      if (shot === "separation") {
+        this.rocket.position.y = 40 + u * 8;
+        this.booster.position.y = -1 - u * 13;
+        camera([10, 47 + u * 8, 18], [7, 51 + u * 8, 15], [0, 46 + u * 8, 0]);
+      }
     }
     this.smoke.forEach((p, i) => {
       p.visible = key === "launch";
@@ -855,12 +1217,31 @@ export class Arrival {
       p.position.set(Math.cos(a) * r, 0.2 + (i % 3) * 0.4, Math.sin(a) * r);
       p.scale.setScalar(0.7 + u * 2 + (i % 3) * 0.3);
     });
-    if (key === "cruise") {
+    this.earth.visible = key !== "mars";
+    this.mars.visible = key !== "orbit";
+    this.ship.visible = key !== "orbit" || shot === "orbit";
+    if (["cruise", "orbit", "mars"].includes(key)) {
       this.ship.position.set(mix(-3, 3, u), 0.4, 0);
       this.ship.rotation.x = 0.2;
       this.earth.rotation.y = -0.8 + u * 0.2;
       this.mars.rotation.y = u * 0.1;
       camera([9, 8, 27], [6, 5, 24], [0, 1, -5]);
+      this.earth.position.set(-10, 1, -15);
+      this.earth.scale.setScalar(0.65);
+      this.mars.position.set(9, 2, -12);
+      this.mars.scale.setScalar(0.55);
+      if (key === "orbit") {
+        this.earth.position.set(-4, -2, -10);
+        this.earth.scale.setScalar(1.2);
+        camera([11, 7, 15], [7, 4, 12], [-3, 0, -9]);
+        this.ship.position.set(4 + u * 2, 2, 0);
+      }
+      if (key === "mars") {
+        this.mars.position.set(3, 0, -10);
+        this.mars.scale.setScalar(1.2);
+        this.ship.position.set(-3 + u * 2, 1, 0);
+        camera([10, 6, 20], [8, 3, 14], [2, 0, -7]);
+      }
     }
     this.jets.forEach((j) => {
       j.visible = key === "braking";
@@ -925,6 +1306,25 @@ export class Arrival {
       walk(this.explorer, cinematicTime, u > 0.25 && u < 0.95);
       camera([7, 4, 12], [12, 7, 17], [1, 1.3, 0]);
     }
+    if (["aftermath", "steps", "resolve", "frontier"].includes(key)) {
+      this.wreck.position.set(0, 1.2, 0);
+      this.wreck.rotation.z = -0.9;
+      this.exitHatch.rotation.y = key === "aftermath" ? 0 : -1.7;
+      this.ladder.rotation.x = 0;
+      this.explorer.position.set(2.2, 0, key === "steps" ? 3.8 + u * 5 : 8.5);
+      this.explorer.rotation.y = key === "steps" ? 0 : Math.PI * 0.6;
+      walk(this.explorer, cinematicTime, key === "steps");
+      if (key === "aftermath") camera([16, 4, 21], [10, 3, 15], [1, 1.5, 0]);
+      else if (key === "steps")
+        camera([6, 1.8, 12], [8, 2.5, 15], [2, 1, 5 + u * 2]);
+      else camera([11, 4.5, 17], [16, 8, 25], [2, 1.4, 3]);
+      if (key === "frontier" && this.landscape?.terrain.ready) {
+        const x = mix(-70, 230, u),
+          z = mix(-50, -200, u),
+          h = this.landscape.terrain.heightAt(x, z);
+        camera([x + 40, h + 45, z + 70], [x + 25, h + 55, z + 50], [x, h, z]);
+      }
+    }
     this.dust.forEach((p, i) => {
       p.visible = key === "touchdown" || key === "braking";
       const a = i * 2.4,
@@ -945,11 +1345,22 @@ export class Arrival {
       innerWidth,
       innerHeight,
     );
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.render(
+      key === "frontier" && this.landscape?.terrain.ready
+        ? this.landscape.scene
+        : this.scene,
+      this.camera,
+    );
   }
   dispose() {
     this.done = true;
     this.media.removeEventListener("change", this.motionChange);
+    document.removeEventListener("visibilitychange", this.visibilityChange);
+    this.voice.pause();
+    this.voice.removeAttribute("src");
+    this.voice.load();
+    this.voiceSource?.disconnect();
+    this.filmBus?.disconnect();
     this.element.removeEventListener("click", this.onClick);
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>();
