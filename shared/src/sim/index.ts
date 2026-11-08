@@ -113,15 +113,33 @@ export type Game = {
   history: string[];
 };
 export type Action = { type: string; [key: string]: unknown };
+/** The base layout is spread out by this factor so buildings can be life-sized. */
+const L: number = (B as { layoutScale?: number }).layoutScale ?? 1;
 export const stations = {
-  workbench: { x: 0, z: -2 },
-  shield: { x: -10, z: 2 },
-  comms: { x: -9, z: -7 },
-  grow: { x: 8, z: -1 },
-  power: { x: -7, z: 7 },
-  oxygen: { x: 6, z: 6 },
-  plants: { x: 12, z: -8 },
+  workbench: { x: 0 * L, z: -2 * L },
+  shield: { x: -10 * L, z: 2 * L },
+  comms: { x: -9 * L, z: -7 * L },
+  grow: { x: 8 * L, z: -1 * L },
+  power: { x: -7 * L, z: 7 * L },
+  oxygen: { x: 6 * L, z: 6 * L },
+  plants: { x: 12 * L, z: -8 * L },
 };
+/**
+ * Walkable world: a circle centred on the middle of the Blender map (game coordinates are
+ * centred on the base, which sits south-west of the map centre), reaching out to just
+ * inside the dust-storm wall.
+ */
+export const WORLD = { x: B.worldCenterX, z: B.worldCenterZ, r: B.worldRadius };
+/** Pull a point back inside the world circle. Returns true if it was outside. */
+export function clampToWorld(p: Point) {
+  const dx = p.x - WORLD.x,
+    dz = p.z - WORLD.z,
+    d = Math.hypot(dx, dz);
+  if (d <= WORLD.r) return false;
+  p.x = WORLD.x + (dx / d) * WORLD.r;
+  p.z = WORLD.z + (dz / d) * WORLD.r;
+  return true;
+}
 export const distance = (a: Point, b: Point) =>
   Math.hypot(a.x - b.x, a.z - b.z);
 const clamp = (v: number, max = 100) => Math.min(max, Math.max(0, v));
@@ -160,10 +178,10 @@ export function createGame(seed = 42): Game {
     allocation: { air: 3, light: 3, radio: 3, heat: 2 },
     players: {},
     items: [],
-    panels: [-8, -5, -2].map((x, i) => ({
+    panels: [-8, -5, -2].map((x0, i) => ({
       id: `panel-${i}`,
-      x,
-      z: 7,
+      x: x0 * L,
+      z: 7 * L,
       clean: 1,
       covered: false,
     })),
@@ -182,7 +200,7 @@ export function createGame(seed = 42): Game {
     result: "",
     serial: 0,
     host: "",
-    devil: { x: 19, z: -10 },
+    devil: { x: 19 * L, z: -10 * L },
     devilDropAt: 0,
     leakFixed: false,
     watering: false,
@@ -200,7 +218,7 @@ export function createGame(seed = 42): Game {
     ["ice", 6, -15, 10],
     ["food", 2, 16, -5],
   ];
-  supplies.forEach((a) => spawn(s, ...a));
+  supplies.forEach(([k, n, x, z]) => spawn(s, k, n, x * L, z * L));
   placeBatteryByAntenna(s);
   return s;
 }
@@ -210,9 +228,9 @@ export function placeBatteryByAntenna(s: Game) {
   if ((s.stock.battery || 0) > 0) return;
   if (Object.values(s.players).some((p) => (p.bag.battery || 0) > 0)) return;
   let loose = s.items.find((i) => i.kind === "battery");
-  if (!loose) loose = spawn(s, "battery", 1, -12, -7);
-  loose.x = -12;
-  loose.z = -7;
+  if (!loose) loose = spawn(s, "battery", 1, -12 * L, -7 * L);
+  loose.x = -12 * L;
+  loose.z = -7 * L;
   loose.damaged = false;
   loose.count = Math.max(1, loose.count);
 }
@@ -223,8 +241,8 @@ export function addPlayer(s: Game, id: string, name = "Explorer") {
   s.players[id] = {
     id,
     name: name.replace(/[^a-zA-Z0-9 _-]/g, "").slice(0, 16) || "Explorer",
-    x: 1 + i * 1.2,
-    z: 3,
+    x: (1 + i * 1.2) * L,
+    z: 3 * L,
     color: [0xf97316, 0x3b82f6, 0x22c55e, 0xeab308][i],
     role: "Engineer",
     bag: {},
@@ -307,11 +325,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     }
     p.x += dx;
     p.z += dz;
-    const r = Math.hypot(p.x, p.z);
-    if (r > B.worldRadius) {
-      p.x *= B.worldRadius / r;
-      p.z *= B.worldRadius / r;
-    }
+    clampToWorld(p);
     const mx = Number(a.mx),
       mz = Number(a.mz);
     if (Number.isFinite(mx) && Number.isFinite(mz)) {
@@ -431,7 +445,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   if (a.type === "drop") {
     const k = a.kind as Item;
     if (!((p.bag[k] || 0) > 0)) return;
-    spawn(s, k, p.bag[k]!, p.x + 1, p.z);
+    spawn(s, k, p.bag[k]!, p.x + 1.5, p.z);
     delete p.bag[k];
     return;
   }
@@ -578,8 +592,8 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (r.id === "panel") {
       s.panels.push({
         id: `panel-${s.panels.length}`,
-        x: -8 + s.panels.length * 3,
-        z: 7,
+        x: (-8 + s.panels.length * 3) * L,
+        z: 7 * L,
         clean: 1,
         covered: false,
       });
@@ -662,24 +676,20 @@ export function tick(s: Game, dt: number) {
     const speed = gaitSpeed(p.gait, s.allocation.heat < 1);
     p.x += p.move.x * speed * dt;
     p.z += p.move.z * speed * dt;
-    const r = Math.hypot(p.x, p.z);
-    if (r > B.worldRadius) {
-      p.x *= B.worldRadius / r;
-      p.z *= B.worldRadius / r;
-    }
+    clampToWorld(p);
   }
   s.devil = {
-    x: 18 * Math.cos(s.elapsed * 0.045),
-    z: 16 * Math.sin(s.elapsed * 0.045),
+    x: 18 * L * Math.cos(s.elapsed * 0.045),
+    z: 16 * L * Math.sin(s.elapsed * 0.045),
   };
   if (s.elapsed >= s.devilDropAt) {
     s.devilDropAt = s.elapsed + 3;
     for (const it of s.items) {
       if (distance(it, s.devil) < 2) {
         const a = random(s) * Math.PI * 2,
-          r = 5 + random(s) * 15;
-        it.x = Math.max(-25, Math.min(25, s.devil.x + Math.cos(a) * r));
-        it.z = Math.max(-25, Math.min(25, s.devil.z + Math.sin(a) * r));
+          r = (5 + random(s) * 15) * L;
+        it.x = Math.max(-25 * L, Math.min(25 * L, s.devil.x + Math.cos(a) * r));
+        it.z = Math.max(-25 * L, Math.min(25 * L, s.devil.z + Math.sin(a) * r));
         log(s, "A dust devil moved a loose supply. Stored supplies are safe.");
       }
     }
@@ -692,9 +702,9 @@ export function tick(s: Game, dt: number) {
       enforcePower(s);
     }
     if (e.kind === "supply") {
-      spawn(s, "food", 2, 12, -4);
-      spawn(s, "ice", 3, -11, 9);
-      spawn(s, "scrap", 3, 8, 10);
+      spawn(s, "food", 2, 12 * L, -4 * L);
+      spawn(s, "ice", 3, -11 * L, 9 * L);
+      spawn(s, "scrap", 3, 8 * L, 10 * L);
       e.resolved = true;
       log(s, "An old supply cache was found! Look for the glowing crates.");
     }

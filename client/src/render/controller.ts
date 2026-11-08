@@ -1,4 +1,4 @@
-import { B, gaitSpeed, type Gait } from "../../../shared/src/sim";
+import { B, WORLD, clampToWorld, gaitSpeed, type Gait } from "../../../shared/src/sim";
 
 export type MoveInput = {
   x: number; // -1..1, +x right
@@ -51,7 +51,9 @@ export class LocalController {
   }
 
   /** Returns true on the frame a jump starts. */
-  update(dt: number, input: MoveInput, cold: boolean, groundAt: (x: number, z: number) => number) {
+  update(dt: number, input: MoveInput, cold: boolean, groundAt: (x: number, z: number, fromY?: number) => number,
+    collides: (x: number, z: number, y: number) => boolean = () => false,
+  ) {
     this.time += dt;
     // Double-tap forward to sprint, like Minecraft. It ends when you stop moving forward.
     const forward = input.forward ?? input.z < -0.3;
@@ -98,20 +100,35 @@ export class LocalController {
 
     let nx = this.x + this.vx * dt,
       nz = this.z + this.vz * dt;
-    const r = Math.hypot(nx, nz);
-    if (r > B.worldRadius) {
-      nx *= B.worldRadius / r;
-      nz *= B.worldRadius / r;
-      // Slide along the edge instead of sticking to it.
-      const ux = nx / B.worldRadius,
-        uz = nz / B.worldRadius,
+    const edge = { x: nx, z: nz };
+    if (clampToWorld(edge)) {
+      // Slide along the dust-storm edge instead of sticking to it.
+      const ux = (edge.x - WORLD.x) / WORLD.r,
+        uz = (edge.z - WORLD.z) / WORLD.r,
         out = this.vx * ux + this.vz * uz;
       if (out > 0) {
         this.vx -= out * ux;
         this.vz -= out * uz;
       }
+      nx = edge.x;
+      nz = edge.z;
     }
-    const ground = groundAt(nx, nz);
+    // Solid things (rocks, cave walls, buildings): slide along them like Minecraft.
+    // If you are somehow already inside something, let you walk out.
+    if ((nx !== this.x || nz !== this.z) && !collides(this.x, this.z, this.y) && collides(nx, nz, this.y)) {
+      if (!collides(nx, this.z, this.y)) {
+        nz = this.z;
+        this.vz = 0;
+      } else if (!collides(this.x, nz, this.y)) {
+        nx = this.x;
+        this.vx = 0;
+      } else {
+        nx = this.x;
+        nz = this.z;
+        this.vx = this.vz = 0;
+      }
+    }
+    const ground = groundAt(nx, nz, this.y);
     // Crouching keeps you from walking off a ledge, like sneaking in Minecraft.
     if (this.grounded && this.gait === "crouch" && ground < this.y - 0.9) {
       this.vx = this.vz = 0;
@@ -119,7 +136,7 @@ export class LocalController {
       this.x = nx;
       this.z = nz;
     }
-    const floor = groundAt(this.x, this.z);
+    const floor = groundAt(this.x, this.z, this.y);
     if (this.grounded) {
       // Stick to downhill slopes; only become airborne at a real drop.
       if (floor < this.y - 0.7 - this.speed * dt * 2) {

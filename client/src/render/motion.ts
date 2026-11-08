@@ -58,7 +58,7 @@ export class WorldMotion {
         mesh.geometry = mesh.geometry.clone();
         mesh.material = (mesh.material as THREE.Material).clone();
         mesh.position.copy(o.position);
-        mesh.position.y = 0.5;
+        mesh.position.y = o.position.y + 0.9;
         this.scene.add(mesh);
         this.flights.push({
           obj: mesh,
@@ -67,12 +67,12 @@ export class WorldMotion {
           age: 0,
         });
       }
-      this.particles.emit(o.position.x, 0.4, o.position.z, 0xffc83d, 8, 0.07);
+      this.particles.emit(o.position.x, o.position.y + 0.6, o.position.z, 0xffc83d, 10, 0.09);
     }
     if (kind === "scan" && target && target in stations) {
       const pos = stations[target as keyof typeof stations],
         from = actor.position.clone().add(new THREE.Vector3(0, 2.4, 0)),
-        to = new THREE.Vector3(pos.x, 1.3, pos.z);
+        to = new THREE.Vector3(pos.x, 3.0, pos.z);
       const dir = to.clone().sub(from);
       const beam = new THREE.Mesh(
         new THREE.CylinderGeometry(0.018, 0.018, dir.length(), 6),
@@ -103,8 +103,9 @@ export class WorldMotion {
       this.scans.push({ beam, ring, age: 0 });
     }
     if (kind === "clean" && target) {
-      const index = Number(target.split("-")[1]);
-      this.particles.emit(-8 + index * 3, 1.2, 7, 0xfff4e6, 18, 0.09, 1);
+      const index = Number(target.split("-")[1]),
+        L = B.layoutScale;
+      this.particles.emit((-8 + index * 3) * L, 2.6, 7 * L, 0xfff4e6, 24, 0.11, 1.2);
     }
     if (kind === "dose" || kind === "flare") {
       document.body.classList.add("dose-hit");
@@ -296,13 +297,13 @@ export class WorldMotion {
     this.lastDose = s.dose;
     if (!this.reduced) {
       if (this.time > this.nextSmoke) {
-        this.smoke.emit(-10, 2.2, -13, 0xb8aca4, 1, 0.8, 6, 0.4, 1.1, 0.15);
+        this.smoke.emit(-18.6, 3.2, -31.3, 0xb8aca4, 1, 1.6, 8, 0.5, 1.6, 0.25); // wreck engines
         this.nextSmoke = this.time + 0.3;
       }
       if (this.time > this.nextBeacon) {
         for (const [key, p] of Object.entries(stations))
           if (key !== "workbench")
-            this.particles.emit(p.x, 1.4, p.z, 0x39e6e0, 1, 0.035, 1.3, 0, 0.5);
+            this.particles.emit(p.x, 3.0, p.z, 0x39e6e0, 1, 0.05, 1.3, 0, 0.5);
         this.nextBeacon = this.time + 0.65;
       }
       if (this.time > this.nextWind) {

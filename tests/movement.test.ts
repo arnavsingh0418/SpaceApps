@@ -18,14 +18,15 @@ describe("Minecraft-style movement in the shared sim", () => {
   it("move actions with a gait change how far the sim moves you", () => {
     const walk = setup(),
       sprint = setup();
+    const x0 = walk.players.a.x;
     dispatch(walk, "a", { type: "move", x: 1, z: 0, gait: "walk" });
     dispatch(sprint, "a", { type: "move", x: 1, z: 0, gait: "sprint" });
     for (let i = 0; i < 10; i++) {
       tick(walk, 0.1);
       tick(sprint, 0.1);
     }
-    expect(sprint.players.a.x - 1).toBeCloseTo(gaitSpeed("sprint", false), 1);
-    expect(walk.players.a.x - 1).toBeCloseTo(gaitSpeed("walk", false), 1);
+    expect(sprint.players.a.x - x0).toBeCloseTo(gaitSpeed("sprint", false), 1);
+    expect(walk.players.a.x - x0).toBeCloseTo(gaitSpeed("walk", false), 1);
   });
 
   it("accepts client positions, stops sim integration while fresh, and blocks teleports", () => {
@@ -45,11 +46,11 @@ describe("Minecraft-style movement in the shared sim", () => {
 
   it("keeps reported positions inside the world", () => {
     const s = setup();
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 1500; i++) {
       tick(s, 0.1);
       dispatch(s, "a", { type: "pos", x: s.players.a.x + 5, z: 0 });
     }
-    expect(Math.hypot(s.players.a.x, s.players.a.z)).toBeLessThanOrEqual(B.worldRadius + 1e-9);
+    expect(Math.hypot(s.players.a.x - B.worldCenterX, s.players.a.z - B.worldCenterZ)).toBeLessThanOrEqual(B.worldRadius + 1e-9);
   });
 
   it("records jumps with a cooldown, only during the day", () => {

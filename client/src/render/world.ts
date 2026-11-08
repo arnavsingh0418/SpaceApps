@@ -3,10 +3,16 @@ import { placeLabels } from "./labels";
 import { Terrain } from "./terrain";
 import { LocalController, jumpArc } from "./controller";
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import {
   initBuilders,
   astronaut,
   wreck,
+  hab,
+  workbench,
+  beacon,
+  shelter,
+  batteryBank,
   smoke,
   dome,
   greenhouse,
@@ -17,6 +23,7 @@ import {
 } from "./builders.js";
 import {
   B,
+  clampToWorld,
   gaitSpeed,
   stations,
   icons,
@@ -36,13 +43,23 @@ const colors = {
   circuit: 0x34d399,
   food: 0xfca5a5,
 };
+/** Where the hab and the crashed lander sit (metres, game coordinates). */
+export const HAB = { x: 0, z: -17 };
+export const WRECK = { x: -10, z: -36 };
+/** Built structures stand ~7 m further out than their science beacon so they don't swallow it. */
+function buildSpot(p: { x: number; z: number }, push = 7) {
+  const r = Math.hypot(p.x, p.z) || 1;
+  return { x: p.x + (p.x / r) * push, z: p.z + (p.z / r) * push };
+}
 export class World {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 1600);
   terrain = new Terrain();
   /** Your own movement controller (set by main.ts once a mission starts). */
   local: LocalController | null = null;
+  brokenDish: THREE.Object3D | null = null;
   cameraFollow: THREE.Vector3 | null = null;
+  camDist = 9;
   renderer: THREE.WebGLRenderer;
   actors = new Map<string, THREE.Group>();
   pickups = new Map<string, THREE.Object3D>();
@@ -75,6 +92,31 @@ export class World {
   frameMs = 0;
   sun: THREE.DirectionalLight;
   sky = new THREE.Color(0xe0a982);
+  skyDome = new THREE.Mesh(
+    new THREE.SphereGeometry(1400, 32, 16),
+    new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+      uniforms: {
+        horizon: { value: new THREE.Color(0xe0a982) },
+        zenith: { value: new THREE.Color(0x8a5a44) },
+        sunGlow: { value: new THREE.Color(0xfff0d0) },
+        sunDir: { value: new THREE.Vector3(-0.5, 0.8, 0.4).normalize() },
+      },
+      vertexShader: `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+      fragmentShader: `uniform vec3 horizon; uniform vec3 zenith; uniform vec3 sunGlow; uniform vec3 sunDir; varying vec3 vDir;
+        void main(){
+          float h = clamp(vDir.y, 0.0, 1.0);
+          vec3 c = mix(horizon, zenith, pow(h, 0.6));
+          float s = max(dot(normalize(vDir), sunDir), 0.0);
+          c += sunGlow * (pow(s, 24.0) * 0.55 + pow(s, 600.0) * 1.6);
+          gl_FragColor = vec4(c, 1.0);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+        }`,
+    }),
+  );
   constructor() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("#world")!,
@@ -83,8 +125,10 @@ export class World {
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
     this.renderer.setSize(innerWidth, innerHeight);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.25;
     this.scene.background = this.sky;
     this.scene.fog = new THREE.Fog(0xd99a72, 110, 620);
     initBuilders(this.scene);
@@ -120,17 +164,22 @@ export class World {
     markerRing.rotation.x = -Math.PI / 2;
     markerRing.position.y = 0.04;
     this.objectiveMarker.add(markerRing);
+    this.objectiveMarker.scale.setScalar(1.8);
     this.scene.add(this.objectiveMarker);
-    this.scene.add(new THREE.HemisphereLight(0xfff0e0, 0x7a3a20, 1.1));
-    this.sun = new THREE.DirectionalLight(0xffe2c4, 2.5);
+    this.scene.add(new THREE.HemisphereLight(0xffeedd, 0x8a4a2a, 1.0));
+    this.skyDome.renderOrder = -1;
+    this.scene.add(this.skyDome);
+    this.sun = new THREE.DirectionalLight(0xffe2c4, 2.9);
     this.sun.position.set(-18, 30, 15);
     this.sun.castShadow = true;
-    this.sun.shadow.mapSize.set(2048, 2048);
+    this.sun.shadow.mapSize.set(4096, 4096);
+    this.sun.shadow.bias = -0.0004;
     Object.assign(this.sun.shadow.camera, {
-      left: -38,
-      right: 38,
-      top: 38,
-      bottom: -38,
+      left: -55,
+      right: 55,
+      top: 55,
+      bottom: -55,
+      far: 200,
     });
     this.sun.shadow.normalBias = 0.04;
     this.scene.add(this.sun);
@@ -139,56 +188,30 @@ export class World {
     this.terrain
       .load(this.scene)
       .catch((err) => console.error("Mars map failed to load", err));
-    wreck(-7, -12);
-
-    const hab = dome(0, -5.4, 2.7);
-    this.buildings.set("hab", hab);
-    const door = new THREE.Mesh(
-      new THREE.BoxGeometry(1.1, 1.6, 0.25),
-      new THREE.MeshStandardMaterial({ color: 0x302823 }),
-    );
-    door.position.set(0, 0.8, -2.8);
-    this.scene.add(door);
-    crate(-1.8, -0.1, 0x9b6e44, 0.8);
-    crate(-2.7, -1, 0xa37c50, 0.65);
-    const table = new THREE.Mesh(
-      new THREE.BoxGeometry(2, 0.2, 1.2),
-      new THREE.MeshStandardMaterial({ color: 0xcbb599 }),
-    );
-    table.position.set(0, 0.8, -1.6);
-    table.castShadow = true;
-    this.scene.add(table);
-    this.addLabel("workbench", table, "🔧 WORKBENCH", 1.1);
-    for (const [id, pos] of Object.entries(stations)) {
-      if (id === "workbench") continue;
-      const g = new THREE.Group();
-      const pole = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.07, 0.07, 1.1, 6),
-        new THREE.MeshStandardMaterial({ color: 0xe8e4dc }),
-      );
-      pole.position.y = 0.55;
-      g.add(pole);
-      const orb = new THREE.Mesh(
-        new THREE.OctahedronGeometry(0.25),
-        new THREE.MeshStandardMaterial({
-          color: 0x67e8f9,
-          emissive: 0x0891b2,
-          emissiveIntensity: 0.7,
-        }),
-      );
-      orb.position.y = 1.3;
-      g.add(orb);
-      g.position.set(pos.x, 0, pos.z);
-      this.scene.add(g);
-      glow(pos.x, 0.04, pos.z, 0x67e8f9);
+    // Life-sized base (layout spread by B.layoutScale in the sim).
+    const solid = (o: THREE.Object3D) => (this.terrain.addStatic(o), o);
+    solid(wreck(WRECK.x, WRECK.z));
+    const habitat = solid(hab(HAB.x, HAB.z, 6.2));
+    this.buildings.set("hab", habitat);
+    solid(crate(-8, -8, 0x9b6e44, 1.5));
+    solid(crate(-9.8, -9.6, 0xa37c50, 1.1));
+    solid(crate(-8.4, -10.6, 0x8b6a45, 0.9));
+    const bench = workbench(stations.workbench.x, stations.workbench.z);
+    solid(bench.group);
+    this.addLabel("workbench", bench.top, "🔧 WORKBENCH", 1.4);
+    for (const [key, pos] of Object.entries(stations)) {
+      if (key === "workbench") continue;
+      const g = solid(beacon(pos.x, pos.z));
+      glow(pos.x, 0.05, pos.z, 0x67e8f9);
       this.addLabel(
-        id,
+        key,
         g,
-        `${{ shield: "🛡️ Shielding", comms: "📡 Radio science", grow: "🌱 Growing food", power: "⚡ Solar science", oxygen: "💨 Oxygen science", plants: "🔬 Space plants" }[id]} · SCAN`,
-        1.9,
+        `${{ shield: "🛡️ Shielding", comms: "📡 Radio science", grow: "🌱 Growing food", power: "⚡ Solar science", oxygen: "💨 Oxygen science", plants: "🔬 Space plants" }[key]} · SCAN`,
+        3.8,
       );
     }
-    dish(-9, -7, true);
+    const broken = buildSpot(stations.comms);
+    this.brokenDish = solid(dish(broken.x, broken.z, true));
     for (let i = 0; i < 10; i++) {
       const m = new THREE.Mesh(
         new THREE.CylinderGeometry(
@@ -211,6 +234,7 @@ export class World {
       m.position.x = Math.sin(i) * 0.25;
       this.devil.add(m);
     }
+    this.devil.scale.setScalar(2);
     this.scene.add(this.devil);
     this.renderer.domElement.addEventListener("pointermove", (event) => {
       this.pointer.set(
@@ -382,11 +406,10 @@ export class World {
         x = shown.x;
         z = shown.z;
       }
-      const radius = Math.hypot(x, z);
-      if (radius > B.worldRadius) {
-        x *= B.worldRadius / radius;
-        z *= B.worldRadius / radius;
-      }
+      const inside = { x, z };
+      clampToWorld(inside);
+      x = inside.x;
+      z = inside.z;
       const prevX = player.position.x,
         prevZ = player.position.z;
       const seen = Math.hypot(x - prevX, z - prevZ) / Math.max(dt, 1e-3);
@@ -425,15 +448,15 @@ export class World {
         });
         const m = new THREE.Mesh(
           i.kind === "ice"
-            ? new THREE.IcosahedronGeometry(0.5)
-            : new THREE.BoxGeometry(0.65, 0.65, 0.65),
+            ? new THREE.IcosahedronGeometry(0.75, 0)
+            : new RoundedBoxGeometry(1.05, 1.05, 1.05, 3, 0.12),
           mat,
         );
-        m.position.y = 0.45;
+        m.position.y = 0.8;
         m.castShadow = true;
         group.add(m);
         const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(0.68, 0.035, 4, 20),
+          new THREE.TorusGeometry(1.1, 0.05, 4, 28),
           new THREE.MeshBasicMaterial({
             color: i.kind === "ice" ? 0x7dd3fc : 0xfacc15,
           }),
@@ -448,13 +471,13 @@ export class World {
           i.id,
           o,
           `${icons[i.kind]} ${itemNames[i.kind]} ×${i.count}`,
-          1.2,
+          2.0,
         );
       }
       o.userData.count = i.count;
       o.position.set(i.x, this.terrain.heightAt(i.x, i.z), i.z);
       o.children[0].position.y =
-        0.55 +
+        0.95 +
         (this.motion.reduced ? 0 : Math.sin(this.motion.time * 2 + i.x) * 0.15);
       o.children[0].rotation.y = this.motion.reduced
         ? 0
@@ -476,11 +499,13 @@ export class World {
       let o = this.panels.get(p.id);
       if (!o) {
         o = panel(p.x, p.z, 0, 0);
+        this.terrain.addStatic(o!);
         this.panels.set(p.id, o!);
-        this.addLabel(p.id, o!, "", 1.7);
+        this.addLabel(p.id, o!, "", 3.6);
         const meter = new THREE.Group();
         meter.name = "clean-meter";
-        meter.position.set(0, 0.08, 0.35);
+        meter.position.set(0, 0.1, 1.0);
+        meter.scale.setScalar(2.2);
         for (let n = 0; n < 4; n++) {
           const segment = new THREE.Mesh(
             new THREE.BoxGeometry(0.28, 0.025, 0.1),
@@ -492,11 +517,12 @@ export class World {
         o!.children[1].add(meter);
       }
       const m = o!.children[1] as THREE.Mesh;
-      const panelColor = new THREE.Color(0x1e3a8a).lerp(
-        new THREE.Color(0x8a5a44),
+      // The cells are a texture; dust tints it toward Mars-tan, a tarp makes it dull brown.
+      const panelColor = new THREE.Color(0xffffff).lerp(
+        new THREE.Color(0xb27a52),
         1 - p.clean,
       );
-      if (p.covered) panelColor.setHex(0x5e4c40);
+      if (p.covered) panelColor.setHex(0x6b5a4c);
       (m.material as THREE.MeshStandardMaterial).color.lerp(
         panelColor,
         1 - Math.exp(-dt * 4),
@@ -521,24 +547,20 @@ export class World {
       if (!this.buildings.has(k)) {
         let o: THREE.Object3D;
         if (k === "shelter") {
-          o = dome(-10, 2, 2.5, 0x84766b);
-          for (let i = 0; i < 8; i++) {
-            const a = (i / 8) * Math.PI * 2;
-            const tank = new THREE.Mesh(
-              new THREE.CylinderGeometry(0.38, 0.38, 1.3, 8),
-              new THREE.MeshStandardMaterial({
-                color: 0x168caa,
-                flatShading: true,
-              }),
-            );
-            tank.position.set(-10 + Math.cos(a) * 3, 0.65, 2 + Math.sin(a) * 3);
-            tank.castShadow = true;
-            tank.position.sub(o.position);
-            o.add(tank);
-          }
-        } else if (k === "greenhouse") o = greenhouse(8, -1);
-        else if (k === "radio") o = dish(-9, -7, false);
-        else o = crate(6, 6, 0x7dd3fc, 1.3);
+          const at = buildSpot(stations.shield);
+          o = shelter(at.x, at.z);
+        } else if (k === "greenhouse") {
+          const at = buildSpot(stations.grow);
+          o = greenhouse(at.x, at.z);
+        } else if (k === "radio") {
+          const at = buildSpot(stations.comms);
+          o = dish(at.x, at.z, false);
+          if (this.brokenDish) this.brokenDish.visible = false;
+        } else {
+          const at = buildSpot(stations.oxygen);
+          o = batteryBank(at.x, at.z);
+        }
+        this.terrain.addStatic(o);
         o.userData.born = this.motion.time;
         this.buildings.set(k, o);
       }
@@ -564,6 +586,14 @@ export class World {
       .lerp(new THREE.Color(0x9c5a3a), this.motion.storm * 0.7);
     this.sky.lerp(skyColor, 1 - Math.exp(-dt * 2));
     this.scene.fog!.color.copy(this.sky);
+    // Sky dome: horizon matches the fog, zenith darker; the glow around the sun turns blue
+    // at sunset (real Mars sunsets are blue because fine dust scatters blue light forward).
+    const u = (this.skyDome.material as THREE.ShaderMaterial).uniforms;
+    u.horizon.value.copy(this.sky);
+    u.zenith.value.copy(this.sky).multiplyScalar(0.62).lerp(new THREE.Color(0x6b4636), 0.35);
+    u.sunGlow.value.setHex(0xfff0d0).lerp(new THREE.Color(0x8fb4e8), sunset);
+    u.sunDir.value.copy(this.sun.position).sub(this.sun.target.position).normalize();
+    this.skyDome.position.copy(this.camera.position);
     this.sun.intensity = THREE.MathUtils.lerp(
       2.5 - sunset * 0.8,
       1.05,
@@ -597,9 +627,18 @@ export class World {
           ),
         );
       // Never let the camera dip into a hill.
-      desired.y = Math.max(desired.y, this.terrain.heightAt(desired.x, desired.z) + 0.8);
-      this.camera.position.copy(desired);
-      this.camera.lookAt(focus);
+      desired.y = Math.max(desired.y, this.terrain.heightAt(desired.x, desired.z, desired.y) + 0.8);
+      // Camera collision: cast from the astronaut's head toward the camera and stop in front
+      // of the first wall, rock, hill or building. Snap in instantly, ease back out.
+      const head = follow.clone().add(new THREE.Vector3(0, 2.3, 0));
+      const toCam = desired.clone().sub(head);
+      const full = toCam.length();
+      toCam.divideScalar(full || 1);
+      const hit = this.terrain.rayHit(head, toCam, full + 0.4);
+      const want = hit === null ? full : Math.max(0.6, hit - 0.45);
+      this.camDist = want < this.camDist ? want : THREE.MathUtils.damp(this.camDist, want, 5, dt);
+      this.camera.position.copy(head).addScaledVector(toCam, Math.min(this.camDist, full));
+      this.camera.lookAt(this.camDist < 2.5 ? head : focus);
       // Shadows follow the player across the big map.
       this.sun.position.set(target.x - 18, target.y + 30, target.z + 15);
       this.sun.target.position.copy(target);
