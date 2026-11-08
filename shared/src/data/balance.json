@@ -29,7 +29,7 @@
   "storageCapacity": 60,
   "speed": 5,
   "coldSpeed": 3.2,
-  "worldRadius": 29,
+  "worldRadius": 100,
   "interactRadius": 3.6,
   "eventAt": 65,
   "stormWarningSeconds": 35,
