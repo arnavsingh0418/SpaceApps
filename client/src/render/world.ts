@@ -1,5 +1,6 @@
 import { WorldMotion } from "./motion";
 import { placeLabels } from "./labels";
+import { Terrain } from "./terrain";
 import * as THREE from "three";
 import {
   initBuilders,
@@ -35,7 +36,8 @@ const colors = {
 };
 export class World {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 280);
+  camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 1600);
+  terrain = new Terrain();
   renderer: THREE.WebGLRenderer;
   actors = new Map<string, THREE.Group>();
   pickups = new Map<string, THREE.Object3D>();
@@ -75,7 +77,7 @@ export class World {
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene.background = this.sky;
-    this.scene.fog = new THREE.Fog(0xd99a72, 48, 135);
+    this.scene.fog = new THREE.Fog(0xd99a72, 110, 620);
     initBuilders(this.scene);
     this.motion = new WorldMotion(this.scene);
     addEventListener("game-effect", (event) => {
@@ -122,53 +124,11 @@ export class World {
     });
     this.sun.shadow.normalBias = 0.04;
     this.scene.add(this.sun);
-    const geo = new THREE.PlaneGeometry(220, 220, 80, 80);
-    geo.rotateX(-Math.PI / 2);
-    const p = geo.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i),
-        z = p.getZ(i),
-        r = Math.hypot(x, z);
-      p.setY(
-        i,
-        r < 30
-          ? -0.04
-          : Math.sin(x * 0.15) * Math.cos(z * 0.12) * 1.5 +
-              Math.max(0, 6 - Math.abs(r - 43) * 0.5),
-      );
-    }
-    geo.computeVertexNormals();
-    const ground = new THREE.Mesh(
-      geo,
-      new THREE.MeshStandardMaterial({
-        color: 0xc4562a,
-        flatShading: true,
-        roughness: 1,
-      }),
-    );
-    ground.receiveShadow = true;
-    this.scene.add(ground);
-    const rockMat = new THREE.MeshStandardMaterial({
-      color: 0x803a23,
-      flatShading: true,
-    });
-    const rocks = new THREE.InstancedMesh(
-      new THREE.DodecahedronGeometry(1, 0),
-      rockMat,
-      95,
-    );
-    const dummy = new THREE.Object3D();
-    for (let i = 0; i < 95; i++) {
-      const a = i * 2.39996,
-        r = 18 + (i % 17) * 1.9;
-      dummy.position.set(Math.cos(a) * r, 0.12, Math.sin(a) * r);
-      dummy.scale.setScalar(0.2 + (i % 7) * 0.14);
-      dummy.rotation.set(i, i * 0.7, i * 0.2);
-      dummy.updateMatrix();
-      rocks.setMatrixAt(i, dummy.matrix);
-    }
-    rocks.castShadow = rocks.receiveShadow = true;
-    this.scene.add(rocks);
+    this.scene.add(this.sun.target);
+    // The Blender-made Mars map replaces the old flat plane and scattered rocks.
+    this.terrain
+      .load(this.scene)
+      .catch((err) => console.error("Mars map failed to load", err));
     wreck(-7, -12);
 
     const hab = dome(0, -5.4, 2.7);
@@ -360,6 +320,7 @@ export class World {
       player.position.x = x;
       player.position.z = z;
       this.motion.actor(player, p, s, dt);
+      player.position.y = this.terrain.heightAt(x, z);
     }
     for (const [key, obj] of this.pickups)
       if (!s.items.some((i) => i.id === key)) {
@@ -404,7 +365,7 @@ export class World {
         );
       }
       o.userData.count = i.count;
-      o.position.set(i.x, 0, i.z);
+      o.position.set(i.x, this.terrain.heightAt(i.x, i.z), i.z);
       o.children[0].position.y =
         0.55 +
         (this.motion.reduced ? 0 : Math.sin(this.motion.time * 2 + i.x) * 0.15);
@@ -494,7 +455,11 @@ export class World {
         o.userData.born = this.motion.time;
         this.buildings.set(k, o);
       }
-    this.devil.position.set(s.devil.x, 0, s.devil.z);
+    this.devil.position.set(
+      s.devil.x,
+      this.terrain.heightAt(s.devil.x, s.devil.z),
+      s.devil.z,
+    );
     this.devil.rotation.y = s.elapsed * 1.5;
     for (const [k, o] of this.buildings) {
       if (k === "hab") continue;
@@ -523,16 +488,25 @@ export class World {
       // Match the visible actor's interpolation instead of the 10 Hz simulation
       // position. Otherwise the view moves a frame ahead and makes the suit jitter.
       const actor = this.actors.get(id);
-      const target = actor ? actor.position.clone() : new THREE.Vector3(p.x, 0, p.z);
-      target.y = 0;
+      const target = actor
+        ? actor.position.clone()
+        : new THREE.Vector3(p.x, this.terrain.heightAt(p.x, p.z), p.z);
       const offset = new THREE.Vector3(
         Math.sin(this.yaw) * this.zoom,
         this.zoom * 0.55,
         Math.cos(this.yaw) * this.zoom,
       );
       const desired = target.clone().add(offset);
+      // Never let the camera dip below a hill between it and the player.
+      desired.y = Math.max(
+        desired.y,
+        this.terrain.heightAt(desired.x, desired.z) + 3,
+      );
       this.camera.position.lerp(desired, 1 - Math.exp(-6 * dt));
-      this.camera.lookAt(target.x, 1.2, target.z - 2);
+      this.camera.lookAt(target.x, target.y + 1.2, target.z - 2);
+      // Shadows follow the player across the big map.
+      this.sun.position.set(target.x - 18, target.y + 30, target.z + 15);
+      this.sun.target.position.copy(target);
     } else if (this.menu) {
       const a = s.elapsed * 0.015;
       this.camera.position.set(19 + Math.sin(a) * 3, 13, 26);
@@ -574,7 +548,7 @@ export class World {
     if (this.objectiveTarget) {
       this.objectiveMarker.position.set(
         this.objectiveTarget.x,
-        0,
+        this.terrain.heightAt(this.objectiveTarget.x, this.objectiveTarget.z),
         this.objectiveTarget.z,
       );
       this.objectiveMarker.children[0].position.y =
