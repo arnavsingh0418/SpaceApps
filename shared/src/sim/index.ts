@@ -122,7 +122,16 @@ export function log(s: Game, t: string) {
   s.messages = s.messages.slice(-8);
 }
 function spawn(s: Game, kind: Item, count: number, x: number, z: number) {
-  s.items.push({ id: `item-${++s.serial}`, kind, count, x, z, damaged: false });
+  const item = {
+    id: `item-${++s.serial}`,
+    kind,
+    count,
+    x,
+    z,
+    damaged: false,
+  };
+  s.items.push(item);
+  return item;
 }
 export function createGame(seed = 42): Game {
   const s: Game = {
@@ -174,14 +183,26 @@ export function createGame(seed = 42): Game {
     ["glass", 6, 7, -5],
     ["seeds", 1, 11, -2],
     ["antenna", 1, -14, -7],
-    ["battery", 1, -10, -10],
     ["circuit", 2, 3, -9],
     ["scrap", 6, 13, 10],
     ["ice", 6, -15, 10],
     ["food", 2, 16, -5],
   ];
   supplies.forEach((a) => spawn(s, ...a));
+  placeBatteryByAntenna(s);
   return s;
+}
+/** One battery sits beside the antenna until it is carried, stored, or built into the radio. */
+export function placeBatteryByAntenna(s: Game) {
+  if (s.built.includes("radio")) return;
+  if ((s.stock.battery || 0) > 0) return;
+  if (Object.values(s.players).some((p) => (p.bag.battery || 0) > 0)) return;
+  let loose = s.items.find((i) => i.kind === "battery");
+  if (!loose) loose = spawn(s, "battery", 1, -12, -7);
+  loose.x = -12;
+  loose.z = -7;
+  loose.damaged = false;
+  loose.count = Math.max(1, loose.count);
 }
 export function addPlayer(s: Game, id: string, name = "Explorer") {
   if (Object.keys(s.players).length >= B.maxPlayers || s.players[id])

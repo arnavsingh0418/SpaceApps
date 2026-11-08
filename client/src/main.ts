@@ -7,6 +7,7 @@ import { World } from "./render/world";
 import { CrewConnection } from "./net/crew";
 import {
   createGame,
+  placeBatteryByAntenna,
   addPlayer,
   dispatch,
   tick,
@@ -65,8 +66,10 @@ try {
     v?.version === 1 &&
     v.game?.players?.solo &&
     ["power", "day", "summary"].includes(v.game.phase)
-  )
+  ) {
     saved = v.game;
+    placeBatteryByAntenna(saved);
+  }
 } catch {}
 function cue(kind: string, target?: string) {
   dispatchEvent(
@@ -158,6 +161,7 @@ function start(resume = false) {
     resume && saved
       ? structuredClone(saved)
       : createGame(Math.floor(Math.random() * 2147483647));
+  placeBatteryByAntenna(game);
   if (!game.players.solo) addPlayer(game, "solo", "Explorer");
   game.players.solo.move = { x: 0, z: 0 };
   id = "solo";
