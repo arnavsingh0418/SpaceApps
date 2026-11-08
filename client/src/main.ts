@@ -64,6 +64,7 @@ let tutorial = 4,
   lastEvent = "",
   firstPlan = true;
 const world = new World();
+if (import.meta.env.DEV) (window as unknown as { __world: World }).__world = world; // dev-only debugging hook
 addPlayer(game, id, "Explorer");
 try {
   const v = JSON.parse(localStorage.getItem("outpost-save-v1") || "null");
@@ -1019,8 +1020,12 @@ function update(dt: number, render = true) {
         controller.reset(me.x, me.z, world.terrain.heightAt(me.x, me.z));
         controllerSeed = game.seed;
       }
-      const jumped = controller.update(dt, input, game.allocation.heat < 1, (px, pz) =>
-        world.terrain.heightAt(px, pz),
+      const jumped = controller.update(
+        dt,
+        input,
+        game.allocation.heat < 1,
+        (px, pz, py) => world.terrain.heightAt(px, pz, py),
+        (px, pz, py) => world.terrain.collides(px, pz, py),
       );
       if (jumped) {
         act({ type: "jump" });

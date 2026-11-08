@@ -121,10 +121,10 @@ describe("shared deterministic simulation", () => {
       "closer",
     );
     dispatch(s, "a", { type: "move", x: 1000, z: 1000 });
-    run(s, 10);
-    expect(Math.hypot(s.players.a.x, s.players.a.z)).toBeLessThanOrEqual(
-      B.worldRadius + 0.001,
-    );
+    run(s, 120);
+    expect(
+      Math.hypot(s.players.a.x - B.worldCenterX, s.players.a.z - B.worldCenterZ),
+    ).toBeLessThanOrEqual(B.worldRadius + 0.001);
   });
   it("rejects nonfinite movement", () => {
     const s = setup();
@@ -283,11 +283,14 @@ describe("shared deterministic simulation", () => {
     const s = setup();
     day(s);
     s.stock = { ice: 4 };
+    // Put the supply where the dust devil will be on the next tick.
+    const devilX = 18 * B.layoutScale * Math.cos((s.elapsed + 0.1) * 0.045),
+      devilZ = 16 * B.layoutScale * Math.sin((s.elapsed + 0.1) * 0.045);
     s.items = [
-      { id: "devil", kind: "ice", count: 1, x: 18, z: 0, damaged: false },
+      { id: "devil", kind: "ice", count: 1, x: devilX, z: devilZ, damaged: false },
     ];
     run(s, 0.1);
-    expect(s.items[0].x).not.toBe(18);
+    expect(s.items[0].x).not.toBe(devilX);
     expect(s.stock.ice).toBe(4);
   });
   it("task completion checks duration, location, and puzzle answer", () => {
