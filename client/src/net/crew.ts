@@ -3,6 +3,7 @@ export class CrewConnection {
   socket: WebSocket;
   id = "";
   room = "";
+  heartbeat: ReturnType<typeof setInterval> | null = null;
   onState: (s: Game) => void = () => {};
   onError: (s: string) => void = () => {};
   onClose: () => void = () => {};
@@ -36,6 +37,10 @@ export class CrewConnection {
             this.id = m.id;
             this.room = m.room;
             clearTimeout(timeout);
+            this.heartbeat = setInterval(() => {
+              if (this.socket.readyState === WebSocket.OPEN)
+                this.socket.send(JSON.stringify({ type: "ping" }));
+            }, 25000);
             resolve();
           }
           if (m.type === "state") this.onState(m.state);
@@ -53,6 +58,7 @@ export class CrewConnection {
       };
       this.socket.onclose = () => {
         clearTimeout(timeout);
+        if (this.heartbeat) clearInterval(this.heartbeat);
         this.onClose();
       };
     });
@@ -62,6 +68,7 @@ export class CrewConnection {
       this.socket.send(JSON.stringify({ type: "action", action: a }));
   }
   close() {
+    if (this.heartbeat) clearInterval(this.heartbeat);
     this.socket.onclose = null;
     this.socket.close();
   }

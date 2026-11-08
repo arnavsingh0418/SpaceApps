@@ -432,7 +432,6 @@ async function connect(join: boolean) {
     conn.onError = toast;
     conn.onState = (s) => {
       game = s;
-      if (started) draw();
     };
     await conn.join(
       name,
@@ -724,6 +723,14 @@ addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
 addEventListener("blur", () => {
   keys.clear();
   joy = { x: 0, z: 0 };
+  if (started) act({ type: "move", x: 0, z: 0 });
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    keys.clear();
+    joy = { x: 0, z: 0 };
+    if (started) act({ type: "move", x: 0, z: 0 });
+  }
 });
 document.addEventListener("pointerdown", (e) => {
   if ((e.target as HTMLElement).closest("#joystick")) {
