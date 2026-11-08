@@ -9,6 +9,7 @@ import { missionBriefing, fieldManual } from "./ui/briefing";
 import { CrewConnection } from "./net/crew";
 import {
   createGame,
+  placeBatteryByAntenna,
   addPlayer,
   dispatch,
   tick,
@@ -69,8 +70,10 @@ try {
     v?.version === 1 &&
     v.game?.players?.solo &&
     ["power", "day", "summary"].includes(v.game.phase)
-  )
+  ) {
     saved = v.game;
+    placeBatteryByAntenna(v.game);
+  }
 } catch {}
 function cue(kind: string, target?: string) {
   dispatchEvent(
@@ -188,6 +191,7 @@ function start(resume = false) {
     resume && saved
       ? structuredClone(saved)
       : createGame(Math.floor(Math.random() * 2147483647));
+  placeBatteryByAntenna(game);
   if (!game.players.solo) addPlayer(game, "solo", "Explorer");
   game.players.solo.move = { x: 0, z: 0 };
   id = "solo";
@@ -1009,6 +1013,8 @@ function update(dt: number, render = true) {
       }
       fixed -= 0.1;
     }
+    world.predictMovement = !connection;
+    world.stepRemainder = connection ? 0 : fixed;
     if (pendingBuild) {
       pendingBuild.seconds =
         game.players[id].role === "Engineer"
@@ -1131,7 +1137,9 @@ window.render_game_to_text = () =>
       flights: world.motion.flights.length,
       actors: Array.from(world.actors.entries()).map(([key, a]) => ({
         id: key,
+        x: a.position.x,
         y: a.position.y,
+        z: a.position.z,
         scaleY: a.scale.y,
         arm: a.getObjectByName("armL")?.rotation.x,
         leg: a.getObjectByName("legL")?.rotation.x,

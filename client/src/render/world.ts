@@ -54,7 +54,8 @@ export class World {
   pointer = new THREE.Vector2();
   motion: WorldMotion;
   zoom = 20;
-  cameraVelocity = new THREE.Vector3();
+  stepRemainder = 0;
+  predictMovement = true;
   lastSeed = -1;
   yaw = 0;
   menu = true;
@@ -329,10 +330,35 @@ export class World {
         g!.position.set(p.x, 0, p.z);
       }
       const player = g!;
-      player.position.lerp(
-        new THREE.Vector3(p.x, 0, p.z),
-        1 - Math.exp(-14 * dt),
-      );
+      const speed = s.allocation.heat < 1 ? B.coldSpeed : B.speed;
+      let x = p.x;
+      let z = p.z;
+      if (this.predictMovement && s.phase === "day") {
+        x += p.move.x * speed * this.stepRemainder;
+        z += p.move.z * speed * this.stepRemainder;
+      } else {
+        const shown = (player.userData.shown ||= { x: p.x, z: p.z }) as {
+          x: number;
+          z: number;
+        };
+        const dx = p.x - shown.x,
+          dz = p.z - shown.z,
+          dist = Math.hypot(dx, dz),
+          step = Math.min(dist, Math.max(speed, dist / 0.12) * dt);
+        if (dist > 1e-5) {
+          shown.x += (dx / dist) * step;
+          shown.z += (dz / dist) * step;
+        }
+        x = shown.x;
+        z = shown.z;
+      }
+      const radius = Math.hypot(x, z);
+      if (radius > B.worldRadius) {
+        x *= B.worldRadius / radius;
+        z *= B.worldRadius / radius;
+      }
+      player.position.x = x;
+      player.position.z = z;
       this.motion.actor(player, p, s, dt);
     }
     for (const [key, obj] of this.pickups)

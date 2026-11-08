@@ -108,20 +108,31 @@ export class WorldMotion {
     }
   }
   actor(g: THREE.Group, p: Game["players"][string], s: Game, dt: number) {
-    const moving = Math.hypot(p.move.x, p.move.z) > 0.01,
-      pace = s.allocation.heat < 1 ? 0.65 : 1,
-      t = this.time * 9 * pace,
-      amp = this.reduced ? 0.2 : 0.6;
-    if (moving) {
+    const dx = g.position.x - Number(g.userData.px ?? g.position.x),
+      dz = g.position.z - Number(g.userData.pz ?? g.position.z),
+      traveled = Math.hypot(dx, dz);
+    g.userData.px = g.position.x;
+    g.userData.pz = g.position.z;
+    const moving = Math.hypot(p.move.x, p.move.z) > 0.01 && traveled > 0.0001;
+    const stride = 1.05;
+    const gait =
+      Number(g.userData.gait || 0) + (moving ? traveled / stride : 0);
+    g.userData.gait = gait;
+    if (Math.hypot(p.move.x, p.move.z) > 0.01) {
       const angle = Math.atan2(p.move.x, p.move.z);
       g.rotation.y +=
         Math.atan2(
           Math.sin(angle - g.rotation.y),
           Math.cos(angle - g.rotation.y),
         ) *
-        (1 - Math.exp(-12 * dt));
+        (1 - Math.exp(-8 * dt));
     }
-    const swing = moving ? Math.sin(t) * amp : 0;
+    const swing =
+      moving && !this.reduced
+        ? Math.sin(gait * Math.PI) * 0.46
+        : moving
+          ? Math.sin(gait * Math.PI) * 0.16
+          : 0;
     for (const [part, sign] of [
       ["armL", 1],
       ["armR", -1],
@@ -129,19 +140,23 @@ export class WorldMotion {
       ["legR", 1],
     ] as const) {
       const limb = g.getObjectByName(part);
-      if (limb)
-        limb.rotation.x = THREE.MathUtils.damp(
-          limb.rotation.x,
-          swing * sign,
-          16,
-          dt,
-        );
+      if (!limb) continue;
+      const leg = part.startsWith("leg");
+      limb.rotation.x = moving
+        ? swing * sign * (leg ? 1 : 0.72)
+        : THREE.MathUtils.damp(limb.rotation.x, 0, 8, dt);
     }
     // Keep the suit's root planted; walking lives in the limbs, not a bouncing body.
     g.position.y = 0;
     g.rotation.x = THREE.MathUtils.damp(
       g.rotation.x,
-      moving && !this.reduced ? 0.07 : 0,
+      moving && !this.reduced ? 0.04 : 0,
+      6,
+      dt,
+    );
+    g.rotation.z = THREE.MathUtils.damp(
+      g.rotation.z,
+      0,
       8,
       dt,
     );
@@ -180,9 +195,23 @@ export class WorldMotion {
         g.userData.sparkAt = this.time + 0.15;
       }
     }
-    if (moving && !this.reduced && this.time > Number(g.userData.stepAt || 0)) {
-      this.particles.emit(p.x, 0.08, p.z, 0xe0a982, 3, 0.09, 0.5, 0, 0.35);
-      g.userData.stepAt = this.time + 0.28 / pace;
+    if (
+      moving &&
+      !this.reduced &&
+      traveled < 1.2 &&
+      Math.floor(gait) !== Math.floor(gait - traveled / stride)
+    ) {
+      this.particles.emit(
+        g.position.x,
+        0.08,
+        g.position.z,
+        0xe0a982,
+        3,
+        0.09,
+        0.5,
+        0,
+        0.35,
+      );
       dispatchEvent(new CustomEvent("footstep"));
     }
   }
