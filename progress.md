@@ -47,3 +47,11 @@ Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.
 - Moved only the visual hab back so the workbench is reachable without hiding the astronaut inside its shell; simulation station coordinates are unchanged.
 - Supplied loop and nine screenshots show zero page errors. Reviewed near-item screenshot: short prompt, quiet world labels and no overlapping labels.
 
+
+## Task 4 complete
+- Procedural idle/breathing/glints, opposite limbs, smooth turning, lean, footsteps, crouch/pickup arcs, carry props, build tool loop and overshoot growth added.
+- Fixed-size instanced pools drive dust, sparks, beacon motes, drifting smoke and storm wind. Added scan beams/rings, panel dust tint, clean sparkles, dose flashes, storm fade and sunset lighting.
+- Resource transitions, count ticks and transient feedback animate. Reduced motion disables breathing, shakes and large movements.
+- Motion QA passed real-input pickup/scan/crafting plus staged storm and flare controls. Reviewed pickup/build frames; moved progress away from the astronaut and delayed the quiz until its beam is visible.
+- The initial reduced-motion assertion raced the media-change event; waiting for that event made the deterministic pose check pass.
+
