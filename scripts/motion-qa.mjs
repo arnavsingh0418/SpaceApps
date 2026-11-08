@@ -15,16 +15,19 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("http://127.0.0.1:5173");
   await page.click("[data-do=solo]");
+  await page.click('[data-arrival="skip"]');
+  await page.click('[data-do="beginExplore"]');
   const state = async () =>
     JSON.parse(await page.evaluate(() => window.render_game_to_text()));
   const advance = (ms) => page.evaluate((n) => window.advanceTime(n), ms);
   await advance(100);
   const idle = (await state()).motion.actors[0].scaleY;
   await advance(500);
-  assert.notEqual((await state()).motion.actors[0].scaleY, idle);
+  assert.equal((await state()).motion.actors[0].scaleY, idle, "idle suit must not pulse or stretch");
   await page.keyboard.down("ArrowLeft");
   await advance(500);
   const walk = (await state()).motion.actors[0];
+  assert.equal(walk.y, 0, "walking must keep the character root stable");
   assert.ok(walk.arm * walk.leg <= 0);
   await page.screenshot({ path: `${dir}/walk.png` });
   await page.keyboard.up("ArrowLeft");

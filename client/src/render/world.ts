@@ -494,26 +494,18 @@ export class World {
     this.sun.color.setHex(0xffe2c4).lerp(new THREE.Color(0xffaa76), sunset);
     const p = s.players[id];
     if (p && !this.menu) {
-      const target = new THREE.Vector3(p.x, 0, p.z);
+      // Match the visible actor's interpolation instead of the 10 Hz simulation
+      // position. Otherwise the view moves a frame ahead and makes the suit jitter.
+      const actor = this.actors.get(id);
+      const target = actor ? actor.position.clone() : new THREE.Vector3(p.x, 0, p.z);
+      target.y = 0;
       const offset = new THREE.Vector3(
         Math.sin(this.yaw) * this.zoom,
         this.zoom * 0.55,
         Math.cos(this.yaw) * this.zoom,
       );
       const desired = target.clone().add(offset);
-      this.cameraVelocity.addScaledVector(
-        desired.sub(this.camera.position),
-        dt * 36,
-      );
-      this.cameraVelocity.multiplyScalar(Math.exp(-dt * 10));
-      this.camera.position.addScaledVector(this.cameraVelocity, dt);
-      if (!this.motion.reduced && this.motion.shake > 0) {
-        this.camera.position.x += Math.sin(this.motion.time * 100) * 0.04;
-        this.camera.position.y += Math.cos(this.motion.time * 93) * 0.025;
-      }
-      if (!this.motion.reduced && this.motion.storm > 0.1)
-        this.camera.position.x +=
-          Math.sin(this.motion.time * 36) * 0.008 * this.motion.storm;
+      this.camera.position.lerp(desired, 1 - Math.exp(-6 * dt));
       this.camera.lookAt(target.x, 1.2, target.z - 2);
     } else if (this.menu) {
       const a = s.elapsed * 0.015;

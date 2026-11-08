@@ -137,7 +137,8 @@ export class WorldMotion {
           dt,
         );
     }
-    g.position.y = this.reduced ? 0 : moving ? Math.abs(Math.sin(t)) * 0.09 : 0;
+    // Keep the suit's root planted; walking lives in the limbs, not a bouncing body.
+    g.position.y = 0;
     g.rotation.x = THREE.MathUtils.damp(
       g.rotation.x,
       moving && !this.reduced ? 0.07 : 0,
@@ -148,9 +149,7 @@ export class WorldMotion {
     g.scale.set(
       1.35,
       1.35 *
-        (1 +
-          (this.reduced ? 0 : 0.02 * Math.sin(this.time * Math.PI)) -
-          (crouch > 0 ? 0.22 * Math.sin((crouch / 0.5) * Math.PI) : 0)),
+        (1 - (crouch > 0 ? 0.22 * Math.sin((crouch / 0.5) * Math.PI) : 0)),
       1.35,
     );
     const visor = g.getObjectByName("visor") as THREE.Mesh<

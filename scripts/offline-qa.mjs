@@ -19,6 +19,8 @@ try {
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
   await page.click("[data-do=solo]");
+  await page.click('[data-arrival="skip"]');
+  await page.click('[data-do="beginExplore"]');
   await page.evaluate(() => window.advanceTime(2600));
   const before = JSON.parse(
     await page.evaluate(() => window.render_game_to_text()),

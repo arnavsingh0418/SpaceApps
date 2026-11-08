@@ -23,6 +23,8 @@ try {
   const advance = (ms) => page.evaluate((n) => window.advanceTime(n), ms);
   assert.equal((await state()).audio.muted, true);
   await page.click("[data-do=solo]");
+  await page.click('[data-arrival="skip"]');
+  await page.click('[data-do="beginExplore"]');
   await page.waitForFunction(
     () => JSON.parse(window.render_game_to_text()).audio.ready === 9,
   );

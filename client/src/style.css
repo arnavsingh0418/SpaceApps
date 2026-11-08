@@ -33,6 +33,7 @@ kbd{font:800 12px 'Nunito Sans',sans-serif;display:inline-grid;place-items:cente
 .menu-links .button{font-size:16px}
 .mission-stamp{position:absolute;right:5%;bottom:18%;display:grid;gap:8px;border-left:1px solid var(--edge);padding:16px;font-size:14px}
 .menu-footer{position:absolute;bottom:24px;left:32px;font-size:14px}
+
 .vitals{position:absolute;top:24px;left:24px;display:flex;align-items:center;gap:8px;padding:8px;width:300px;height:64px;backdrop-filter:blur(6px)}
 .sol{width:76px;position:relative;flex-shrink:0;align-self:stretch;display:flex;align-items:center;gap:4px}
 .sol b{font-size:28px;white-space:nowrap}

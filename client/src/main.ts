@@ -4,6 +4,8 @@ import "@fontsource/nunito-sans/latin-700.css";
 import "@fontsource/nunito-sans/latin-800.css";
 import "./style.css";
 import { World } from "./render/world";
+import { Arrival } from "./render/arrival";
+import { missionBriefing, fieldManual } from "./ui/briefing";
 import { CrewConnection } from "./net/crew";
 import {
   createGame,
@@ -34,6 +36,7 @@ const ui = $("#ui"),
 let game = createGame(42),
   id = "solo",
   started = false,
+  introPlaying = false,
   connection: CrewConnection | null = null,
   phase = "",
   modal = "",
@@ -41,6 +44,7 @@ let game = createGame(42),
   muted = true,
   saved: Game | null = null,
   draft: Allocation = { air: 3, light: 3, radio: 3, heat: 2 };
+let arrival: Arrival | null = null;
 let gaugeFrom = { power: 11, air: 85, food: 95, dose: 0 },
   gaugeUntil = 0;
 let tutorial = 4,
@@ -135,11 +139,14 @@ function open(kind: string, title: string, body: string, closable = true) {
   validateCopy(root);
 }
 function close() {
+  stopInput();
+  ui.inert = false;
   modal = "";
   root.innerHTML = "";
   hudSignature = "";
 }
 function menu() {
+  clearIntro();
   pendingBuild = null;
   pendingScan = null;
   pendingLock = null;
@@ -148,7 +155,30 @@ function menu() {
   close();
   ui.innerHTML = screens.titleScreen(!!saved);
 }
+function clearIntro() {
+  arrival?.dispose();
+  arrival = null;
+  introPlaying = false;
+}
+function playLandingSequence() {
+  clearIntro();
+  pendingBuild = null;
+  pendingScan = null;
+  pendingLock = null;
+  connection?.close();
+  connection = null;
+  started = false;
+  world.menu = true;
+  phase = "";
+  tutorial = 4;
+  close();
+  introPlaying = true;
+  stopInput();
+  sfx.stopLoops();
+  arrival = new Arrival(world.renderer, ui, () => start(), sfx);
+}
 function start(resume = false) {
+  clearIntro();
   pendingBuild = null;
   pendingScan = null;
   pendingLock = null;
@@ -161,6 +191,15 @@ function start(resume = false) {
   if (!game.players.solo) addPlayer(game, "solo", "Explorer");
   game.players.solo.move = { x: 0, z: 0 };
   id = "solo";
+  fixed = 0;
+  saveAt = game.elapsed;
+  inputAt = 0;
+  lastMove = "";
+  firstPlan = !resume;
+  goalsOpen = chatOpen = false;
+  unread = lastMessages = 0;
+  lastEvent = "";
+  selected = 0;
   started = true;
   world.menu = false;
   phase = "";
@@ -180,6 +219,13 @@ function start(resume = false) {
     dose: game.dose,
   };
   draw();
+  if (!resume) {
+    modal = "briefing";
+    ui.inert = true;
+    draw();
+    root.innerHTML = missionBriefing();
+    root.querySelector<HTMLElement>('[role="dialog"]')?.focus({ preventScroll: true });
+  }
 }
 function powerScreen() {
   draft = { ...game.allocation };
@@ -332,6 +378,7 @@ function draw() {
     goals: goalsOpen,
     chat: chatOpen,
     tutorial,
+    guide: !modal && !connection,
     hint: "",
     prompt: !modal && game.phase === "day" ? n?.text || "" : "",
     controls: game.clock < controlsUntil,
@@ -535,8 +582,14 @@ document.addEventListener("click", (e) => {
   sound();
   switch (d.do) {
     case "solo":
+      playLandingSequence();
+      break;
     case "retry":
       start();
+      break;
+    case "beginExplore":
+      close();
+      draw();
       break;
     case "resume":
       start(true);
@@ -554,7 +607,7 @@ document.addEventListener("click", (e) => {
       void connect(true);
       break;
     case "help":
-      open("help", "CONTROLS", screens.controls());
+      open("help", "YOUR FIELD GUIDE", fieldManual());
       break;
     case "sources":
       sources();
@@ -749,10 +802,16 @@ let joy = { x: 0, z: 0 },
   joyPointer: number | null = null,
   scrubbing = false;
 addEventListener("keydown", (e) => {
+  if (introPlaying && arrival) {
+    if (e.key === "Escape") { e.preventDefault(); arrival.complete(); }
+    else if (e.code === "Space" && !(e.target as HTMLElement).matches("button")) { e.preventDefault(); if (!e.repeat) arrival.togglePause(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); if (!e.repeat) arrival.next(); }
+    return;
+  }
   if ((e.target as HTMLElement).matches("input,select,textarea")) return;
   if (
     ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key) ||
-    (e.key === "Tab" && !modal)
+    (e.key === "Tab" && !modal && started)
   )
     e.preventDefault();
   keys.add(e.key.toLowerCase());
@@ -762,7 +821,7 @@ addEventListener("keydown", (e) => {
   }
   if (e.repeat) return;
   if (e.key === "Escape") {
-    if (modal && !["power", "summary", "ended", "building"].includes(modal))
+    if (modal && !["power", "summary", "ended", "building", "briefing"].includes(modal))
       close();
     else if (!modal && started) pause();
   }
@@ -886,10 +945,11 @@ function updateTutorial() {
       : tutorial === 1
         ? Object.values(p.bag).some((n) => n && n > 0)
         : tutorial === 2
-          ? game.learned.length > 0
+          ? game.learned.includes("grow")
           : Object.values(game.stock).some((n) => n && n > 0);
   if (done) {
     tutorial++;
+    if (tutorial === 3) recipeIndex = recipes.findIndex((r) => r.id === "greenhouse");
     cue("success");
     toast("✓ Step complete");
     hudSignature = "";
@@ -898,12 +958,13 @@ function updateTutorial() {
     tutorial < 2
       ? crate || null
       : tutorial === 2
-        ? stations.power
+        ? stations.grow
         : tutorial === 3
           ? stations.workbench
           : null;
 }
 function update(dt: number, render = true) {
+  if (arrival) { arrival.update(dt); return; }
   if (started) {
     updateTutorial();
     if (pendingScan && game.elapsed >= pendingScan.at) {
@@ -936,7 +997,7 @@ function update(dt: number, render = true) {
     }
     fixed += dt;
     while (fixed >= 0.1) {
-      if (!connection && modal !== "pause" && !document.hidden) {
+      if (!connection && !["pause", "briefing", "help", "sources"].includes(modal) && !document.hidden) {
         if (game.phase === "day" && game.clock + 0.1 >= B.solSeconds)
           reportBefore = {
             power: game.power,
@@ -1020,12 +1081,14 @@ window.advanceTime = (ms) => {
   const step = ms > 1000 ? 0.1 : 1 / 60;
   for (let i = 0; i < Math.ceil(ms / (1000 * step)); i++) update(step, false);
   if (started) draw();
-  world.update(game, id, 0.1);
+  if (arrival) arrival.update(0);
+  else world.update(game, id, 0.1);
 };
 window.render_game_to_text = () =>
   JSON.stringify({
     coordinates: "meters; +x right, +z toward camera; origin at hab",
     started,
+    arrival: arrival?.state || null,
     modal,
     tutorial,
     sol: game.sol,
@@ -1085,6 +1148,7 @@ window.render_game_to_text = () =>
   });
 if (import.meta.env.DEV)
   window.__stageScene = (name) => {
+    clearIntro();
     pendingScan = null;
     pendingBuild = null;
     world.lastSeed = -1;
