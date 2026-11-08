@@ -41,7 +41,11 @@ export const stations = [
   },
 ] as const;
 
-export function createBase(scene: THREE.Scene, onProgress: () => void) {
+export function createBase(
+  scene: THREE.Scene,
+  onProgress: () => void,
+  groundHeight: (x: number, z: number) => number = () => -0.035,
+) {
   const root = new THREE.Group();
   root.name = "Mars outpost";
   scene.add(root);
@@ -50,6 +54,7 @@ export function createBase(scene: THREE.Scene, onProgress: () => void) {
   const structures = new Map<Structure, THREE.Group>();
   const caches = new Map<string, THREE.Group>();
   const hiddenCaches = new Set<string>();
+  const groundOffsets = new Map<THREE.Group, number>();
   const place = async (
     id: string,
     position: readonly number[],
@@ -61,7 +66,9 @@ export function createBase(scene: THREE.Scene, onProgress: () => void) {
     state.total++;
     try {
       const model = await loadModel(id, size, rotation);
-      model.position.set(position[0], -0.035 + position[1], position[2]);
+      const [x, offset, z] = position;
+      model.position.set(x, groundHeight(x, z) + offset, z);
+      groundOffsets.set(model, offset);
       model.userData.station = station;
       if (placement && "structure" in placement) {
         structures.set(placement.structure, model);
@@ -102,6 +109,12 @@ export function createBase(scene: THREE.Scene, onProgress: () => void) {
   );
   return {
     root, selectable, state, ready: Promise.all(jobs),
+    groundModels() {
+      for (const [model, offset] of groundOffsets) {
+        const { x, z } = model.position;
+        model.position.y = groundHeight(x, z) + offset;
+      }
+    },
     constructionReady: (id: Structure) => structures.has(id),
     showStructure(id: Structure) {
       const model = structures.get(id);

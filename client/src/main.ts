@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { createTerrain } from "./render/terrain";
+import { Terrain } from "./render/marsTerrain";
 import { createBase, stations } from "./render/base";
 import { createConstruction, recipeIds, recipes, type Structure } from "./construction";
 import { connectPowerPlan } from "./powerPlan";
@@ -55,6 +56,10 @@ try {
   sun.shadow.normalBias = 0.04;
   scene.add(sun);
   const { ground, rocks } = createTerrain(scene);
+  const mars = new Terrain();
+  const groundHeight = (x: number, z: number) =>
+    mars.ready ? mars.heightAt(x, z) : -0.035;
+  let mapFailed = false;
   const render = () => renderer.render(scene, camera);
   controls.addEventListener("change", render);
 
@@ -65,7 +70,21 @@ try {
       : base.state.loaded === base.state.total
         ? "Outpost ready · Select a station to explore"
         : `Preparing outpost · ${base.state.loaded}/${base.state.total}`;
+    if (mapFailed) status.textContent += " · Using backup terrain";
     render();
+  }, groundHeight);
+  void mars.load(scene).then(() => {
+    base.groundModels();
+    ground.visible = rocks.visible = false;
+    scene.fog = new THREE.Fog(0xd99a72, 110, 620);
+    camera.far = 900;
+    camera.updateProjectionMatrix();
+    render();
+  }, (error) => {
+    mapFailed = true;
+    mars.group.removeFromParent();
+    status.textContent += " · Using backup terrain";
+    console.warn("Could not load the Mars map", error);
   });
   const heading = document.querySelector<HTMLHeadingElement>("#station-title")!;
   const tag = document.querySelector<HTMLElement>("#station-tag")!;
@@ -149,7 +168,8 @@ try {
       }
     }
     if (station) {
-      controls.target.set(station.position[0], 1.3, station.position[2]);
+      const [x, offset, z] = station.position;
+      controls.target.set(x, groundHeight(x, z) + offset + 1.3, z);
       camera.position
         .copy(controls.target)
         .add(new THREE.Vector3(...station.view));
@@ -227,15 +247,14 @@ try {
       mode: "mars-outpost-preview",
       selected,
       coordinates: "metres; origin at landing area, +Y up, +X right, +Z south",
-      terrain: {
-        width: 220,
-        depth: 220,
-        flatRadius: 30,
-        vertices: ground.geometry.attributes.position.count,
-      },
-      rocks: rocks.count,
+      terrain: mars.ready
+        ? { kind: "blender-map", originHeight: groundHeight(0, 0) }
+        : { kind: mapFailed ? "procedural-fallback" : "loading", width: 220, depth: 220, flatRadius: 30, vertices: ground.geometry.attributes.position.count },
+      rocks: mars.ready ? undefined : rocks.count,
       models: base.state,
-      stations: stations.map(({ key, position }) => ({ key, position })),
+      stations: stations.map(({ key, position: [x, offset, z] }) => ({
+        key, position: [x, groundHeight(x, z) + offset, z],
+      })),
       camera: {
         x: camera.position.x,
         y: camera.position.y,
