@@ -55,3 +55,10 @@ Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.
 - Motion QA passed real-input pickup/scan/crafting plus staged storm and flare controls. Reviewed pickup/build frames; moved progress away from the astronaut and delayed the quiz until its beam is visible.
 - The initial reduced-motion assertion raced the media-change event; waiting for that event made the deterministic pose check pass.
 
+
+## Task 5 complete
+- Added countdown rings and concise storm checklists in the objective group, archived-flare cards with shield-adjusted costs, timed countdown bars, compact night-report deltas, and full-screen crew debriefs.
+- Build progress follows simulation time and stays clear of the astronaut.
+- Supplied loop and 11 event/state captures report zero page errors. Reviewed flare and full-screen debrief images.
+- All 33 tests pass, including displayed-cost/simulation agreement, concise storm countdowns, and guest next-sol permissions.
+

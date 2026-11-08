@@ -3,3 +3,6 @@
 .gain-floater{position:fixed;z-index:6;left:50%;top:48%;font-size:28px;font-weight:800;color:var(--food);pointer-events:none;animation:delta .8s ease-out forwards}.dose-hit .gauge.dose{animation:dangerPulse .4s ease-out 2}
 
 .build-status{position:fixed;left:50%;bottom:196px;transform:translateX(-50%);padding:16px;width:280px;z-index:10}.build-status strong{font:800 28px "Barlow Condensed";display:block;margin-bottom:12px}
+
+.event-banner{display:flex;align-items:center;gap:16px;text-align:left}.event-banner>div>span{display:block;font-size:16px;margin-top:4px}.countdown-ring{display:grid;place-items:center;flex-shrink:0;width:56px;height:56px;border:4px solid var(--sun);border-radius:999px;font-size:14px;color:var(--sun);background:conic-gradient(var(--edge) var(--progress),var(--panel-solid) 0)}
+@media(max-width:760px){.event-banner{gap:12px}.event-banner>div>span{font-size:14px}.countdown-ring{width:48px;height:48px}.gauge .tooltip{position:fixed;left:12px;top:72px;width:calc(100vw - 24px);max-width:none}.fact-toast{bottom:284px}.toast{bottom:264px}}
