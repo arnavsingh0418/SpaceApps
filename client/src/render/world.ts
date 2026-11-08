@@ -1,3 +1,4 @@
+import {placeLabels} from './labels';
 import * as THREE from "three";
 import {
   initBuilders,
@@ -45,6 +46,8 @@ export class World {
   devil = new THREE.Group();
   objectiveTarget: {x:number;z:number}|null=null;
   objectiveMarker = new THREE.Group();
+  hovered='';nearest='';
+  raycaster=new THREE.Raycaster();pointer=new THREE.Vector2();
   yaw = 0;
   menu = true;
   last = 0;
@@ -128,13 +131,13 @@ export class World {
     this.scene.add(rocks);
     wreck(-7, -12);
     smoke(-10, 3, -13);
-    const hab = dome(0, -3, 2.7);
+    const hab = dome(0, -5.4, 2.7);
     this.buildings.set("hab", hab);
     const door = new THREE.Mesh(
       new THREE.BoxGeometry(1.1, 1.6, 0.25),
       new THREE.MeshStandardMaterial({ color: 0x302823 }),
     );
-    door.position.set(0, 0.8, -0.45);
+    door.position.set(0, 0.8, -2.8);
     this.scene.add(door);
     crate(-1.8, -0.1, 0x9b6e44, 0.8);
     crate(-2.7, -1, 0xa37c50, 0.65);
@@ -199,6 +202,12 @@ export class World {
       this.devil.add(m);
     }
     this.scene.add(this.devil);
+    this.renderer.domElement.addEventListener('pointermove',event=>{
+      this.pointer.set(event.clientX/innerWidth*2-1,-event.clientY/innerHeight*2+1);this.raycaster.setFromCamera(this.pointer,this.camera);
+      const entries=Array.from(this.labels.entries()).filter(([key])=>!this.actors.has(key));const hits=this.raycaster.intersectObjects(entries.map(([,l])=>l.obj),true);this.hovered='';
+      if(hits[0]){let obj:THREE.Object3D|null=hits[0].object;while(obj){const found=entries.find(([,l])=>l.obj===obj);if(found){this.hovered=found[0];break;}obj=obj.parent;}}
+    });
+    this.renderer.domElement.addEventListener('pointerleave',()=>this.hovered='');
     this.camera.position.set(18, 13, 26);
     this.camera.lookAt(0, 1, -3);
     addEventListener("resize", () => {
@@ -209,7 +218,8 @@ export class World {
   }
   addLabel(id: string, obj: THREE.Object3D, text: string, height: number) {
     const el = document.createElement("div");
-    el.className = "world-tag";
+    el.className = "world-label";
+    el.hidden=true;
     el.textContent = text;
     document.querySelector("#labels")!.append(el);
     this.labels.set(id, { obj, el, height });
@@ -306,11 +316,14 @@ export class World {
         o = panel(p.x, p.z, 0, 0);
         this.panels.set(p.id, o!);
         this.addLabel(p.id, o!, "", 1.7);
+        const meter=new THREE.Group();meter.name='clean-meter';meter.position.set(0,.08,.35);
+        for(let n=0;n<4;n++){const segment=new THREE.Mesh(new THREE.BoxGeometry(.28,.025,.1),new THREE.MeshBasicMaterial({color:0xffc83d}));segment.position.x=-.5+n*.33;meter.add(segment);}o!.children[1].add(meter);
       }
       const m = o!.children[1] as THREE.Mesh;
       (m.material as THREE.MeshStandardMaterial).color.set(
         p.covered ? 0x5e4c40 : p.clean < 0.7 ? 0x8a5a44 : 0x1e3a8a,
       );
+      const meter=m.getObjectByName('clean-meter');if(meter){meter.visible=!this.menu&&(p.clean<.6||Math.hypot(s.players[id].x-p.x,s.players[id].z-p.z)<4);meter.children.forEach((seg,i)=>{(seg as THREE.Mesh<THREE.BoxGeometry,THREE.MeshBasicMaterial>).material.color.setHex(i<p.clean*4?0xffc83d:0x241812);});}
       this.labels.get(p.id)!.el.textContent = p.covered
         ? "🛡️ Covered · no sunlight"
         : `⚡ ${Math.round(p.clean * 100)}% clean`;
@@ -366,24 +379,10 @@ export class World {
       this.camera.position.set(19 + Math.sin(a) * 3, 13, 26);
       this.camera.lookAt(0, 1, -2);
     }
-    for (const [key, { obj, el, height }] of this.labels) {
-      const v = new THREE.Vector3();
-      obj.getWorldPosition(v);
-      v.y += height;
-      const dist = this.camera.position.distanceTo(v);
-      v.project(this.camera);
-      el.style.left = `${(v.x * 0.5 + 0.5) * innerWidth}px`;
-      el.style.top = `${(-v.y * 0.5 + 0.5) * innerHeight}px`;
-      el.hidden =
-        v.z > 1 ||
-        v.z < -1 ||
-        Math.abs(v.x) > 1.1 ||
-        Math.abs(v.y) > 1.1 ||
-        (!this.menu && dist > 30);
-      if (this.menu) el.hidden = true;
-    }
+    this.nearest=placeLabels(this.labels,this.camera,s,id,this.menu,this.hovered);
+    for(const[key,l]of this.labels){if(this.actors.has(key)||key.startsWith('panel-')||key==='workbench')continue;const active=key===this.nearest||key===this.hovered;l.obj.traverse(o=>{if(o instanceof THREE.Mesh&&o.material instanceof THREE.MeshStandardMaterial){o.material.emissive.setHex(key.startsWith('item-')?0xffc83d:0x39e6e0);o.material.emissiveIntensity=active?.2+Math.sin(s.elapsed*5)*.07:key.startsWith('item-')?0:.35;}});}
     this.objectiveMarker.visible=!!this.objectiveTarget&&!this.menu;
-    if(this.objectiveTarget){this.objectiveMarker.position.set(this.objectiveTarget.x,Math.sin(s.elapsed*4)*.12,this.objectiveTarget.z);}
+    if(this.objectiveTarget){this.objectiveMarker.position.set(this.objectiveTarget.x,0,this.objectiveTarget.z);this.objectiveMarker.children[0].position.y=3.3+Math.sin(s.elapsed*4)*.12;}
     this.renderer.render(this.scene, this.camera);
     this.fps = this.fps * 0.95 + 0.05 / Math.max(0.001, dt);
   }

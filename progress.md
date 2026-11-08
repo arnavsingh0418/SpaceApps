@@ -40,3 +40,10 @@ Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.
 - Real-input Playwright flow completed walk, pickup, scan, storage, night report and sol-2 power. Zero page errors. State snapshots verify three HUD groups.
 - Reviewed tutorial-complete screenshot; task-2 captures and supplied-loop state are saved under references/redesign/after/.
 
+
+## Task 3 complete
+- World labels now appear by proximity or raycast hover. Nearby secondary objects get icon chips; solo name tags are hidden.
+- Added screen-space overlap suppression against labels and HUD, panel-mounted cleanliness segments, emissive highlights and a small objective arrow.
+- Moved only the visual hab back so the workbench is reachable without hiding the astronaut inside its shell; simulation station coordinates are unchanged.
+- Supplied loop and nine screenshots show zero page errors. Reviewed near-item screenshot: short prompt, quiet world labels and no overlapping labels.
+
