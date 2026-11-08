@@ -2,7 +2,7 @@ services:
   - type: web
     name: outpost-down-crew
     runtime: node
-    buildCommand: npm ci
+    buildCommand: npm ci --include=dev
     startCommand: npm run server
     healthCheckPath: /
     envVars:

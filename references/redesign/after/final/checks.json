@@ -53,6 +53,41 @@
         "built": [],
         "event": null,
         "hudGroups": 0,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -69,7 +104,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.359131237585073,
+              "scaleY": 1.358550993068052,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -81,7 +116,7 @@
           "drawCalls": 139,
           "triangles": 33620,
           "stepFps": 74,
-          "frameMs": 12.9
+          "frameMs": 18
         }
       }
     },
@@ -145,6 +180,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -161,7 +231,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3411592746653163,
+              "scaleY": 1.3405813468266392,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -173,7 +243,7 @@
           "drawCalls": 141,
           "triangles": 33854,
           "stepFps": 71,
-          "frameMs": 8.1
+          "frameMs": 8.6
         }
       }
     },
@@ -233,6 +303,41 @@
         "built": [],
         "event": null,
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -249,7 +354,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3278523625509673,
+              "scaleY": 1.3275068714902727,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -261,7 +366,7 @@
           "drawCalls": 141,
           "triangles": 33854,
           "stepFps": 68,
-          "frameMs": 9.1
+          "frameMs": 10.5
         }
       }
     },
@@ -325,6 +430,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -341,7 +481,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3230655446781607,
+              "scaleY": 1.3231152730190772,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -353,7 +493,7 @@
           "drawCalls": 141,
           "triangles": 33854,
           "stepFps": 64,
-          "frameMs": 9.3
+          "frameMs": 10.2
         }
       }
     },
@@ -417,6 +557,53 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "pick",
+          "target": "item-1",
+          "pos": {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          },
+          "text": "Pick up scrap"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -433,7 +620,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3302127212864463,
+              "scaleY": 1.3306356356245865,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -445,7 +632,7 @@
           "drawCalls": 125,
           "triangles": 33246,
           "stepFps": 62,
-          "frameMs": 8.4
+          "frameMs": 6.1
         }
       }
     },
@@ -508,6 +695,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "bench",
+          "target": "workbench",
+          "pos": {
+            "x": 0,
+            "z": -2
+          },
+          "text": "Use workbench"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -524,7 +754,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.346127154263637,
+              "scaleY": 1.3467358716607893,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -536,7 +766,7 @@
           "drawCalls": 135,
           "triangles": 33602,
           "stepFps": 59,
-          "frameMs": 15
+          "frameMs": 10.4
         }
       }
     },
@@ -615,6 +845,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -631,7 +904,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3637575499024674,
+              "scaleY": 1.3642823626563094,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -643,7 +916,7 @@
           "drawCalls": 106,
           "triangles": 32132,
           "stepFps": 57,
-          "frameMs": 8.8
+          "frameMs": 12.3
         }
       }
     },
@@ -722,6 +995,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -738,7 +1054,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3350925461582586,
+              "scaleY": 1.334584419152974,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -750,7 +1066,7 @@
           "drawCalls": 102,
           "triangles": 31604,
           "stepFps": 55,
-          "frameMs": 9.1
+          "frameMs": 7.9
         }
       }
     },
@@ -822,6 +1138,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 1,
           "structures": [
@@ -838,7 +1189,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3657199562528772,
+              "scaleY": 1.3652166358766789,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -850,7 +1201,7 @@
           "drawCalls": 139,
           "triangles": 33674,
           "stepFps": 53,
-          "frameMs": 11.8
+          "frameMs": 11.1
         }
       }
     },
@@ -918,6 +1269,41 @@
         "built": [],
         "event": null,
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -934,7 +1320,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3484584173386887,
+              "scaleY": 1.3478457522215619,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -946,7 +1332,7 @@
           "drawCalls": 119,
           "triangles": 33314,
           "stepFps": 51,
-          "frameMs": 6
+          "frameMs": 7.3
         }
       }
     },
@@ -1026,6 +1412,41 @@
           }
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1042,7 +1463,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3318799157739623,
+              "scaleY": 1.331429362755824,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1130,6 +1551,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 10,
+        "aligned": true,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1158,7 +1614,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3233299777189322,
+              "scaleY": 1.3232411657571035,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1170,7 +1626,7 @@
           "drawCalls": 172,
           "triangles": 35442,
           "stepFps": 48,
-          "frameMs": 9.9
+          "frameMs": 15.1
         }
       }
     },
@@ -1227,6 +1683,41 @@
         "built": [],
         "event": null,
         "hudGroups": 0,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1243,7 +1734,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3587553996470663,
+              "scaleY": 1.358616617568834,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1255,7 +1746,7 @@
           "drawCalls": 139,
           "triangles": 33620,
           "stepFps": 74,
-          "frameMs": 11.3
+          "frameMs": 11.8
         }
       }
     },
@@ -1319,6 +1810,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1335,7 +1861,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.340783879864198,
+              "scaleY": 1.340646245335285,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1407,6 +1933,41 @@
         "built": [],
         "event": null,
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1423,7 +1984,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.327626953600285,
+              "scaleY": 1.3275452322458454,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1435,7 +1996,7 @@
           "drawCalls": 141,
           "triangles": 33854,
           "stepFps": 68,
-          "frameMs": 16.8
+          "frameMs": 17.4
         }
       }
     },
@@ -1499,6 +2060,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1515,7 +2111,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3230962130412198,
+              "scaleY": 1.323108972309521,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1527,7 +2123,7 @@
           "drawCalls": 141,
           "triangles": 33854,
           "stepFps": 64,
-          "frameMs": 10.1
+          "frameMs": 12.7
         }
       }
     },
@@ -1591,6 +2187,53 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "pick",
+          "target": "item-1",
+          "pos": {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          },
+          "text": "Pick up scrap"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1607,7 +2250,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3304858785661133,
+              "scaleY": 1.330587465139289,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1619,7 +2262,7 @@
           "drawCalls": 125,
           "triangles": 33246,
           "stepFps": 62,
-          "frameMs": 6.6
+          "frameMs": 7
         }
       }
     },
@@ -1682,6 +2325,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "bench",
+          "target": "workbench",
+          "pos": {
+            "x": 0,
+            "z": -2
+          },
+          "text": "Use workbench"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1698,7 +2384,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3465217711898165,
+              "scaleY": 1.3466671745566405,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1710,7 +2396,7 @@
           "drawCalls": 135,
           "triangles": 33602,
           "stepFps": 59,
-          "frameMs": 14.3
+          "frameMs": 11.6
         }
       }
     },
@@ -1789,6 +2475,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1805,7 +2534,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3640987814239824,
+              "scaleY": 1.3642235769299937,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1817,7 +2546,7 @@
           "drawCalls": 106,
           "triangles": 32132,
           "stepFps": 57,
-          "frameMs": 10.1
+          "frameMs": 10
         }
       }
     },
@@ -1896,6 +2625,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -1912,7 +2684,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3347620700719747,
+              "scaleY": 1.3346412947998363,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -1924,7 +2696,7 @@
           "drawCalls": 102,
           "triangles": 31604,
           "stepFps": 55,
-          "frameMs": 9.7
+          "frameMs": 17.3
         }
       }
     },
@@ -1996,6 +2768,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 1,
           "structures": [
@@ -2004,7 +2811,7 @@
               "scale": 1
             }
           ],
-          "particles": 96,
+          "particles": 90,
           "reduced": false,
           "scans": 0,
           "flights": 0,
@@ -2012,7 +2819,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3653944037030783,
+              "scaleY": 1.3652737621722777,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2024,7 +2831,7 @@
           "drawCalls": 139,
           "triangles": 33674,
           "stepFps": 53,
-          "frameMs": 15.1
+          "frameMs": 12.4
         }
       }
     },
@@ -2092,6 +2899,41 @@
         "built": [],
         "event": null,
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2100,7 +2942,7 @@
               "scale": 1
             }
           ],
-          "particles": 3,
+          "particles": 9,
           "reduced": false,
           "scans": 0,
           "flights": 0,
@@ -2108,7 +2950,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3480609204989487,
+              "scaleY": 1.3479147541299483,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2120,7 +2962,7 @@
           "drawCalls": 119,
           "triangles": 33314,
           "stepFps": 51,
-          "frameMs": 7.6
+          "frameMs": 9.1
         }
       }
     },
@@ -2200,6 +3042,41 @@
           }
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2208,7 +3085,7 @@
               "scale": 1
             }
           ],
-          "particles": 9,
+          "particles": 3,
           "reduced": false,
           "scans": 0,
           "flights": 0,
@@ -2216,7 +3093,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3315865957143023,
+              "scaleY": 1.3314796672290552,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2228,7 +3105,7 @@
           "drawCalls": 139,
           "triangles": 33674,
           "stepFps": 50,
-          "frameMs": 13.5
+          "frameMs": 9.9
         }
       }
     },
@@ -2304,6 +3181,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 10,
+        "aligned": true,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2332,7 +3244,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3232707973411948,
+              "scaleY": 1.3232504841207382,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2344,7 +3256,7 @@
           "drawCalls": 172,
           "triangles": 35442,
           "stepFps": 48,
-          "frameMs": 11.1
+          "frameMs": 13.7
         }
       }
     },
@@ -2401,6 +3313,41 @@
         "built": [],
         "event": null,
         "hudGroups": 0,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2417,7 +3364,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3699059787030958,
+              "scaleY": 1.3713732212011087,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2429,7 +3376,7 @@
           "drawCalls": 94,
           "triangles": 31016,
           "stepFps": 74,
-          "frameMs": 6.4
+          "frameMs": 8
         }
       }
     },
@@ -2493,6 +3440,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2509,7 +3491,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3540460273692396,
+              "scaleY": 1.3562825680384702,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2521,7 +3503,7 @@
           "drawCalls": 92,
           "triangles": 30874,
           "stepFps": 71,
-          "frameMs": 5.2
+          "frameMs": 8.2
         }
       }
     },
@@ -2581,6 +3563,41 @@
         "built": [],
         "event": null,
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2597,7 +3614,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3375823045172721,
+              "scaleY": 1.3396481156382722,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2609,7 +3626,7 @@
           "drawCalls": 86,
           "triangles": 30180,
           "stepFps": 68,
-          "frameMs": 5.1
+          "frameMs": 6.9
         }
       }
     },
@@ -2673,6 +3690,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2689,7 +3741,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3252843890073698,
+              "scaleY": 1.3262889036085055,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2701,7 +3753,7 @@
           "drawCalls": 86,
           "triangles": 30180,
           "stepFps": 64,
-          "frameMs": 3.1
+          "frameMs": 5.6
         }
       }
     },
@@ -2765,6 +3817,53 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "pick",
+          "target": "item-1",
+          "pos": {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          },
+          "text": "Pick up scrap"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2781,7 +3880,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3239373526468114,
+              "scaleY": 1.3234354950225267,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2793,7 +3892,7 @@
           "drawCalls": 94,
           "triangles": 30224,
           "stepFps": 62,
-          "frameMs": 4.5
+          "frameMs": 6.6
         }
       }
     },
@@ -2856,6 +3955,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "bench",
+          "target": "workbench",
+          "pos": {
+            "x": 0,
+            "z": -2
+          },
+          "text": "Use workbench"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2872,7 +4014,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3341380341056446,
+              "scaleY": 1.3323521650219896,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2884,7 +4026,7 @@
           "drawCalls": 76,
           "triangles": 29422,
           "stepFps": 59,
-          "frameMs": 5.6
+          "frameMs": 6.7
         }
       }
     },
@@ -2963,6 +4105,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -2979,7 +4164,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3513667623981935,
+              "scaleY": 1.3490881565081594,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -2991,7 +4176,7 @@
           "drawCalls": 89,
           "triangles": 30850,
           "stepFps": 57,
-          "frameMs": 15.8
+          "frameMs": 11.8
         }
       }
     },
@@ -3070,6 +4255,49 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -3086,7 +4314,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3472801065240063,
+              "scaleY": 1.3495548690546961,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -3098,7 +4326,7 @@
           "drawCalls": 85,
           "triangles": 30482,
           "stepFps": 55,
-          "frameMs": 9.7
+          "frameMs": 10.9
         }
       }
     },
@@ -3170,6 +4398,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 1,
           "structures": [
@@ -3186,7 +4449,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.37412915275199,
+              "scaleY": 1.375064802934766,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -3198,7 +4461,7 @@
           "drawCalls": 76,
           "triangles": 29274,
           "stepFps": 53,
-          "frameMs": 4.5
+          "frameMs": 6.2
         }
       }
     },
@@ -3266,6 +4529,41 @@
         "built": [],
         "event": null,
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -3282,7 +4580,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3611788761415673,
+              "scaleY": 1.3632114193325866,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -3294,7 +4592,7 @@
           "drawCalls": 77,
           "triangles": 29306,
           "stepFps": 51,
-          "frameMs": 3.9
+          "frameMs": 6.8
         }
       }
     },
@@ -3374,6 +4672,41 @@
           }
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -3390,7 +4723,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.343275514548204,
+              "scaleY": 1.3455043808664586,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -3402,7 +4735,7 @@
           "drawCalls": 77,
           "triangles": 29306,
           "stepFps": 50,
-          "frameMs": 4.9
+          "frameMs": 7
         }
       }
     },
@@ -3478,6 +4811,41 @@
           "resolved": false
         },
         "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 10,
+        "aligned": true,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
         "motion": {
           "storm": 0,
           "structures": [
@@ -3506,7 +4874,7 @@
             {
               "id": "solo",
               "y": 0,
-              "scaleY": 1.3283516070151147,
+              "scaleY": 1.3297892406320828,
               "arm": 0,
               "leg": 0,
               "heading": 0,
@@ -3518,7 +4886,7 @@
           "drawCalls": 89,
           "triangles": 30150,
           "stepFps": 48,
-          "frameMs": 15.2
+          "frameMs": 27.1
         }
       }
     }

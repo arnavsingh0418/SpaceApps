@@ -23,7 +23,7 @@ Choose **Play with friends**, use `ws://localhost:2567`, and create a crew. In a
 
 ## How to play
 
-- WASD or arrow keys: walk. E: interact with the nearest object. B: workbench when nearby. Q: field map. 1–5: choose a hotbar slot; the up arrow drops its stack.
+- WASD or arrow keys: walk. E: interact with the nearest object. B: workbench when nearby. Q: field map. 1–5: choose a hotbar slot; G drops its stack.
 - On touch devices, drag the lower-left joystick and tap E. All science lessons, budgets, tasks, and recipes also accept touch.
 - Split electricity each morning. At least 3 blocks keeps air steady; 4 adds air. Plants turn light into food only after you build the greenhouse. One heater block keeps the crew warm.
 - Follow cyan beacons, read the short field notes, and answer a question. Learned science unlocks recipes for the entire crew.
@@ -81,10 +81,34 @@ Science boundaries: flare X-ray class is not a Mars particle-dose forecast; dose
 
 Client: `npm run build` produces `dist/`, usable on GitHub Pages, Netlify, or Vercel. The included GitHub Actions workflows run checks on every push and offer manual publication to Pages. Enable **Settings → Pages → Source: GitHub Actions** if the repository does not have Pages enabled. Relative asset URLs support the `/TEST_nasa/` subpath. No secrets are needed for the client.
 
-Server: use the included `render.yaml` blueprint or deploy the Node app to another WebSocket-capable host. Build: `npm ci`. Start: `npm run server`. Health: `/`. The host's `PORT` is used automatically. Rooms are stored in memory, so run one instance without autoscaling; a persistent shared room store is outside this prototype's scope. Render free services can sleep; solo play remains available. Set `VITE_CREW_SERVER=wss://your-crew-server.example` before building the client, or enter the server URL in the lobby.
+Server: use the included `render.yaml` blueprint or deploy the Node app to another WebSocket-capable host. Build: `npm ci --include=dev`. Start: `npm run server`. Health: `/`. The host's `PORT` is used automatically. Rooms are stored in memory, so run one instance without autoscaling; a persistent shared room store is outside this prototype's scope. Render free services can sleep; solo play remains available. Set `VITE_CREW_SERVER=wss://your-crew-server.example` before building the client, or enter the server URL in the lobby.
 
 ## Credits and scope
 
-Original supplied concept scenes: preserved in `references/concept-scenes/`. Supplied brief: `references/BUILD_BRIEF.md`. Prior orbital/gesture prototypes were reference material and are not dependencies of this Mars game. three.js, ws, Vite, TypeScript, Vitest, and Fontsource retain their upstream licenses. Sound is generated locally with Web Audio; no external recordings. Fonts are bundled locally for offline use.
+Original supplied concept scenes: preserved in `references/concept-scenes/`. Supplied brief: `references/BUILD_BRIEF.md`. Prior orbital/gesture prototypes were reference material and are not dependencies of this Mars game. three.js, ws, Vite, TypeScript, Vitest, and Fontsource retain their upstream licenses. Nine original normalized WAV effects are bundled locally and played through Web Audio; no external recordings or runtime sound APIs. Fonts are bundled locally for offline use.
 
 The game implements solo survival, co-op, science gates, five mini-task types, events, save/resume, and touch controls. It uses an illustrative comms delay and archived data, with no live NASA mode. Touch layouts are responsive; real-device performance and a 60 fps target need hardware-specific testing. This project is not an official NASA product.
+
+## UI and animation redesign
+
+The redesign follows `references/REDESIGN_BRIEF.md`. The simulation and balance files are unchanged from the playable checkpoint. UI components live in `client/src/ui/`; procedural character/world motion and fixed particle pools live in `client/src/render/`.
+
+Fresh solo missions begin immediately with a default sol-1 power allocation. The four-step tutorial follows actual walk, pickup, science and storage actions; the first interactive power plan appears on sol 2. Exploring has three HUD groups, with contextual world labels, collapsible goals/chat and a pause-menu role picker. Phone layouts show four hotbar slots plus a joystick and action button. Tab opens goals, T opens chat, G drops, F toggles fullscreen, and Escape exits fullscreen or opens/closes pause.
+
+Sound starts muted until a user gesture. The pause menu has mute and volume controls. All nine original WAV files are under 100 KB; regenerate with `python scripts/generate-sfx.py`, then copy the ignored staging files into `client/public/sfx/`.
+
+With the dev server running, browser QA is reproducible:
+
+```sh
+npx playwright install chromium
+node scripts/tutorial-qa.mjs
+node scripts/motion-qa.mjs
+node scripts/tasks-qa.mjs
+node scripts/responsive-qa.mjs
+# With npm run preview serving the production build:
+node scripts/offline-qa.mjs
+```
+
+The supplied Develop Web Game action client is retained as `scripts/web-game-client.mjs`. `window.render_game_to_text()` exposes read-only state and `window.advanceTime(ms)` supports deterministic local stepping. Scene fixtures exist only in development and are used for visual coverage, separate from real-input interaction checks.
+
+Before/after screenshots and state snapshots are under `references/redesign/`; `progress.md` records coverage and limitations. Final screenshots cover 1600×900, 1280×720 and 390×844. GPU bloom and a new Blender character were skipped to preserve the established lightweight world. Software-rendered QA does not certify 60 fps on a specific laptop. The private preview is https://outpost-down-mars-atreya.encouragingbean1.chatgpt.site; remote co-op still needs a deployed WebSocket server as described above.

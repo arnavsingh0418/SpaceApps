@@ -1,3 +1,4 @@
+import { Sfx } from "./ui/sound";
 import "@fontsource/barlow-condensed/latin-800.css";
 import "@fontsource/nunito-sans/latin-700.css";
 import "@fontsource/nunito-sans/latin-800.css";
@@ -73,42 +74,40 @@ function cue(kind: string, target?: string) {
   );
   sound(kind);
 }
-let audio: AudioContext | null = null;
+const sfx = new Sfx();
+let volume = 35,
+  explicitMute = false;
+try {
+  volume = Number(localStorage.getItem("outpost-volume") || 35);
+  explicitMute = localStorage.getItem("outpost-muted") !== null;
+  muted = localStorage.getItem("outpost-muted") !== "false";
+} catch {}
+sfx.muted = muted;
+sfx.volume = volume / 100;
+const unlockSound = () => {
+  if (!explicitMute) muted = false;
+  sfx.muted = muted;
+  sfx.sync();
+  void sfx.unlock();
+};
+document.addEventListener("pointerdown", unlockSound, { once: true });
+document.addEventListener("keydown", unlockSound, { once: true });
 addEventListener("footstep", () => sound("step"));
 function sound(kind = "click") {
-  if (muted) return;
-  try {
-    audio ??= new AudioContext();
-    void audio.resume();
-    const o = audio.createOscillator(),
-      g = audio.createGain(),
-      t = audio.currentTime;
-    o.type = kind === "step" ? "triangle" : "sine";
-    o.frequency.setValueAtTime(
-      (
-        {
-          pickup: 650,
-          scan: 820,
-          build: 180,
-          power: 240,
-          success: 900,
-          step: 90,
-        } as Record<string, number>
-      )[kind] || 400,
-      t,
-    );
-    o.frequency.exponentialRampToValueAtTime(
-      kind === "step" ? 55 : 900,
-      t + 0.14,
-    );
-    g.gain.setValueAtTime(kind === "step" ? 0.015 : 0.04, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-    o.connect(g);
-    g.connect(audio.destination);
-    o.start();
-    o.stop(t + 0.2);
-  } catch {}
+  if (kind !== "build") sfx.play(kind);
 }
+document.addEventListener("input", (event) => {
+  const el = event.target as HTMLInputElement;
+  if (el.id === "master-volume") {
+    volume = Number(el.value);
+    sfx.volume = volume / 100;
+    sfx.sync();
+    try {
+      localStorage.setItem("outpost-volume", String(volume));
+    } catch {}
+  }
+});
+
 function act(a: Action) {
   if (connection) {
     connection.send(a);
@@ -122,11 +121,14 @@ function act(a: Action) {
   return true;
 }
 function open(kind: string, title: string, body: string, closable = true) {
-  const alreadyOpen=modal===kind;
+  const alreadyOpen = modal === kind;
   modal = kind;
   act({ type: "move", x: 0, z: 0 });
   root.innerHTML = Modal(title, body, closable);
-  if(alreadyOpen){const panel=root.querySelector<HTMLElement>('.modal');if(panel)panel.style.animation='none';}
+  if (alreadyOpen) {
+    const panel = root.querySelector<HTMLElement>(".modal");
+    if (panel) panel.style.animation = "none";
+  }
   root
     .querySelector<HTMLElement>('button:not([data-do="close"]),input')
     ?.focus();
@@ -138,14 +140,18 @@ function close() {
   hudSignature = "";
 }
 function menu() {
-  pendingBuild=null;pendingScan=null;pendingLock=null;
+  pendingBuild = null;
+  pendingScan = null;
+  pendingLock = null;
   started = false;
   world.menu = true;
   close();
   ui.innerHTML = screens.titleScreen(!!saved);
 }
 function start(resume = false) {
-  pendingBuild=null;pendingScan=null;pendingLock=null;
+  pendingBuild = null;
+  pendingScan = null;
+  pendingLock = null;
   connection?.close();
   connection = null;
   game =
@@ -236,7 +242,11 @@ function crewScreen() {
   );
 }
 function pause() {
-  open("pause", "PAUSED", screens.pauseScreen(game, id, muted, !!connection));
+  open(
+    "pause",
+    "PAUSED",
+    screens.pauseScreen(game, id, muted, !!connection, volume),
+  );
   const select = $("#role-select") as HTMLSelectElement;
   select.onchange = () => act({ type: "role", role: select.value });
 }
@@ -348,10 +358,14 @@ function draw() {
     model,
   ]);
   if (sig !== hudSignature && !document.activeElement?.matches("#ui select")) {
-    const active=document.activeElement as HTMLElement|null;
-    const focused=active?.closest('#ui')&&active.dataset.do?`[data-do="${active.dataset.do}"]${active.dataset.gauge?`[data-gauge="${active.dataset.gauge}"]`:active.dataset.index?`[data-index="${active.dataset.index}"]`:''}`:null;
+    const active = document.activeElement as HTMLElement | null;
+    const focused =
+      active?.closest("#ui") && active.dataset.do
+        ? `[data-do="${active.dataset.do}"]${active.dataset.gauge ? `[data-gauge="${active.dataset.gauge}"]` : active.dataset.index ? `[data-index="${active.dataset.index}"]` : ""}`
+        : null;
     ui.innerHTML = hud(game, id, model);
-    if(focused)ui.querySelector<HTMLElement>(focused)?.focus({preventScroll:true});
+    if (focused)
+      ui.querySelector<HTMLElement>(focused)?.focus({ preventScroll: true });
     hudSignature = sig;
     validateCopy(ui);
   }
@@ -554,6 +568,12 @@ document.addEventListener("click", (e) => {
       break;
     case "mute":
       muted = !muted;
+      explicitMute = true;
+      sfx.muted = muted;
+      sfx.sync();
+      try {
+        localStorage.setItem("outpost-muted", String(muted));
+      } catch {}
       pause();
       break;
     case "menu":
@@ -736,7 +756,10 @@ addEventListener("keydown", (e) => {
   )
     e.preventDefault();
   keys.add(e.key.toLowerCase());
-  if(e.key==="Escape"&&document.fullscreenElement){void document.exitFullscreen();return;}
+  if (e.key === "Escape" && document.fullscreenElement) {
+    void document.exitFullscreen();
+    return;
+  }
   if (e.repeat) return;
   if (e.key === "Escape") {
     if (modal && !["power", "summary", "ended", "building"].includes(modal))
@@ -791,6 +814,7 @@ addEventListener("keydown", (e) => {
 });
 addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
 function stopInput() {
+  sfx.stopLoops();
   keys.clear();
   joy = { x: 0, z: 0 };
   if (started) act({ type: "move", x: 0, z: 0 });
@@ -924,7 +948,16 @@ function update(dt: number, render = true) {
       }
       fixed -= 0.1;
     }
-    if(pendingBuild){pendingBuild.seconds=game.players[id].role==='Engineer'?B.engineerBuildSeconds:B.buildSeconds;if(!modal){modal='building';root.innerHTML=screens.buildIndicator(pendingBuild.seconds);}}
+    if (pendingBuild) {
+      pendingBuild.seconds =
+        game.players[id].role === "Engineer"
+          ? B.engineerBuildSeconds
+          : B.buildSeconds;
+      if (!modal) {
+        modal = "building";
+        root.innerHTML = screens.buildIndicator(pendingBuild.seconds);
+      }
+    }
     if (pendingBuild) {
       const el = root.querySelector<HTMLElement>(".build-progress i");
       if (el) {
@@ -957,6 +990,15 @@ function update(dt: number, render = true) {
       saveAt = game.elapsed;
     }
   } else game.elapsed += dt;
+  sfx.loop("build", started && !!pendingBuild && modal !== "pause");
+  sfx.loop(
+    "storm",
+    started &&
+      game.phase === "day" &&
+      game.event?.kind === "storm" &&
+      game.clock >= game.event.at &&
+      (modal !== "pause" || !!connection),
+  );
   tickToast();
   if (render) world.update(game, id, dt);
   else {
@@ -1001,6 +1043,19 @@ window.render_game_to_text = () =>
     built: game.built,
     event: game.event,
     hudGroups: document.querySelectorAll("[data-hud]").length,
+    nearest: nearest(),
+    stock: game.stock,
+    panels: game.panels,
+    radio: game.radio,
+    aligned: game.aligned,
+    watering: game.watering,
+    leakFixed: game.leakFixed,
+    audio: {
+      muted,
+      volume,
+      ready: sfx.ready,
+      loops: Array.from(sfx.loops.keys()),
+    },
     motion: {
       storm: world.motion.storm,
       structures: Array.from(world.buildings.entries()).map(([key, o]) => ({
@@ -1068,6 +1123,13 @@ if (import.meta.env.DEV)
     if (name === "intro") {
       tutorial = 0;
       world.objectiveTarget = game.items[0];
+    }
+    if (name === "tasks") {
+      game.built = ["radio", "greenhouse"];
+      game.learned = ["shield", "comms", "grow", "power", "oxygen"];
+      game.stock = { scrap: 6, ice: 6 };
+      game.panels[0].clean = 0.2;
+      Object.assign(game.players[id], stations.workbench);
     }
     if (name === "near-item") Object.assign(game.players[id], { x: -3, z: 4 });
     if (name === "workbench") {

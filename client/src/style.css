@@ -347,3 +347,6 @@ to{opacity:0}
 .objective-chip{padding-right:56px}.objective-group>[data-do=pause]{position:absolute;right:8px;top:8px;width:40px;min-height:40px;margin:0;padding:0;border:0;background:none;color:var(--text);font-size:28px}
 @media(max-width:760px){.objective-chip{padding-right:4px}.objective-group>[data-do=pause]{position:fixed;top:12px;right:12px;width:48px;height:48px;background:var(--panel-solid);border:1px solid var(--edge);border-radius:8px}}
 #modal-root:not(:empty) ~ #toast{opacity:0;visibility:hidden}
+
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.settings-grid{grid-template-columns:1fr;gap:0}}

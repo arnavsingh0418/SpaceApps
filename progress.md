@@ -71,3 +71,27 @@ Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.
 - Optional bloom/vignette GPU passes skipped: no reliable target-hardware GPU timing is available. Warm world lighting remains; 60 fps on a particular laptop is not certified by software-rendered browser QA.
 - Shared simulation and balance files have no diff from the pre-redesign checkpoint.
 
+
+## Task 7 complete and final verification
+- Added nine original normalized local WAV effects, including build and storm loops, a master volume, persisted mute settings and first-gesture audio unlock. Each asset is under 100 KB. ElevenLabs MCP was unavailable; original procedural sounds avoid external recording licenses and runtime APIs.
+- All five timed tasks, panel cover/uncover, dropping, quiz retry, sound loading/mute/volume and phone controls passed real-input checks. The supplied Develop Web Game loop completed with state and screenshots under after/task-7-loop/.
+- Final responsive QA passed 36 scene/size combinations with no layout failures, copy warnings or browser errors; nine audio buffers load. Reviewed sound controls and production offline-resume images.
+- Production offline QA found cached module/CSS responses were rejected due to Vary matching. Static same-origin cache fallback now ignores Vary; a clean browser successfully reloaded offline, resumed its saved mission, loaded all nine sounds and moved, with zero page errors.
+- Final checks: 33 unit/mission/UI tests pass; TypeScript and production build pass; two-client WebSocket integration passes room membership, sync, remote movement, leader permissions, pickup race and four-player limit. Simulation and balance remain unchanged.
+- Render blueprint explicitly installs dev dependencies because the server starts through tsx. Remote co-op requires deploying that WebSocket server; the static private preview supports solo/offline play.
+
+## Screenshot and state index
+All paths below are relative to references/redesign/. Each capture folder also contains state JSON or a checks report.
+- before/: nine original screens and contact sheet.
+- after/task-1/ through after/task-5/, plus after/task-6-final/: staged comparisons for each committed redesign task; adjacent task-N-loop/ folders retain the supplied action-client outputs.
+- after/task-2-functional/: real tutorial/next-sol keyboard flow.
+- after/task-4-motion/: pickup, scan, build, storm, flare and reduced-motion frames.
+- after/task-6-phone/: corrected 12-screen phone pass.
+- after/task-7-controls/: sound settings and complete timed-task/control state.
+- after/task-7-loop/: final supplied Playwright loop.
+- after/final/: 36 screenshots at 1600x900, 1280x720 and 390x844, three gauge-tooltip frames and checks.json.
+- after/offline/: production offline resume and state.
+
+## Remaining verification limits
+No reliable target-laptop GPU timing was available, so 60 fps is unverified and optional GPU bloom/color-grade passes were skipped. Existing warm lighting and inexpensive event flashes remain. A new Blender astronaut was unnecessary for the requested procedural motion. Context7 and Playwright MCP were unavailable; installed source plus CLI Playwright provided implementation and browser verification. Authenticated NASA DONKI fetch previously returned 503; verified archived data remains bundled without API keys.
+

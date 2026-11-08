@@ -18,8 +18,9 @@ export function pauseScreen(
   id: string,
   muted: boolean,
   network: boolean,
+  volume = 35,
 ) {
-  return `<p>${network ? "Crew mission keeps running." : "Solo mission paused."}</p><label>Crew role<select id="role-select">${["Engineer", "Scientist", "Medic", "Comms"].map((r) => `<option ${s.players[id].role === r ? "selected" : ""}>${r}</option>`).join("")}</select></label><div class="menu-grid">${Button("RESUME", "close")}${Button(muted ? "SOUND OFF" : "SOUND ON", "mute", "", true)}${Button("CONTROLS", "help", "", true)}${Button("FIELD MAP", "map", "", true)}${Button("SKIP TUTORIAL", "skip", "", true)}${Button("NASA DATA", "sources", "", true)}${Button("MAIN MENU", "menu", "", true)}</div>`;
+  return `<p>${network ? "Crew mission keeps running." : "Solo mission paused."}</p><div class="settings-grid"><label>Crew role<select id="role-select">${["Engineer", "Scientist", "Medic", "Comms"].map((r) => `<option ${s.players[id].role === r ? "selected" : ""}>${r}</option>`).join("")}</select></label><label>Sound volume<input id="master-volume" aria-label="Sound volume" type="range" min="0" max="100" value="${volume}"></label></div><div class="menu-grid">${Button("RESUME", "close")}${Button(muted ? "SOUND OFF" : "SOUND ON", "mute", "", true)}${Button("CONTROLS", "help", "", true)}${Button("FIELD MAP", "map", "", true)}${Button("SKIP TUTORIAL", "skip", "", true)}${Button("NASA DATA", "sources", "", true)}${Button("MAIN MENU", "menu", "", true)}</div>`;
 }
 export function controls() {
   return `<ul class="body-lines"><li>${KeyChip("WASD")} Walk ${KeyChip("E")} Interact</li><li>${KeyChip("B")} Build ${KeyChip("G")} Drop ${KeyChip("Q")} Map</li><li>${KeyChip("Tab")} Goals ${KeyChip("T")} Chat ${KeyChip("F")} Screen</li></ul>${Button("RESUME", "close")}`;
@@ -34,11 +35,10 @@ export function scienceLesson(s: Game, key: string) {
       "Water, ice, and soil block some radiation. Thick walls help protect the crew.",
     comms:
       "Radio signals take 3–22 minutes to reach Mars. Point the dish at Earth.",
-    grow: "Plants need light, water, and warmth. Treat Mars soil before planting.",
-    power:
-      "Dust blocks sunlight. Clean panels make more electricity.",
+    grow: "Plants need light, water, and warmth. Mars soil has harmful salts; treat it first.",
+    power: "Dust blocks sunlight. Clean panels make more electricity.",
     oxygen:
-      "MOXIE made oxygen from Mars air. Melting ice provides water.",
+      "MOXIE made oxygen from Mars’s carbon dioxide air. Melting ice gives water.",
     plants:
       "Radiation changed plant repair instructions in OSD-658. These tests help scientists study crops.",
   };
@@ -104,20 +104,20 @@ export function miniTask(kind: string) {
             : `<p>Slide water to the plants. Costs 1 ice.</p><input id="water" aria-label="Water the plants" type="range" min="0" max="100" value="0">`;
   return body + Button("DONE", "finishTask");
 }
-const shortUses=[
- 'Real flare classes shape fictional events. Archived records are not live Mars forecasts.',
- 'Curiosity measured historical surface radiation. Our meter uses a game scale, not medical doses.',
- 'OSD-658 tested plants with simulated radiation. These plants grew in a lab, not on Mars.',
- 'MOXIE extracted oxygen from Mars air. Melting ice is a separate process.',
- 'Signals take 3–22 minutes to reach Mars. Our delay becomes 12 game seconds.',
- 'Dust blocks solar power. Flying heavy crates exaggerate thin Mars air.',
- 'Mars soil contains harmful salts. Washing simplifies complex soil treatment.',
- 'A sol lasts about 24 hours 39 minutes. Our return window is fictional.',
- 'Water and soil reduce exposure. No shelter blocks all radiation.'
+const shortUses = [
+  "Real flare classes shape fictional events. Archived records are not live Mars forecasts.",
+  "Curiosity once measured 0.67 mSv/day. Our meter uses a separate game scale.",
+  "OSD-658 found changes in plant repair instructions. These lab tests used simulated radiation.",
+  "MOXIE extracted oxygen from Mars air. Melting ice is a separate process.",
+  "Signals take 3–22 minutes to reach Mars. Our delay becomes 12 game seconds.",
+  "Dust blocks solar power. Flying heavy crates exaggerate thin Mars air.",
+  "Mars soil contains harmful salts. Washing simplifies complex soil treatment.",
+  "A sol lasts 24 hours 39 minutes. Earth launch chances come every 26 months; our return window is fictional.",
+  "Water and soil reduce exposure. No shelter blocks all radiation.",
 ];
 export function dataSources(index: number) {
   const source = sources[index];
-  return `<div class="source-progress">${index + 1}/${sources.length}</div><h3>${escape(source.title)}</h3><p class="source-copy">${escape(shortUses[index])}</p><a href="${source.url}" target="_blank" rel="noopener noreferrer">NASA source ↗</a><div class="menu-grid">${Button("PREVIOUS", "sourcePage", `data-index="${(index + sources.length - 1) % sources.length}"`, true)}${Button("NEXT", "sourcePage", `data-index="${(index + 1) % sources.length}"`)}</div>`;
+  return `<div class="source-progress">${index + 1}/${sources.length}</div><h3>${escape(source.title)}</h3><p class="source-copy">${escape(shortUses[index]).replace("mSv/day", '<abbr title="A unit of radiation received each day.">mSv/day</abbr>')}</p><a href="${source.url}" target="_blank" rel="noopener noreferrer">NASA source ↗</a><div class="menu-grid">${Button("PREVIOUS", "sourcePage", `data-index="${(index + sources.length - 1) % sources.length}"`, true)}${Button("NEXT", "sourcePage", `data-index="${(index + 1) % sources.length}"`)}</div>`;
 }
 export function endScreen(s: Game) {
   const win = s.result.startsWith("Mission complete");
