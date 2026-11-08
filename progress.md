@@ -33,3 +33,10 @@ Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.
 - Captured nine before screens and nine Task 1 screens. Reviewed explore image.
 - Supplied Playwright loop and capture pass: zero browser page errors. All 30 tests and build pass. One concurrent CPU-starved test run timed out; serial rerun passed in 1.37s.
 
+
+## Task 2 complete
+- Fresh solo missions start immediately with a default first-sol allocation; the first budget appears on sol 2. Simulation rules are unchanged.
+- Four action-driven tutorial steps, a world marker, concise hints, keyboard budget controls, and lock-in feedback added.
+- Real-input Playwright flow completed walk, pickup, scan, storage, night report and sol-2 power. Zero page errors. State snapshots verify three HUD groups.
+- Reviewed tutorial-complete screenshot; task-2 captures and supplied-loop state are saved under references/redesign/after/.
+

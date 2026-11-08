@@ -43,6 +43,8 @@ export class World {
     { obj: THREE.Object3D; el: HTMLElement; height: number }
   >();
   devil = new THREE.Group();
+  objectiveTarget: {x:number;z:number}|null=null;
+  objectiveMarker = new THREE.Group();
   yaw = 0;
   menu = true;
   last = 0;
@@ -62,6 +64,8 @@ export class World {
     this.scene.background = this.sky;
     this.scene.fog = new THREE.Fog(0xd99a72, 48, 135);
     initBuilders(this.scene);
+    const arrow=new THREE.Mesh(new THREE.ConeGeometry(.18,.45,5),new THREE.MeshBasicMaterial({color:0xffc83d}));arrow.rotation.z=Math.PI;arrow.position.y=3.3;this.objectiveMarker.add(arrow);
+    const markerRing=new THREE.Mesh(new THREE.TorusGeometry(.8,.055,4,28),new THREE.MeshBasicMaterial({color:0xffc83d}));markerRing.rotation.x=-Math.PI/2;markerRing.position.y=.04;this.objectiveMarker.add(markerRing);this.scene.add(this.objectiveMarker);
     this.scene.add(new THREE.HemisphereLight(0xfff0e0, 0x7a3a20, 1.1));
     this.sun = new THREE.DirectionalLight(0xffe2c4, 2.5);
     this.sun.position.set(-18, 30, 15);
@@ -378,6 +382,8 @@ export class World {
         (!this.menu && dist > 30);
       if (this.menu) el.hidden = true;
     }
+    this.objectiveMarker.visible=!!this.objectiveTarget&&!this.menu;
+    if(this.objectiveTarget){this.objectiveMarker.position.set(this.objectiveTarget.x,Math.sin(s.elapsed*4)*.12,this.objectiveTarget.z);}
     this.renderer.render(this.scene, this.camera);
     this.fps = this.fps * 0.95 + 0.05 / Math.max(0.001, dt);
   }
