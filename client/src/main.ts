@@ -68,7 +68,7 @@ try {
     ["power", "day", "summary"].includes(v.game.phase)
   ) {
     saved = v.game;
-    placeBatteryByAntenna(saved);
+    placeBatteryByAntenna(v.game);
   }
 } catch {}
 function cue(kind: string, target?: string) {
@@ -952,6 +952,8 @@ function update(dt: number, render = true) {
       }
       fixed -= 0.1;
     }
+    world.predictMovement = !connection;
+    world.stepRemainder = connection ? 0 : fixed;
     if (pendingBuild) {
       pendingBuild.seconds =
         game.players[id].role === "Engineer"
@@ -1072,7 +1074,9 @@ window.render_game_to_text = () =>
       flights: world.motion.flights.length,
       actors: Array.from(world.actors.entries()).map(([key, a]) => ({
         id: key,
+        x: a.position.x,
         y: a.position.y,
+        z: a.position.z,
         scaleY: a.scale.y,
         arm: a.getObjectByName("armL")?.rotation.x,
         leg: a.getObjectByName("legL")?.rotation.x,

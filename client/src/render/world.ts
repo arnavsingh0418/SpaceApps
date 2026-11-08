@@ -54,7 +54,8 @@ export class World {
   pointer = new THREE.Vector2();
   motion: WorldMotion;
   zoom = 20;
-  cameraVelocity = new THREE.Vector3();
+  stepRemainder = 0;
+  predictMovement = true;
   lastSeed = -1;
   yaw = 0;
   menu = true;
@@ -329,10 +330,35 @@ export class World {
         g!.position.set(p.x, 0, p.z);
       }
       const player = g!;
-      player.position.lerp(
-        new THREE.Vector3(p.x, 0, p.z),
-        1 - Math.exp(-14 * dt),
-      );
+      const speed = s.allocation.heat < 1 ? B.coldSpeed : B.speed;
+      let x = p.x;
+      let z = p.z;
+      if (this.predictMovement && s.phase === "day") {
+        x += p.move.x * speed * this.stepRemainder;
+        z += p.move.z * speed * this.stepRemainder;
+      } else {
+        const shown = (player.userData.shown ||= { x: p.x, z: p.z }) as {
+          x: number;
+          z: number;
+        };
+        const dx = p.x - shown.x,
+          dz = p.z - shown.z,
+          dist = Math.hypot(dx, dz),
+          step = Math.min(dist, Math.max(speed, dist / 0.12) * dt);
+        if (dist > 1e-5) {
+          shown.x += (dx / dist) * step;
+          shown.z += (dz / dist) * step;
+        }
+        x = shown.x;
+        z = shown.z;
+      }
+      const radius = Math.hypot(x, z);
+      if (radius > B.worldRadius) {
+        x *= B.worldRadius / radius;
+        z *= B.worldRadius / radius;
+      }
+      player.position.x = x;
+      player.position.z = z;
       this.motion.actor(player, p, s, dt);
     }
     for (const [key, obj] of this.pickups)
@@ -494,19 +520,16 @@ export class World {
     this.sun.color.setHex(0xffe2c4).lerp(new THREE.Color(0xffaa76), sunset);
     const p = s.players[id];
     if (p && !this.menu) {
-      const target = new THREE.Vector3(p.x, 0, p.z);
+      const body = this.actors.get(id);
+      const focusX = body ? body.position.x : p.x;
+      const focusZ = body ? body.position.z : p.z;
       const offset = new THREE.Vector3(
         Math.sin(this.yaw) * this.zoom,
         this.zoom * 0.55,
         Math.cos(this.yaw) * this.zoom,
       );
-      const desired = target.clone().add(offset);
-      this.cameraVelocity.addScaledVector(
-        desired.sub(this.camera.position),
-        dt * 36,
-      );
-      this.cameraVelocity.multiplyScalar(Math.exp(-dt * 10));
-      this.camera.position.addScaledVector(this.cameraVelocity, dt);
+      const desired = new THREE.Vector3(focusX, 0, focusZ).add(offset);
+      this.camera.position.lerp(desired, 1 - Math.exp(-12 * dt));
       if (!this.motion.reduced && this.motion.shake > 0) {
         this.camera.position.x += Math.sin(this.motion.time * 100) * 0.04;
         this.camera.position.y += Math.cos(this.motion.time * 93) * 0.025;
@@ -514,7 +537,7 @@ export class World {
       if (!this.motion.reduced && this.motion.storm > 0.1)
         this.camera.position.x +=
           Math.sin(this.motion.time * 36) * 0.008 * this.motion.storm;
-      this.camera.lookAt(target.x, 1.2, target.z - 2);
+      this.camera.lookAt(focusX, 1.2, focusZ - 2);
     } else if (this.menu) {
       const a = s.elapsed * 0.015;
       this.camera.position.set(19 + Math.sin(a) * 3, 13, 26);
