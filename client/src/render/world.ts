@@ -113,6 +113,7 @@ export class World {
   predictMovement = true;
   lastSeed = -1;
   /** Camera orbit around the player (radians). yaw 0 = camera south of the player, looking north. */
+  firstPerson = false;
   yaw = 0;
   pitch = 0.36;
   /** main.ts decides when mouse-look is allowed (in a mission, no menu/modal open). */
@@ -334,7 +335,11 @@ export class World {
   /** Rotate the camera by a mouse/touch delta in pixels. */
   look(dx: number, dy: number) {
     this.yaw -= dx * 0.0028;
-    this.pitch = THREE.MathUtils.clamp(this.pitch + dy * 0.0022, -0.12, 1.25);
+    this.pitch = THREE.MathUtils.clamp(
+      this.pitch + dy * 0.0022,
+      this.firstPerson ? -1.1 : -0.12,
+      this.firstPerson ? 1.1 : 1.25,
+    );
   }
   /**
    * Fortnite/Minecraft-style mouse look: click the game to capture the mouse (pointer lock),
@@ -399,6 +404,7 @@ export class World {
       (s.phase === "flight" || s.phase === "ended") &&
       s.returnMission?.flight?.deck
     ) {
+      this.firstPerson = true;
       this.screenDust.update(0, 0, this.motion.reduced);
       document.querySelector<HTMLElement>("#labels")!.hidden = true;
       (this.cabin ??= new FlightCabin(this.renderer)).update(
@@ -406,9 +412,17 @@ export class World {
         id,
         dt,
         this.motion.reduced,
+        this.yaw,
+        this.pitch,
       );
       return;
     }
+    if (this.firstPerson) {
+      this.yaw = 0;
+      this.pitch = 0.36;
+      this.releaseMouse();
+    }
+    this.firstPerson = false;
     if (s.players[id]?.hab && !this.menu && s.phase !== "flight" && s.phase !== "ended") {
       this.screenDust.update(0, 0, this.motion.reduced);
       this.tracks.forget(id);

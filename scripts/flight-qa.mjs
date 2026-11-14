@@ -2,6 +2,13 @@ import { chromium } from "playwright";
 import fs from "node:fs/promises";
 import assert from "node:assert/strict";
 const dir = "references/flight";
+const layout = JSON.parse(
+  await fs.readFile(
+    new URL("../shared/src/data/flight-layout.json", import.meta.url),
+    "utf8",
+  ),
+);
+const base = process.env.QA_BASE_URL || "http://127.0.0.1:5173";
 await fs.mkdir(dir, { recursive: true });
 const browser = await chromium.launch({
   headless: true,
@@ -16,7 +23,7 @@ try {
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
   });
-  await page.goto("http://127.0.0.1:5173/?qaScene=flight");
+  await page.goto(`${base}/?qaScene=flight`);
   await page.waitForFunction(
     () => window.__stageScene && window.render_game_to_text,
   );
@@ -53,7 +60,8 @@ try {
     await step(120);
   };
   const lock = async () => {
-    await walk(0, -8);
+    await walk(0, (await state()).player.z);
+    await walk(0, layout.stations.helm.z);
     await page.keyboard.press("e");
     await step(160);
     assert.equal((await state()).modal, "helm");
@@ -92,14 +100,9 @@ try {
     if (fault) {
       // Travel through the connected corridor rather than teleporting fixtures.
       await walk(0, (await state()).player.z);
-      await walk(0, fault.kind === "hull" || fault.kind === "engine" ? 7 : 0);
-      const pos = {
-        power: [-8, 0],
-        air: [8, 0],
-        hull: [-8, 7],
-        engine: [6, 7],
-      }[fault.kind];
-      await walk(...pos);
+      const pos = layout.stations[fault.kind];
+      await walk(0, pos.z);
+      await walk(pos.x, pos.z);
       await page.keyboard.press("e");
       await step(160);
       assert.equal((await state()).modal, "flightRepair");
