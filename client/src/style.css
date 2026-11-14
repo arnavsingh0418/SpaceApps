@@ -313,6 +313,79 @@ nav button[aria-pressed="true"] {
 .help strong {
   font-size: 11px;
 }
+#board-ship {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 9px;
+  border: 1px solid #96decb;
+  background: #1f6f62;
+  color: #f3fff9;
+  cursor: pointer;
+}
+#ship-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#ship-hud[hidden] {
+  display: none;
+}
+#crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+}
+#crosshair::before,
+#crosshair::after {
+  content: "";
+  position: absolute;
+  background: #1a1a1a;
+  box-shadow: 0 0 0 1px #ffffffee;
+}
+#crosshair::before {
+  left: 6px;
+  top: 0;
+  width: 2px;
+  height: 14px;
+}
+#crosshair::after {
+  left: 0;
+  top: 6px;
+  width: 14px;
+  height: 2px;
+}
+#ship-look {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #121816cc;
+  color: #f4f7f2;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+#ship-look[hidden] {
+  display: none;
+}
+#leave-ship {
+  pointer-events: auto;
+  position: absolute;
+  left: 24px;
+  bottom: 18px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #9ee0cf;
+  background: #14312f;
+  color: #f3fff9;
+  cursor: pointer;
+}
 #error {
   position: absolute;
   top: 100px;
@@ -351,6 +424,19 @@ nav button[aria-pressed="true"] {
   .sol {
     font-size: 9px;
   }
+}
+body.aboard .help {
+  top: auto;
+  bottom: 18px;
+  right: 20px;
+  left: auto;
+  text-align: right;
+  color: #f4f7f2;
+  text-shadow: none;
+  background: #121816d0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 280px;
 }
 @media (max-height: 530px) {
   #panel {

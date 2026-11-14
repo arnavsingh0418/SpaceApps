@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { createTerrain } from "./render/terrain";
 import { createBase, stations } from "./render/base";
+import { createReturnShip } from "./render/ship";
+import { createShipWalk } from "./shipWalk";
 import { createConstruction, recipeIds, recipes, type Structure } from "./construction";
 import { connectPowerPlan } from "./powerPlan";
 import "./style.css";
@@ -55,8 +57,26 @@ try {
   sun.shadow.normalBias = 0.04;
   scene.add(sun);
   const { ground, rocks } = createTerrain(scene);
-  const render = () => renderer.render(scene, camera);
+  const render = () => renderer.render(shipMode ? shipScene : scene, camera);
   controls.addEventListener("change", render);
+
+  const ship = createReturnShip();
+  const shipScene = new THREE.Scene();
+  shipScene.background = new THREE.Color(0xd8d8d2);
+  shipScene.add(ship.root);
+  const shipHud = document.querySelector<HTMLElement>("#ship-hud")!;
+  const shipLook = document.querySelector<HTMLElement>("#ship-look")!;
+  const locationBadge = document.querySelector<HTMLElement>("#location-badge")!;
+  const help = document.querySelector<HTMLElement>(".help")!;
+  const locationHome = locationBadge.innerHTML;
+  const helpHome = help.innerHTML;
+  const panel = document.querySelector<HTMLElement>("#panel")!;
+  let shipMode = false;
+  let shipFrame = 0;
+  const shipClock = new THREE.Clock();
+  const walk = createShipWalk(camera, canvas, ship.occupied, (locked) => {
+    shipLook.hidden = locked;
+  });
 
   const status = document.querySelector<HTMLParagraphElement>("#load-status")!;
   const base = createBase(scene, () => {
@@ -162,7 +182,7 @@ try {
       heading.textContent = "A new home on Mars";
       tag.textContent = "OUTPOST 01 / GALE CRATER";
       description.textContent =
-        "Explore your crew’s first outpost. A habitat to call home, sunlight for power and a workbench for the next big idea.";
+        "Explore your crew’s first outpost. A habitat to call home, sunlight for power and a workbench for the next big idea. Board the return ship to walk the cabin on the way to Earth.";
     }
     document
       .querySelectorAll<HTMLButtonElement>("[data-focus]")
@@ -189,16 +209,84 @@ try {
       event.metaKey
     )
       return;
+    if (shipMode) {
+      if (event.key.toLowerCase() === "b") leaveShip();
+      return;
+    }
     if (event.key.toLowerCase() === "r") focus("overview");
   });
+
+  function boardShip() {
+    if (shipMode) return;
+    shipMode = true;
+    controls.enabled = false;
+    document.querySelector<HTMLDialogElement>("#power-dialog")?.close();
+    panel.hidden = true;
+    document.body.classList.add("aboard");
+    shipHud.hidden = false;
+    shipLook.hidden = false;
+    locationBadge.innerHTML = "EARTH <strong> / </strong> APPROACH";
+    help.innerHTML =
+      "<strong>Inside the return ship.</strong><br />WASD walk · Mouse to look · Shift to hurry<br />Esc releases the mouse · B back to the outpost";
+    const previousFov = camera.fov;
+    camera.userData.homeFov = previousFov;
+    camera.fov = 86;
+    camera.near = 0.05;
+    camera.updateProjectionMatrix();
+    camera.position.copy(ship.spawn);
+    walk.look(0, -0.04);
+    walk.setActive(true);
+    shipClock.getDelta();
+    if (!shipFrame) shipFrame = requestAnimationFrame(flyShip);
+  }
+
+  function leaveShip() {
+    if (!shipMode) return;
+    shipMode = false;
+    walk.setActive(false);
+    walk.unlock();
+    if (shipFrame) cancelAnimationFrame(shipFrame);
+    shipFrame = 0;
+    shipHud.hidden = true;
+    document.body.classList.remove("aboard");
+    panel.hidden = false;
+    locationBadge.innerHTML = locationHome;
+    help.innerHTML = helpHome;
+    camera.fov = camera.userData.homeFov || 44;
+    camera.near = 0.1;
+    camera.updateProjectionMatrix();
+    controls.enabled = true;
+    focus("overview");
+  }
+
+  function flyShip() {
+    if (!shipMode) {
+      shipFrame = 0;
+      return;
+    }
+    shipFrame = requestAnimationFrame(flyShip);
+    const dt = Math.min(shipClock.getDelta(), 0.05);
+    walk.update(dt);
+    ship.earth.rotation.y += dt * 0.08;
+    const pulse = 0.72 + Math.sin(performance.now() * 0.004) * 0.12;
+    for (const display of ship.displays) display.emissiveIntensity = pulse;
+    renderer.render(shipScene, camera);
+  }
+
+  document.querySelector<HTMLButtonElement>("#board-ship")!.addEventListener("click", () => {
+    boardShip();
+    canvas.requestPointerLock?.();
+  });
+  document.querySelector<HTMLButtonElement>("#leave-ship")!.addEventListener("click", leaveShip);
 
   // Ignore drags, and resolve a clicked mesh to its station wrapper.
   const pointer = new THREE.Vector2();
   const down = new THREE.Vector2();
   const raycaster = new THREE.Raycaster();
-  canvas.addEventListener("pointerdown", (event) =>
-    down.set(event.clientX, event.clientY),
-  );
+  canvas.addEventListener("pointerdown", (event) => {
+    down.set(event.clientX, event.clientY);
+    if (shipMode) shipLook.hidden = true;
+  });
   canvas.addEventListener("pointerup", (event) => {
     if (down.distanceTo(new THREE.Vector2(event.clientX, event.clientY)) > 5)
       return;
@@ -207,10 +295,16 @@ try {
       ((event.clientX - rect.left) / rect.width) * 2 - 1,
       (-(event.clientY - rect.top) / rect.height) * 2 + 1,
     );
+    if (shipMode) return;
     raycaster.setFromCamera(pointer, camera);
     let object: THREE.Object3D | null =
       raycaster.intersectObjects(base.root.children.filter((model) => model.visible), true)[0]?.object || null;
-    while (object && !object.userData.station) object = object.parent;
+    while (object && !object.userData.station && !object.userData.board) object = object.parent;
+    if (object?.userData.board) {
+      boardShip();
+      canvas.requestPointerLock?.();
+      return;
+    }
     if (object) focus(object.userData.station);
   });
   addEventListener("resize", () => {
@@ -219,12 +313,19 @@ try {
     camera.updateProjectionMatrix();
     render();
   });
-  // Static scene: no continuous render loop or background GPU work.
+  // The outpost stays static. The return ship renders only while you are aboard.
   render();
-  window.advanceTime = () => render();
+  window.advanceTime = (milliseconds: number) => {
+    if (!shipMode) {
+      render();
+      return;
+    }
+    walk.update(milliseconds / 1000);
+    renderer.render(shipScene, camera);
+  };
   window.render_game_to_text = () =>
     JSON.stringify({
-      mode: "mars-outpost-preview",
+      mode: shipMode ? "earth-return-ship" : "mars-outpost-preview",
       selected,
       coordinates: "metres; origin at landing area, +Y up, +X right, +Z south",
       terrain: {
@@ -243,6 +344,8 @@ try {
       },
     });
   void base.ready.then(() => {
+    const rocket = base.root.getObjectByName("Rocket_Return");
+    if (rocket) rocket.userData.board = true;
     refreshWorkbench();
     render();
   });

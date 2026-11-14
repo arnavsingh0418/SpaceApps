@@ -24,14 +24,15 @@
           <p>Beyond the blue planet</p>
         </div>
       </div>
-      <div class="sol">MARS <strong> / </strong> SOL <span id="sol-number">001</span></div>
+      <div class="sol" id="location-badge">MARS <strong> / </strong> SOL <span id="sol-number">001</span></div>
     </header>
     <section id="panel" aria-label="Explore the outpost">
       <span id="station-tag">OUTPOST 01 / GALE CRATER</span>
       <h2 id="station-title">A new home on Mars</h2>
       <p id="station-description">
         Explore your crew’s first outpost. A habitat to call home, sunlight for
-        power and a workbench for the next big idea.
+        power and a workbench for the next big idea. Board the return ship to
+        walk the cabin on the way to Earth.
       </p>
       <nav aria-label="Stations">
         <button data-focus="habitat" aria-pressed="false">
@@ -47,6 +48,7 @@
       <button id="reset" data-focus="overview" aria-pressed="true">
         ↗ View whole outpost
       </button>
+      <button id="board-ship" type="button">Board return ship</button>
       <details class="station-quiz" data-quiz="solar" hidden>
         <summary>Solar power quiz</summary>
         <form>
@@ -131,6 +133,11 @@
       </form>
       <p id="power-summary" role="status"></p>
     </dialog>
+    <div id="ship-hud" hidden>
+      <div id="crosshair" aria-hidden="true"></div>
+      <p id="ship-look">Click the cabin to look around</p>
+      <button id="leave-ship" type="button">Back to outpost</button>
+    </div>
     <p id="error" role="alert" hidden></p>
     <script type="module" src="/src/main.ts"></script>
   </body>
