@@ -24,7 +24,7 @@
           <p>Beyond the blue planet</p>
         </div>
       </div>
-      <div class="sol">MARS <strong> / </strong> SOL 001</div>
+      <div class="sol">MARS <strong> / </strong> SOL <span id="sol-number">001</span></div>
     </header>
     <section id="panel" aria-label="Explore the outpost">
       <span id="station-tag">OUTPOST 01 / GALE CRATER</span>
@@ -84,12 +84,40 @@
         <div id="construction-recipes"></div>
         <p id="construction-status" role="status"></p>
       </section>
+      <div class="power-station">
+        <p id="outpost-vitals"></p>
+        <button id="open-power" type="button">Plan power</button>
+      </div>
       <p id="load-status" role="status">Preparing your outpost…</p>
     </section>
     <div class="help">
       <strong>Make yourself at home.</strong><br />Drag to orbit · Scroll or
       pinch to zoom<br />Right-drag to pan · R to reset
     </div>
+    <dialog id="power-dialog" aria-labelledby="power-title">
+      <button id="close-power" type="button" aria-label="Close power plan">×</button>
+      <h2 id="power-title">Daily power plan</h2>
+      <p id="power-budget"></p>
+      <form>
+        <fieldset>
+          <legend>Allocate power blocks</legend>
+          <label>Air <small>3 maintains air. 4 or more adds air.</small>
+            <input type="number" name="air" min="0" step="1" required />
+          </label>
+          <label>Greenhouse lights <small>Each block grows 4 food.</small>
+            <input type="number" name="light" min="0" step="1" required />
+          </label>
+          <label>Radio <small>Each block adds 1 signal progress.</small>
+            <input type="number" name="radio" min="0" step="1" required />
+          </label>
+          <label>Heat <small>1 block prevents cold-night air loss.</small>
+            <input type="number" name="heat" min="0" step="1" required />
+          </label>
+        </fieldset>
+        <button type="submit">Run sol 1</button>
+      </form>
+      <p id="power-summary" role="status"></p>
+    </dialog>
     <p id="error" role="alert" hidden></p>
     <script type="module" src="/src/main.ts"></script>
   </body>
