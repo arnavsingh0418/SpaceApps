@@ -7,10 +7,10 @@ import {
   partNames,
   partSlots,
   quizSeconds,
-  returnChance,
   returnProgress,
   salvageSites,
 } from "../../../shared/src/returnMission";
+import { startingHull } from "../../../shared/src/flight";
 import { Button, escape } from "./components";
 import { countdown, quizQuestion } from "./quiz";
 import { partArt, partReward } from "./shipParts";
@@ -42,7 +42,7 @@ export function hangar(s: Game, id: string) {
       progress.recovered[slot] &&
       progress.recovered[slot] !== progress.installed[slot],
   );
-  return `<div class="ship-overview"><b>RETURN VEHICLE / DAMAGE REPORT</b><span>${Object.values(progress.installed).length} / 4 REPAIRED</span></div><progress class="ship-progress" max="4" value="${Object.values(progress.installed).length}" aria-label="Ship systems repaired"></progress><p class="ship-hint">${ready ? "All four systems online. Your crew is ready to launch." : "Recover hardware through field tasks, salvage or Nemi's repair. Install each replacement here."}</p>
+  return `<div class="ship-overview"><b>RETURN VEHICLE / DAMAGE REPORT</b><span>${Object.values(progress.installed).length} / 4 REPAIRED</span></div><progress class="ship-progress" max="4" value="${Object.values(progress.installed).length}" aria-label="Ship systems repaired"></progress><p class="ship-hint">${ready ? "All four systems online. After launch, head to the helm and lock departure guidance." : "Recover hardware through field tasks, salvage or Nemi's repair. Install each replacement here."}</p>
     <div class="ship-part-roster">${partSlots
       .map((slot) => {
         const installed = progress.installed[slot],
@@ -52,7 +52,7 @@ export function hangar(s: Game, id: string) {
       })
       .join(
         "",
-      )}</div><p class="ship-hint">${Math.round(78 + (returnChance(s) - 50) * 0.4)}% starting hull condition · better parts protect the crew.</p>
+    )}</div><p class="ship-hint">${Math.round(startingHull(s))}% starting hull condition · better parts protect the crew.</p>
     ${ready ? (id === s.host ? Button(upgrade ? "LAUNCH WITH CURRENT PARTS" : "LAUNCH FOR EARTH", "launchShip") : "<p>The crew leader starts the flight.</p>") : Button("VIEW REPAIR MAP", "map", "", true)}
     <p class="quiz-feedback" role="status"></p>`;
 }

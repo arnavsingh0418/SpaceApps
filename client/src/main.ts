@@ -143,11 +143,17 @@ let tutorial = 4,
   lastEvent = "",
   firstPlan = true;
 const world = new World();
+const previewScene = import.meta.env.DEV
+  ? new URL(location.href).searchParams.get("qaScene")
+  : null;
+const soloSaveKey = previewScene === "flight-approach"
+  ? "outpost-preview-flight-approach-v1"
+  : "outpost-save-v1";
 if (import.meta.env.DEV)
   (window as unknown as { __world: World }).__world = world; // dev-only debugging hook
 addPlayer(game, id, "Explorer");
 try {
-  const v = JSON.parse(localStorage.getItem("outpost-save-v1") || "null");
+  const v = JSON.parse(localStorage.getItem(soloSaveKey) || "null");
   if (
     v?.version === 1 &&
     v.game?.players?.solo &&
@@ -265,7 +271,8 @@ function open(
   validateCopy(root);
 }
 function close() {
-  if (modal === "helm") act({ type: "releaseHelm" });
+  if (modal === "helm" && game.returnMission?.flight?.deck?.arrivalAt === undefined)
+    act({ type: "releaseHelm" });
   alienVoice.stop();
   world.focus = null;
   stopInput();
@@ -338,12 +345,16 @@ function drawDeck() {
       root.querySelector(".modal")?.classList.add("fullscreen");
       saved = null;
       try {
-        localStorage.removeItem("outpost-save-v1");
+        localStorage.removeItem(soloSaveKey);
       } catch {}
     }
   }
   if (joyPointer === null) ui.innerHTML = flightHUD(game, id);
   const d = game.returnMission!.flight!.deck!;
+  if (d.arrivalAt !== undefined && ["helm", "flightRepair", "flightGuide"].includes(modal)) {
+    deckRepair = null;
+    close();
+  }
   if (modal === "helm") {
     const marker = root.querySelector<HTMLElement>("#course-marker");
     if (marker) {
@@ -621,7 +632,7 @@ function saveSolo() {
   try {
     saved = structuredClone(game);
     localStorage.setItem(
-      "outpost-save-v1",
+      soloSaveKey,
       JSON.stringify({ version: 1, game }),
     );
   } catch {}
@@ -1081,7 +1092,7 @@ function draw() {
       root.querySelector("h2")?.remove();
       root.querySelector(".modal")?.classList.add("fullscreen");
       try {
-        localStorage.removeItem("outpost-save-v1");
+        localStorage.removeItem(soloSaveKey);
         saved = null;
       } catch {}
     }
@@ -2312,6 +2323,7 @@ if (import.meta.env.DEV)
       name === "flight" ||
       name === "flight-fault" ||
       name === "flight-arrival" ||
+      name === "flight-approach" ||
       name === "flight-cockpit" ||
       name === "flight-crew"
     ) {
@@ -2338,6 +2350,14 @@ if (import.meta.env.DEV)
           Object.assign(game.players[crewId],
             [flightStations.power, flightStations.air, { x: 1.5, z: -19 }][n]);
         }
+      }
+      if (name === "flight-approach") {
+        const deck = game.returnMission.flight!.deck!;
+        deck.time = 120;
+        deck.nextEvent = 4;
+        deck.guidance[0] = true;
+        deck.repaired = 4;
+        Object.assign(game.players[id], flightStations.helm);
       }
       if (name === "flight-arrival") {
         const deck = game.returnMission.flight!.deck!;
@@ -2464,11 +2484,12 @@ if (import.meta.env.DEV)
       game.result = "Mission complete!";
     }
     draw();
+    if (name === "flight-approach") pause();
     world.update(game, id, 0.016);
   };
 menu();
 if (import.meta.env.DEV) {
-  const scene = new URL(location.href).searchParams.get("qaScene");
+  const scene = previewScene;
   if (
     [
       "alien",
@@ -2477,6 +2498,7 @@ if (import.meta.env.DEV) {
       "ship-ready",
       "flight",
       "flight-fault",
+      "flight-approach",
       "flight-arrival",
       "flight-cockpit",
       "flight-crew",

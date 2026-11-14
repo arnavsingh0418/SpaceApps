@@ -61,7 +61,7 @@ export function ensureFlightLayout(s: Game) {
   d.pilot = "";
   d.steer = { x: 0, y: 0 };
   Object.values(s.players).forEach((p, i) => {
-    Object.assign(p, SHIP_LAYOUT.spawns[i % SHIP_LAYOUT.spawns.length]);
+    Object.assign(p, deckSpawn(i));
     p.move = { x: 0, z: 0 };
     delete p.task;
     delete p.posAt;
@@ -83,9 +83,14 @@ export function nearestFlightStation(p: {
         Math.hypot(p.x - flightStations[b].x, p.z - flightStations[b].z),
     )[0];
 }
+export function startingHull(s: Game) {
+  return clamp(78 + (returnChance(s) - 50) * 0.4, 70, 96);
+}
+export function deckSpawn(index: number) {
+  return { ...SHIP_LAYOUT.spawns[index % SHIP_LAYOUT.spawns.length] };
+}
 export function startDeckFlight(s: Game) {
   const progress = (s.returnMission ??= returnProgress(s));
-  const condition = clamp(78 + (returnChance(s) - 50) * 0.4, 70, 96);
   progress.flight = {
     stage: 0,
     deadline: s.elapsed + flightDuration,
@@ -94,7 +99,7 @@ export function startDeckFlight(s: Game) {
     deck: {
       layoutVersion: SHIP_LAYOUT.version,
       time: 0,
-      hull: condition,
+      hull: startingHull(s),
       oxygen: 100,
       power: 100,
       heat: 25,
@@ -111,7 +116,7 @@ export function startDeckFlight(s: Game) {
     },
   };
   Object.values(s.players).forEach((p, i) => {
-    Object.assign(p, SHIP_LAYOUT.spawns[i % SHIP_LAYOUT.spawns.length]);
+    Object.assign(p, deckSpawn(i));
     p.move = { x: 0, z: 0 };
     delete p.task;
     delete p.posAt;
@@ -224,13 +229,10 @@ export function tickDeckFlight(s: Game, dt: number) {
   d.power = clamp(d.power);
   d.heat = clamp(d.heat);
   f.stage = Math.min(2, Math.floor(d.time / 60));
-  if (d.hull <= 0 || d.oxygen <= 0 || d.heat >= 100) {
-    d.outcome = "rescue";
-    d.arrivalAt = d.time;
-    return;
-  }
-  if (d.time >= flightDuration) {
+  const emergency = d.hull <= 0 || d.oxygen <= 0 || d.heat >= 100;
+  if (emergency || d.time >= flightDuration) {
     d.outcome =
+      !emergency &&
       d.hull > 20 &&
       d.oxygen > 20 &&
       d.heat < 90 &&

@@ -31,7 +31,7 @@ Choose **Play with friends → Create crew**. Send the five-digit code shown on 
 - Build the greenhouse early. Food is eaten every sol. Watering costs one ice and adds food at night.
 - Before a dust storm, store loose supplies and cover panels. Covering sacrifices their electricity and takes blocks away from radio, plants, heaters, then air. Clean dirty panels after the storm. Covers come off the next morning.
 - Solar flares draw from real, archived NASA DONKI records. Shelter costs food; ice walls cost ice; continuing work adds a larger radiation dose. Ignored flares resolve as continued work after 45 seconds.
-- Rebuild the four damaged ship systems and launch before Sol 15 ends. Field investigations, salvage quizzes and Nemi’s shared repair award replacement parts; install them at the return platform. Base upgrades and flight tasks improve your return odds.
+- Rebuild the four damaged ship systems and launch before Sol 15 ends. Field investigations, salvage quizzes and Nemi’s shared repair award replacement parts; install them at the return platform. Better parts and base upgrades strengthen the hull at launch. Steering and repairs determine how the flight ends.
 - Solo play pauses when its browser tab is hidden or the pause menu is open. Multiplayer keeps running for the crew.
 
 Roles: Engineer builds twice as fast; Scientist gets a field-map tip; Medic sees the shared crew dose; Comms gets 10 more seconds before an event and can lock power. Anyone can gather, learn, build, and complete tasks. The leader can also lock power. All players currently share air, food, and dose.
