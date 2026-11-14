@@ -1,4 +1,5 @@
 import * as T from "three";
+import { replaceVisual } from "./modelAssets";
 import {
   sectors,
   fieldMissions,
@@ -26,6 +27,7 @@ export class FieldSites {
     for (const site of sectors) {
       const g = new T.Group();
       g.position.set(site.x, 0, site.z);
+      let partParent = g;
       const part = (
         geo: T.BufferGeometry,
         color: number | string,
@@ -47,7 +49,7 @@ export class FieldSites {
         m.position.set(x, y, z);
         m.castShadow = true;
         m.receiveShadow = true;
-        g.add(m);
+        partParent.add(m);
         return m;
       };
       part(new T.CylinderGeometry(2.5, 2.8, 0.18, 12), 0x29383b, 0, 0.09, 0);
@@ -73,6 +75,8 @@ export class FieldSites {
         true,
       );
       beacon.name = "field-beacon";
+      const prop = new T.Group();prop.name = `Field equipment ${site.id}`;
+      g.add(prop);partParent = prop;
       if (site.prop === "ice") {
         for (let i = 0; i < 6; i++) {
           const m = part(
@@ -172,6 +176,20 @@ export class FieldSites {
           m.rotation.y = i * 1.1;
         }
       }
+      const authored = {
+        ice: ["Ice_Chunk", 7, -3, -4],
+        solar: ["Solar_Panels_Clean", 11, 0, -5],
+        rocks: ["Cliff_01", 8, -3, -6],
+        shield: ["Storm_Shelter", 8, 0, -6],
+        dish: ["Radio_Dish_Fixed", 6, 0, -6],
+        rocket: ["Rocket_Return", 12, 0, -9],
+        wreck: ["Robotic_Lander_Wreck", 6, -3, -4],
+      }[site.prop] as [string, number, number, number];
+      void replaceVisual(prop, authored[0], {
+        ...(site.prop === "rocket" ? {height: authored[1]} : {size: authored[1]}),
+        offset: {x:authored[2],z:authored[3]},
+        batch: site.prop !== "dish",
+      });
       scene.add(g);
       this.groups.set(site.id, g);
     }
@@ -196,7 +214,9 @@ export class FieldSites {
         }),
       );
       signal.position.y = 1.3;
-      g.add(shell, signal);
+      const shellHolder = new T.Group();shellHolder.add(shell);
+      g.add(shellHolder, signal);
+      if (!launch) void replaceVisual(shellHolder, "Supply_Crate", {width:1.5,batch:true});
       if (!launch) {
         const model = shipPartModel(
           salvageSites.find((cache) => cache.id === site.id)!.part,

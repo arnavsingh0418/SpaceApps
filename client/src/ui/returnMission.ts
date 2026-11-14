@@ -1,3 +1,4 @@
+import { crewPortrait } from "./modelArt";
 import type { Game } from "../../../shared/src/sim";
 import {
   fastAnswerSeconds,
@@ -77,5 +78,5 @@ export function flightScreen(s: Game) {
 export function returnReport(s: Game, id: string) {
   const progress = returnProgress(s);
   const flight = progress.flight;
-  return `<div class="return-result"><p>${escape(s.result)}</p><p><b>${progress.points} crew points</b> · ${progress.crewPoints[id] ?? 0} contributed by you</p>${flight?.chance === undefined ? "" : `<p>Final success chance <b>${flight.chance}%</b> · Flight tasks passed <b>${flight.passed.filter(Boolean).length} / ${flightTasks.length}</b></p><p>${partSlots.map((slot) => `${progress.installed[slot]} ${partNames[slot].toLowerCase()}`).join(" · ")}</p>`}</div>`;
+  return `<div class="return-crew">${Object.values(s.players).map((p) => `<figure>${crewPortrait(p.role)}<figcaption>${escape(p.name)}</figcaption></figure>`).join("")}</div><div class="return-result"><p>${escape(s.result)}</p><p><b>${progress.points} crew points</b> · ${progress.crewPoints[id] ?? 0} contributed by you</p>${flight?.chance === undefined ? "" : `<p>Final success chance <b>${flight.chance}%</b> · Flight tasks passed <b>${flight.passed.filter(Boolean).length} / ${flightTasks.length}</b></p><p>${partSlots.map((slot) => `${progress.installed[slot]} ${partNames[slot].toLowerCase()}`).join(" · ")}</p>`}</div>`;
 }

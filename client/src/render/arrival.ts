@@ -1365,8 +1365,9 @@ export class Arrival {
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>();
     this.scene.traverse((o) => {
+      o.userData.marsDisposed = true;
       if (o instanceof T.Mesh || o instanceof T.Points) {
-        geometries.add(o.geometry);
+        if (!o.geometry.userData.marsShared) geometries.add(o.geometry);
         for (const m of Array.isArray(o.material) ? o.material : [o.material])
           materials.add(m);
       }

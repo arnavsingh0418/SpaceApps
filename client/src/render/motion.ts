@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { disposeModel } from "./modelAssets";
 import { B, stations, type Game } from "../../../shared/src/sim";
 import { ParticlePool } from "./particles";
 export type ActorState = {
@@ -54,9 +55,15 @@ export class WorldMotion {
       setTimeout(() => gain.remove(), 800);
       actor.userData.crouch = this.time + 0.5;
       if (!this.reduced) {
-        const mesh = (o.children[0] as THREE.Mesh).clone();
-        mesh.geometry = mesh.geometry.clone();
-        mesh.material = (mesh.material as THREE.Material).clone();
+        const mesh = o.children[0].clone(true);
+        mesh.visible = true;
+        mesh.traverse((child) => {
+          if (!(child instanceof THREE.Mesh)) return;
+          child.geometry = child.geometry.clone();
+          child.geometry.userData.marsOwned = true;
+          child.material = Array.isArray(child.material)
+            ? child.material.map((m) => m.clone()) : child.material.clone();
+        });
         mesh.position.copy(o.position);
         mesh.position.y = o.position.y + 0.9;
         this.scene.add(mesh);
@@ -348,8 +355,7 @@ export class WorldMotion {
       f.obj.scale.setScalar(1 - t * 0.6);
       if (t >= 1) {
         this.scene.remove(f.obj);
-        (f.obj as THREE.Mesh).geometry.dispose();
-        ((f.obj as THREE.Mesh).material as THREE.Material).dispose();
+        disposeModel(f.obj);
         this.flights.splice(i, 1);
       }
     }
