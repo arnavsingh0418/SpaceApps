@@ -19,7 +19,7 @@ For co-op, run a second terminal:
 npm run server
 ```
 
-Choose **Play with friends**, use `ws://localhost:2567`, and create a crew. In another browser tab, join the four-letter room code at that same server address. For friends on your LAN, use the host computer's LAN IP instead of localhost. For an HTTPS client deployment, use a `wss://` server address.
+Choose **Play with friends → Create crew**. Send the five-digit code shown on the copy button to your friends. They open the same website, choose **Play with friends**, enter the code and click **Join crew**. Nobody enters a server address. Vite forwards local `/crew` connections to the server on port 2567. For a production-style local test, run `npm run build` then `npm run server` and open http://localhost:2567.
 
 ## How to play
 
@@ -89,7 +89,9 @@ Science boundaries: flare X-ray class is not a Mars particle-dose forecast; dose
 
 Client: `npm run build` produces `dist/`, usable on GitHub Pages, Netlify, or Vercel. The included GitHub Actions workflows run checks on every push and offer manual publication to Pages. Enable **Settings → Pages → Source: GitHub Actions** if the repository does not have Pages enabled. Relative asset URLs support the `/TEST_nasa/` subpath. No secrets are needed for the client.
 
-Server: use the included `render.yaml` blueprint or deploy the Node app to another WebSocket-capable host. Build: `npm ci --include=dev`. Start: `npm run server`. Health: `/`. The host's `PORT` is used automatically. Rooms are stored in memory, so run one instance without autoscaling; a persistent shared room store is outside this prototype's scope. Render free services can sleep; solo play remains available. Set `VITE_CREW_SERVER=wss://your-crew-server.example` before building the client, or enter the server URL in the lobby.
+Recommended: deploy the website and game server as **one Render Web Service** using the included `render.yaml`. See [MULTIPLAYER_SETUP.md](MULTIPLAYER_SETUP.md) for exact steps. Build: `npm ci --include=dev && npm run build`. Start: `npm run server`. Health: `/health`. The server serves `dist/` and WebSockets together, so browsers automatically connect to the website’s `/crew` endpoint. No API keys, database, or player server settings are required. Keep one instance: active rooms live in memory and end when everyone leaves or the service restarts.
+
+If you prefer Vercel for the website, deploy the crew server to Render and set `VITE_CREW_SERVER=wss://YOUR-SERVICE.onrender.com/crew` in Vercel before building. Players still use codes only. A static-only preview without that setting cannot host multiplayer.
 
 ## Credits and scope
 

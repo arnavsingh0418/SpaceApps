@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { randomUUID, randomInt } from "node:crypto";
 import { WebSocketServer, WebSocket } from "ws";
+import { serveGame } from "./http";
 import {
   createGame,
   addPlayer,
@@ -15,13 +16,7 @@ const clients = new Map<
   { id: string; room: string; count: number; window: number; last: number }
 >();
 const server = createServer((req, res) => {
-  res.writeHead(200, {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-  });
-  res.end(
-    JSON.stringify({ service: "Outpost Down crew server", rooms: rooms.size }),
-  );
+  void serveGame(req, res, rooms.size);
 });
 const wss = new WebSocketServer({ server, maxPayload: 4096 });
 const send = (ws: WebSocket, m: object) => {
@@ -55,13 +50,11 @@ wss.on("connection", (ws) => {
           });
           return;
         }
-        let code = String(m.code || "").toUpperCase();
+        let code = String(m.code || "").trim();
         let game: Game | undefined;
         if (m.type === "create") {
           do {
-            code = Array.from({ length: 4 }, () =>
-              String.fromCharCode(65 + randomInt(26)),
-            ).join("");
+            code = String(randomInt(10000, 100000));
           } while (rooms.has(code));
           game = createGame(
             Number.isFinite(m.seed) ? m.seed : randomInt(1000000),
@@ -72,7 +65,7 @@ wss.on("connection", (ws) => {
           send(ws, {
             type: "error",
             message:
-              "Crew code not found. Ask your friend for the four letters.",
+              "Crew not found. Check the five-digit code with your friend.",
           });
           return;
         }

@@ -372,3 +372,20 @@ to{opacity:0}
 .rover-pin{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;width:22px;height:18px;background:#153e43;color:#ffe1a7;border:1px solid #a2e0ce;border-radius:5px;z-index:6;font-size:13px}
 @media(max-width:760px){.rover-dashboard{width:340px;padding:12px 14px}.rover-readout{gap:14px}.rover-readout>strong{font-size:34px;min-width:75px}.rover-dashboard p{font-size:9px}.rover-dashboard p kbd{display:none}#touch>.rover-brake{bottom:230px;font-size:12px;background:#ec9d55}.rover-dashboard footer{margin-top:6px}}
 .rover-touch-help{display:none}@media(max-width:760px){.rover-dashboard .rover-desktop-help{display:none}.rover-dashboard .rover-touch-help{display:block}}
+
+#crew-invite:not([hidden]) {
+  position: fixed;
+  right: 10px;
+  bottom: 8px;
+  z-index: 150;
+  padding: 9px 13px;
+  border: 1px solid #80bfc9;
+  border-radius: 9px;
+  background: #142c3e;
+  color: #e3f5ec;
+  font:
+    800 13px "Nunito Sans",
+    sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+}

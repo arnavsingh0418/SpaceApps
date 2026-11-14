@@ -29,8 +29,8 @@ export function pauseScreen(
 export function controls() {
   return `<ul class="body-lines"><li>${KeyChip("WASD")} Walk ${KeyChip("E")} Interact</li><li>${KeyChip("B")} Build ${KeyChip("G")} Drop ${KeyChip("Q")} Map</li><li>${KeyChip("Tab")} Goals ${KeyChip("T")} Chat ${KeyChip("F")} Screen</li></ul>${Button("RESUME", "close")}`;
 }
-export function crewLobby(url: string) {
-  return `<label>Your name<input id="crew-name" maxlength="16" value="Explorer"></label><label>Server address<input id="server-url" type="url" value="${escape(url)}"></label><label>Crew role<select id="lobby-role">${["Engineer", "Scientist", "Medic", "Comms"].map((r) => `<option>${r}</option>`).join("")}</select></label>${Button("CREATE CREW", "create")}<label>Room code<input id="room-code" maxlength="4" placeholder="MARS" autocapitalize="characters"></label>${Button("JOIN CREW", "join", "", true)}<p id="crew-error" role="status"></p>`;
+export function crewLobby() {
+  return `<p>Create a crew and send its five-digit code to your friends. Up to four explorers can play together.</p><label>Your name<input id="crew-name" maxlength="16" value="Explorer"></label><label>Crew role<select id="lobby-role">${["Engineer", "Scientist", "Medic", "Comms"].map((r) => `<option>${r}</option>`).join("")}</select></label>${Button("CREATE CREW", "create")}<label>Friend’s code<input id="room-code" maxlength="5" inputmode="numeric" pattern="[0-9]{5}" placeholder="48271" autocomplete="off" aria-label="Five-digit crew code"></label>${Button("JOIN CREW", "join", "", true)}<p id="crew-error" role="status" aria-live="polite"></p>`;
 }
 export function scienceLesson(s: Game, key: string) {
   const f = facts.find((f) => f.id === key)!;

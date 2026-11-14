@@ -148,14 +148,22 @@ try {
   b.action({ type: "takeHelm" });
   await b.until(() => !!b.error, "reject remote helm");
   assert.match(b.error, /helm/);
-  for (let i = 0; i < 8; i++) {
-    a.action({ type: "flightSteer", x: -1, y: 0 });
-    await new Promise((r) => setTimeout(r, 70));
+  // Steer from authoritative feedback rather than assuming wall time equals server ticks.
+  for (let i = 0; i < 40; i++) {
+    const course = a.state!.returnMission!.flight!.deck!.course;
+    if (Math.hypot(course.x, course.y) < 0.12) break;
+    const horizontal = Math.abs(course.x) > Math.abs(course.y);
+    a.action({
+      type: "flightSteer",
+      x: horizontal ? -Math.sign(course.x) : 0,
+      y: horizontal ? 0 : -Math.sign(course.y),
+    });
+    await new Promise((r) => setTimeout(r, 120));
   }
   a.action({ type: "flightSteer", x: 0, y: 0 });
   a.action({ type: "holdCourse" });
-  await b.until(
-    () => b.state!.returnMission!.flight!.deck!.guidance[0],
+  await a.until(
+    () => a.state!.returnMission!.flight!.deck!.guidance[0],
     "departure lock",
   );
   const wait = Date.now() + 25000;
