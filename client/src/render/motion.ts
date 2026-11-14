@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { disposeModel } from "./modelAssets";
 import { B, stations, type Game } from "../../../shared/src/sim";
 import { ParticlePool } from "./particles";
+import { Sandstorm } from "./sandstorm";
 export type ActorState = {
   speed: number; // horizontal m/s
   gait: "walk" | "sprint" | "crouch";
@@ -20,6 +21,7 @@ export class WorldMotion {
   nextBeacon = 0;
   nextWind = 0;
   storm = 0;
+  sandstorm: Sandstorm;
   lastDose = 0;
   shake = 0;
   flights: {
@@ -32,6 +34,7 @@ export class WorldMotion {
   constructor(public scene: THREE.Scene) {
     this.particles = new ParticlePool(scene, 192);
     this.smoke = new ParticlePool(scene, 28, true);
+    this.sandstorm = new Sandstorm(scene);
     matchMedia("(prefers-reduced-motion: reduce)").addEventListener(
       "change",
       (e) => (this.reduced = e.matches),
@@ -293,7 +296,10 @@ export class WorldMotion {
   update(s: Game, id: string, actors: Map<string, THREE.Group>, dt: number) {
     this.time += dt;
     this.shake = Math.max(0, this.shake - dt);
-    const activeStorm = s.event?.kind === "storm" && s.clock >= s.event.at;
+    const activeStorm =
+      s.phase === "day" &&
+      s.event?.kind === "storm" &&
+      s.clock >= s.event.at;
     this.storm = THREE.MathUtils.clamp(
       this.storm + (activeStorm ? dt / 5 : -dt / 5),
       0,
@@ -314,9 +320,9 @@ export class WorldMotion {
         this.nextBeacon = this.time + 0.65;
       }
       if (this.time > this.nextWind) {
-        if (this.storm > 0.1) {
+        if (this.storm > 0.1 && this.sandstorm.status !== "ready") {
           const p = s.players[id];
-          for (let i = 0; i < 8; i++)
+          for (let i = 0; p && i < 8; i++)
             this.particles.emit(
               p.x - 8,
               Math.random() * 5,

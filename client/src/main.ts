@@ -2095,6 +2095,11 @@ window.render_game_to_text = () =>
     },
     motion: {
       storm: world.motion.storm,
+      sandstorm: {
+        status: world.motion.sandstorm.status,
+        visible: world.motion.sandstorm.group.visible,
+        clipTime: world.motion.sandstorm.mixer?.time || 0,
+      },
       structures: Array.from(world.buildings.entries()).map(([key, o]) => ({
         key,
         scale: o.scale.x,
@@ -2279,6 +2284,9 @@ if (import.meta.env.DEV)
     if (name === "storm") {
       game.event = { kind: "storm", at: 0, resolved: false };
       game.clock = 10;
+      Object.assign(game.players[id], { x: 0, z: -7 });
+      world.zoom = 19;
+      world.pitch = 0.55;
     }
     if (name === "flare") {
       game.sol = 3;
