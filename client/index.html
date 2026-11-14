@@ -48,7 +48,7 @@
       <button id="reset" data-focus="overview" aria-pressed="true">
         ↗ View whole outpost
       </button>
-      <button id="board-ship" type="button">Board return ship</button>
+      <button id="board-ship" type="button">Rebuild return ship · 0/4</button>
       <details class="station-quiz" data-quiz="solar" hidden>
         <summary>Solar power quiz</summary>
         <form>
@@ -143,6 +143,16 @@
         <button type="submit">Run sol 1</button>
       </form>
       <p id="power-summary" role="status"></p>
+    </dialog>
+    <dialog id="return-dialog" aria-labelledby="return-title">
+      <button id="close-return" type="button" aria-label="Close return ship">×</button>
+      <h2 id="return-title">Rebuild the return ship</h2>
+      <p id="salvage-score"></p>
+      <section id="salvage-sites" aria-label="Salvage caches"></section>
+      <section id="ship-systems" aria-label="Ship systems"></section>
+      <section id="salvage-question" aria-label="Timed salvage question" hidden></section>
+      <p id="salvage-status" role="status"></p>
+      <button id="launch-home" type="button" disabled>Launch for Earth</button>
     </dialog>
     <div id="ship-hud" hidden>
       <div id="crosshair" aria-hidden="true"></div>

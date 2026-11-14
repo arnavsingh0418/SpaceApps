@@ -360,6 +360,51 @@ nav button[aria-pressed="true"] {
   width: 14px;
   height: 2px;
 }
+#return-dialog {
+  width: min(620px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 20px;
+  border: 1px solid #b56d4a;
+  border-radius: 16px;
+  background: #231e2b;
+  color: #fff4e8;
+}
+#return-dialog::backdrop { background: #100e18bb; }
+#return-dialog button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #f4cfaa55;
+  border-radius: 8px;
+  background: #4e3838;
+  color: inherit;
+  cursor: pointer;
+}
+#return-dialog button:disabled { opacity: .55; cursor: default; }
+#close-return { float: right; }
+#salvage-score { color: #ffbd9a; }
+.salvage-sites, .salvage-answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.salvage-sites small, .ship-systems small { display: block; margin-top: 4px; }
+.ship-systems > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f4cfaa28;
+}
+.salvage-clock { display: flex; align-items: center; gap: 12px; margin: 10px 0; }
+.salvage-clock progress { flex: 1; accent-color: #ffaa7e; }
+#return-dialog .salvage-answers button { min-height: 58px; background: #923e31; text-align: left; }
+#return-dialog .salvage-answers button:nth-child(2) { background: #34517e; }
+#return-dialog .salvage-answers button:nth-child(3) { background: #825422; grid-column: 1 / -1; }
+#salvage-status { color: #ffbd9a; }
+@media (max-width: 450px) {
+  .salvage-answers { grid-template-columns: 1fr; }
+}
 #ship-charge {
   position: absolute;
   top: 66px;
