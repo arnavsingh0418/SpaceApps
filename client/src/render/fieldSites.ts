@@ -7,13 +7,20 @@ import {
 } from "../../../shared/src/expedition";
 import { WORLD, type Game } from "../../../shared/src/sim";
 import type { Terrain } from "./terrain";
-import { launchSite, returnProgress, salvageSites, type Part } from "../../../shared/src/returnMission";
+import {
+  launchSite,
+  returnProgress,
+  salvageSites,
+  type Part,
+} from "../../../shared/src/returnMission";
+
+import { ShipAssembly, shipPartModel } from "./ship";
 
 export class FieldSites {
   groups = new Map<string, T.Group>();
   salvage = new Map<string, T.Group>();
   private lights = new Map<string, T.Mesh>();
-  private shipParts: { slot: Part; mesh: T.Mesh }[] = [];
+  ship!: ShipAssembly;
   private placed = false;
   constructor(scene: T.Scene) {
     for (const site of sectors) {
@@ -144,13 +151,7 @@ export class FieldSites {
         part(new T.CylinderGeometry(6, 6.5, 0.4, 12), 0x697174, 0, 0.2, -9);
         part(new T.CylinderGeometry(1.5, 2.1, 9, 14), 0xe4d7bf, 0, 5, -9);
         part(new T.ConeGeometry(1.5, 3, 14), 0xe4d7bf, 0, 11, -9);
-        this.shipParts.push(
-          { slot: "hull", mesh: part(new T.CylinderGeometry(1.57, 1.7, 0.9, 14), 0xc36a46, 0, 7.5, -9) },
-          { slot: "nav", mesh: part(new T.BoxGeometry(0.52, 0.64, 0.25), 0x87dce5, 0, 6.4, -7.35, true) },
-          { slot: "air", mesh: part(new T.CylinderGeometry(0.3, 0.3, 1.8, 10), 0xb7d9c2, -1.66, 4.9, -9) },
-        );
-        for (const x of [-2.7, 2.7])
-          this.shipParts.push({ slot: "booster", mesh: part(new T.CylinderGeometry(0.55, 0.75, 5, 10), 0xd0d0bc, x, 2.9, -9) });
+        this.ship = new ShipAssembly(g);
       } else {
         const recorder = part(
           new T.BoxGeometry(2.5, 1.6, 1.5),
@@ -180,31 +181,47 @@ export class FieldSites {
       const launch = site.id === "return";
       const shell = new T.Mesh(
         new T.BoxGeometry(1.5, 0.85, 1.1),
-        new T.MeshStandardMaterial({ color: launch ? 0x9bdee9 : 0xda884c, roughness: 0.55 }),
+        new T.MeshStandardMaterial({
+          color: launch ? 0x9bdee9 : 0xda884c,
+          roughness: 0.55,
+        }),
       );
       shell.position.y = 0.44;
       shell.castShadow = true;
       const signal = new T.Mesh(
         new T.OctahedronGeometry(0.28),
-        new T.MeshStandardMaterial({ color: launch ? 0x9bdee9 : 0xffc286, emissive: launch ? 0x65bad1 : 0xd57937 }),
+        new T.MeshStandardMaterial({
+          color: launch ? 0x9bdee9 : 0xffc286,
+          emissive: launch ? 0x65bad1 : 0xd57937,
+        }),
       );
       signal.position.y = 1.3;
       g.add(shell, signal);
+      if (!launch) {
+        const model = shipPartModel(
+          salvageSites.find((cache) => cache.id === site.id)!.part,
+        );
+        model.scale.setScalar(0.42);
+        model.position.y = 1.65;
+        g.add(model);
+      }
       scene.add(g);
       this.salvage.set(site.id, g);
     }
   }
-  update(s: Game, terrain: Terrain, time: number) {
+  update(s: Game, terrain: Terrain, time: number, reduced = false) {
     if (terrain.ready && !this.placed) {
       for (const g of [...this.groups.values(), ...this.salvage.values()])
         g.position.y = terrain.heightAt(g.position.x, g.position.z);
       this.placed = true;
     }
     const { caches, installed } = returnProgress(s);
-    for (const { slot, mesh } of this.shipParts) mesh.visible = !!installed[slot];
+    this.ship.update(s, time, reduced);
     for (const [id, marker] of this.salvage) {
       marker.visible = !caches[id]?.reward;
-      marker.children[1].rotation.y = time;
+      marker.children[1].rotation.y = reduced ? 0 : time;
+      if (marker.children[2])
+        marker.children[2].rotation.y = reduced ? 0.3 : time * 0.4;
     }
     for (const site of sectors) {
       const missions = fieldMissions.filter((m) => m.sector === site.id);

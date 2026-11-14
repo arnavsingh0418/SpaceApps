@@ -28,6 +28,7 @@ jobs:
             sleep 1
           done
           npm run test:net
+          TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/alien-multiplayer.ts
       - uses: actions/upload-artifact@v4
         with:
           name: outpost-down-client

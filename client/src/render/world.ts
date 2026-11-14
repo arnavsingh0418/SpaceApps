@@ -1,6 +1,8 @@
 import { WorldMotion } from "./motion";
 import { placeLabels } from "./labels";
 import { Terrain } from "./terrain";
+import { Nemi } from "./alien";
+import { alienSite } from "../../../shared/src/alien";
 import { FieldSites, captureFieldMap } from "./fieldSites";
 import { sectors } from "../../../shared/src/expedition";
 import { LocalController, jumpArc } from "./controller";
@@ -59,6 +61,8 @@ export class World {
   terrain = new Terrain();
   fieldSites: FieldSites;
   mapImage = "";
+  nemi: Nemi;
+  focus: "alien" | "ship" | null = null;
   /** Your own movement controller (set by main.ts once a mission starts). */
   local: LocalController | null = null;
   brokenDish: THREE.Object3D | null = null;
@@ -138,6 +142,8 @@ export class World {
     initBuilders(this.scene);
     this.motion = new WorldMotion(this.scene);
     this.fieldSites = new FieldSites(this.scene);
+    this.nemi = new Nemi(this.scene);
+    this.addLabel("nemi", this.nemi.group, "Nemi", 3.4);
     addEventListener("game-effect", (event) => {
       const e = (event as CustomEvent).detail;
       this.motion.cue(e.kind, e.target, e.id, this.actors, this.pickups);
@@ -204,9 +210,20 @@ export class World {
     const bench = workbench(stations.workbench.x, stations.workbench.z);
     solid(bench.group);
     this.addLabel("workbench", bench.top, "🔧 WORKBENCH", 1.4);
-    for (const site of sectors) this.addLabel(`field-${site.id}`, this.fieldSites.groups.get(site.id)!, site.name, 2.2);
+    for (const site of sectors)
+      this.addLabel(
+        `field-${site.id}`,
+        this.fieldSites.groups.get(site.id)!,
+        site.name,
+        2.2,
+      );
     for (const [id, group] of this.fieldSites.salvage)
-      this.addLabel(`salvage-${id}`, group, id === "return" ? "Return ship" : "Salvage cache", 1.8);
+      this.addLabel(
+        `salvage-${id}`,
+        group,
+        id === "return" ? "Return ship" : "Salvage cache",
+        1.8,
+      );
     for (const [key, pos] of Object.entries(stations)) {
       if (key === "workbench") continue;
       const g = solid(beacon(pos.x, pos.z));
@@ -297,7 +314,8 @@ export class World {
     canvas.addEventListener("click", () => {
       if (!this.lookAllowed() || document.pointerLockElement === canvas) return;
       try {
-        const req = canvas.requestPointerLock() as unknown as Promise<void> | undefined;
+        const req = canvas.requestPointerLock() as unknown as
+          Promise<void> | undefined;
         req?.catch?.(() => {});
       } catch {}
     });
@@ -317,14 +335,16 @@ export class World {
       d.x = e.clientX;
       d.y = e.clientY;
       if (document.pointerLockElement === canvas || !this.lookAllowed()) return;
-      if (e.pointerType === "touch" || e.buttons & 1) this.look(dx * 1.4, dy * 1.4);
+      if (e.pointerType === "touch" || e.buttons & 1)
+        this.look(dx * 1.4, dy * 1.4);
     });
     const end = (e: PointerEvent) => drags.delete(e.pointerId);
     canvas.addEventListener("pointerup", end);
     canvas.addEventListener("pointercancel", end);
   }
   releaseMouse() {
-    if (document.pointerLockElement === this.renderer.domElement) document.exitPointerLock();
+    if (document.pointerLockElement === this.renderer.domElement)
+      document.exitPointerLock();
   }
   addLabel(id: string, obj: THREE.Object3D, text: string, height: number) {
     const el = document.createElement("div");
@@ -598,9 +618,15 @@ export class World {
     // at sunset (real Mars sunsets are blue because fine dust scatters blue light forward).
     const u = (this.skyDome.material as THREE.ShaderMaterial).uniforms;
     u.horizon.value.copy(this.sky);
-    u.zenith.value.copy(this.sky).multiplyScalar(0.62).lerp(new THREE.Color(0x6b4636), 0.35);
+    u.zenith.value
+      .copy(this.sky)
+      .multiplyScalar(0.62)
+      .lerp(new THREE.Color(0x6b4636), 0.35);
     u.sunGlow.value.setHex(0xfff0d0).lerp(new THREE.Color(0x8fb4e8), sunset);
-    u.sunDir.value.copy(this.sun.position).sub(this.sun.target.position).normalize();
+    u.sunDir.value
+      .copy(this.sun.position)
+      .sub(this.sun.target.position)
+      .normalize();
     this.skyDome.position.copy(this.camera.position);
     this.sun.intensity = THREE.MathUtils.lerp(
       2.5 - sunset * 0.8,
@@ -609,7 +635,7 @@ export class World {
     );
     this.sun.color.setHex(0xffe2c4).lerp(new THREE.Color(0xffaa76), sunset);
     const p = s.players[id];
-    if (p && !this.menu) {
+    if (p && !this.menu && !this.focus) {
       // Match the visible actor's interpolation instead of the 10 Hz simulation
       // position. Otherwise the view moves a frame ahead and makes the suit jitter.
       const actor = this.actors.get(id);
@@ -622,9 +648,16 @@ export class World {
       follow.lerp(target, 1 - Math.exp(-18 * dt));
       const cp = Math.cos(this.pitch),
         sp = Math.sin(this.pitch);
-      const right = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
+      const right = new THREE.Vector3(
+        Math.cos(this.yaw),
+        0,
+        -Math.sin(this.yaw),
+      );
       const shoulder = right.multiplyScalar(Math.min(1.1, this.zoom * 0.09));
-      const focus = follow.clone().add(new THREE.Vector3(0, 2.3, 0)).add(shoulder);
+      const focus = follow
+        .clone()
+        .add(new THREE.Vector3(0, 2.3, 0))
+        .add(shoulder);
       const desired = focus
         .clone()
         .add(
@@ -635,7 +668,10 @@ export class World {
           ),
         );
       // Never let the camera dip into a hill.
-      desired.y = Math.max(desired.y, this.terrain.heightAt(desired.x, desired.z, desired.y) + 0.8);
+      desired.y = Math.max(
+        desired.y,
+        this.terrain.heightAt(desired.x, desired.z, desired.y) + 0.8,
+      );
       // Camera collision: cast from the astronaut's head toward the camera and stop in front
       // of the first wall, rock, hill or building. Snap in instantly, ease back out.
       const head = follow.clone().add(new THREE.Vector3(0, 2.3, 0));
@@ -644,8 +680,13 @@ export class World {
       toCam.divideScalar(full || 1);
       const hit = this.terrain.rayHit(head, toCam, full + 0.4);
       const want = hit === null ? full : Math.max(0.6, hit - 0.45);
-      this.camDist = want < this.camDist ? want : THREE.MathUtils.damp(this.camDist, want, 5, dt);
-      this.camera.position.copy(head).addScaledVector(toCam, Math.min(this.camDist, full));
+      this.camDist =
+        want < this.camDist
+          ? want
+          : THREE.MathUtils.damp(this.camDist, want, 5, dt);
+      this.camera.position
+        .copy(head)
+        .addScaledVector(toCam, Math.min(this.camDist, full));
       this.camera.lookAt(this.camDist < 2.5 ? head : focus);
       // Shadows follow the player across the big map.
       this.sun.position.set(target.x - 18, target.y + 30, target.z + 15);
@@ -655,17 +696,44 @@ export class World {
       this.camera.position.set(19 + Math.sin(a) * 3, 13, 26);
       this.camera.lookAt(0, 1, -2);
     }
+    if (this.focus) {
+      const site = this.focus === "alien" ? alienSite : sectors[6];
+      const h = this.terrain.heightAt(site.x, site.z);
+      const target = new THREE.Vector3(
+        site.x + (this.focus === "ship" ? 20 : 7),
+        h + (this.focus === "ship" ? 14 : 4),
+        site.z + (this.focus === "ship" ? 16 : 8),
+      );
+      this.camera.position.lerp(target, 1 - Math.exp(-dt * 6));
+      this.camera.lookAt(
+        site.x,
+        h + (this.focus === "ship" ? 5 : 1.5),
+        site.z + (this.focus === "ship" ? -7 : 0),
+      );
+    }
+    this.nemi.update(
+      s,
+      this.terrain,
+      dt,
+      this.motion.reduced,
+      this.focus === "alien"
+        ? { x: alienSite.x + 7, z: alienSite.z + 8 }
+        : s.players[id],
+    );
     this.nearest = placeLabels(
       this.labels,
       this.camera,
       s,
       id,
-      this.menu,
+      this.menu || !!this.focus,
       this.hovered,
     );
     for (const [key, l] of this.labels) {
       if (
         this.actors.has(key) ||
+        key === "nemi" ||
+        key.startsWith("field-") ||
+        key.startsWith("salvage-") ||
         key.startsWith("panel-") ||
         key === "workbench"
       )
@@ -687,8 +755,14 @@ export class World {
         }
       });
     }
-    this.fieldSites.update(s, this.terrain, this.motion.time);
-    if (this.terrain.ready && !this.mapImage) this.mapImage = captureFieldMap(this.renderer, this.scene);
+    this.fieldSites.update(
+      s,
+      this.terrain,
+      this.motion.time,
+      this.motion.reduced,
+    );
+    if (this.terrain.ready && !this.mapImage)
+      this.mapImage = captureFieldMap(this.renderer, this.scene);
     this.objectiveMarker.visible = !!this.objectiveTarget && !this.menu;
     if (this.objectiveTarget) {
       this.objectiveMarker.position.set(

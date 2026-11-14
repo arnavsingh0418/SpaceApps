@@ -14,6 +14,7 @@ export type WorldLabel = {
 const v = new THREE.Vector3();
 const titles: Record<string, string> = {
   ...Object.fromEntries(sectors.map((s) => [`field-${s.id}`, s.name])),
+  nemi: "Nemi · talk",
   workbench: "Workbench",
   shield: "Shielding",
   comms: "Radio",

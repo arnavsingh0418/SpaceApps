@@ -31,7 +31,7 @@ Choose **Play with friends**, use `ws://localhost:2567`, and create a crew. In a
 - Build the greenhouse early. Food is eaten every sol. Watering costs one ice and adds food at night.
 - Before a dust storm, store loose supplies and cover panels. Covering sacrifices their electricity and takes blocks away from radio, plants, heaters, then air. Clean dirty panels after the storm. Covers come off the next morning.
 - Solar flares draw from real, archived NASA DONKI records. Shelter costs food; ice walls cost ice; continuing work adds a larger radiation dose. Ignored flares resolve as continued work after 45 seconds.
-- Repair and align the radio, build a shelter and greenhouse, and survive to sol 15 with at least 4 power blocks and 10 radio progress to prepare the return vehicle already on Mars.
+- Rebuild the four damaged ship systems and launch before Sol 15 ends. Field investigations, salvage quizzes and Nemi’s shared repair award replacement parts; install them at the return platform. Base upgrades and flight tasks improve your return odds.
 - Solo play pauses when its browser tab is hidden or the pause menu is open. Multiplayer keeps running for the crew.
 
 Roles: Engineer builds twice as fast; Scientist gets a field-map tip; Medic sees the shared crew dose; Comms gets 10 more seconds before an event and can lock power. Anyone can gather, learn, build, and complete tasks. The leader can also lock power. All players currently share air, food, and dose.
@@ -52,9 +52,9 @@ Manual checks: start a solo mission, change its budget, gather and store supplie
 
 - `shared/src/sim/`: pure deterministic state machine. No DOM, WebGL, clock, or network access. Inputs and fixed 100 ms ticks control all state. Seeded randomness controls event sequence and supply displacement.
 - `shared/src/data/`: balance, recipes, lessons, source attributions, choice costs, and verified flare archive. Change gameplay numbers in `balance.json`.
-- `client/src/render/`: three.js renderer and adapted supplied primitive builders. Instanced rocks, flat terrain within the playable radius, and an overhead third-person follow camera.
+- `client/src/render/`: three.js renderer and adapted supplied primitive builders. A Blender GLB terrain map, BVH camera collision, locally responsive astronaut movement and a third-person orbit camera.
 - `client/src/main.ts`: HTML HUD, menus, keyboard/touch inputs, mini-tasks, local saves, and the local simulation driver.
-- `client/src/net/`: WebSocket client. Remote players interpolate visually; no client can set their absolute position.
+- `client/src/net/`: WebSocket client. Remote players interpolate visually; the local controller reports bounded positions while shared actions and rewards are server validated.
 - `server/index.ts`: authoritative 10 Hz simulation and room snapshots. Room codes, four-player limit, bounded payloads, per-connection rate limiting, sanitized display names, validated actions, and disconnect cleanup.
 
 Plain **ws** was chosen over a larger room framework to keep the shared state machine transparent and deployable in one Node process. Single-player uses that same module locally. Rooms are ephemeral and disappear when the last player leaves; server restarts do not preserve rooms. No user accounts or freeform chat. Preset quick messages only.
@@ -122,3 +122,18 @@ node scripts/offline-qa.mjs
 The supplied Develop Web Game action client is retained as `scripts/web-game-client.mjs`. `window.render_game_to_text()` exposes read-only state and `window.advanceTime(ms)` supports deterministic local stepping. Scene fixtures exist only in development and are used for visual coverage, separate from real-input interaction checks.
 
 Before/after screenshots and state snapshots are under `references/redesign/`; `progress.md` records coverage and limitations. Final screenshots cover 1600×900, 1280×720 and 390×844. GPU bloom and a new Blender character were skipped to preserve the established lightweight world. Software-rendered QA does not certify 60 fps on a specific laptop. The private preview is https://outpost-down-mars-atreya.encouragingbean1.chatgpt.site; remote co-op still needs a deployed WebSocket server as described above.
+
+
+## Nemi: shared repairs and ship hardware
+
+Nemi is a fictional alien with a broken water loop near base at (-34, -8). Meet Nemi with E, accept the repair, and bring **3 ice, 2 clear panels and 2 scrap in your bag**. Crew members can split the deliveries. Brush at least six collector patches over two seconds, then explain why melted ice must be treated and tested. The crew receives one **Prototype navigation core**, with contribution credit for helpers. Solo players can complete every step. Progress saves with the mission and syncs through the crew server.
+
+NASA’s SWIM ice mapping and InSight’s dust/power observations ground the lesson. Local deposits, Nemi and alien biology are invented. The dialogue links directly to the NASA sources and separates observations from the fictional repair.
+
+Four field milestones also grant ship hardware: flight recorder → Standard booster; water-loop procedure → Rare life support; shielding test → Rare heat shield; relay alignment → Rare navigation core. Supply rewards remain. Salvage is an alternate part/upgrade route. Rewards never downgrade higher-rarity hardware or duplicate a completed task.
+
+The return platform shows damaged components, replacement plinths and installation arcs with sparks. The repair screen lists each fault, where to find its replacement and which systems are online. Nemi idles, blinks, gestures and animates during dialogue; the collector changes color and the water tank fills on repair. Reduced motion removes large movements.
+
+**No ElevenLabs key is configured and no voice-generation API is called.** Subtitles always work. A device speech voice is used when available; otherwise the dialogue remains text with a brief gesture. Add original pre-generated voice clips later using `client/public/alien/voice.json`; see that folder’s README. Never include a key in the browser build.
+
+New validation: `npm test` includes shared deliveries, action validation, duplicate protection, solo/co-op rewards and component animation state. With the dev server: `node scripts/alien-qa.mjs`. With a crew server: `TEST_SERVER=ws://127.0.0.1:2572 node --import tsx tests/alien-multiplayer.ts` (PowerShell: set `$env:TEST_SERVER` first). Screenshots and state snapshots are in `references/alien-mission/`.

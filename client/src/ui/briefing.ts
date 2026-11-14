@@ -3,10 +3,10 @@ import { Button, KeyChip } from "./components";
 export function missionBriefing() {
   return `<div class="mission-brief"><section class="mission-brief-card" role="dialog" aria-modal="true" aria-labelledby="brief-title" tabindex="-1">
     <small>SUIT SEALED · CREW SAFE · SOL 01</small><h2 id="brief-title">Rebuild the ship. Get home.</h2>
-    <p>Vega's crew survived the landing. Ship parts are scattered across seven field sites. Recover them, rebuild the return vehicle, and launch for Earth before the end of Sol 15.</p>
+    <p>Vega's crew survived the landing. Ship parts are scattered across seven field sites. Recover them, rebuild the return vehicle, and launch for Earth before the end of Sol 15. A friendly fictional alien named Nemi needs your crew’s help too.</p>
     <div class="brief-cards"><article><span>01 ↗</span><h3>Recover & learn</h3><p>Follow the gold marker to supplies. Cyan beacons teach the science that unlocks building recipes.</p></article><article><span>02 ⌂</span><h3>Build your base</h3><p>Bring supplies to the habitat's workbench. Make a greenhouse, radiation shelter, and radio.</p></article><article><span>03 ☀</span><h3>Keep everyone safe</h3><p>Share electricity between air, plants, heat, and radio. Protect the crew when storms and flares arrive.</p></article></div>
     <div class="brief-keyline"><span>${KeyChip("WASD")} / arrows: walk</span><span>${KeyChip("E")} use nearby objects</span><span>${KeyChip("Q")} map</span><span>${KeyChip("Esc")} pause & guide</span><span>Touch: joystick + E button</span></div>
-    <p>Open the map (Q) and pin a salvage cache. Press E at the cache and beat its quiz timers to earn parts and points. Faster answers earn rarer parts and improve your odds of getting home.</p>
+    <p>Open the map (Q) and pin a salvage cache. Press E at the cache and beat its quiz timers to earn parts and points. Faster answers earn rarer parts and improve your odds of getting home. Or help Nemi repair a water loop: deliver supplies together to earn a prototype navigation core.</p>
     <p>Keep the outpost alive while you explore. Its systems help your return odds, and twelve field investigations unlock useful supplies. Your first power plan is on Sol 2.</p>
     <div class="brief-actions"><small>Mission paused until you're ready. A sol is one Mars day.</small>${Button("LET'S EXPLORE ↗", "beginExplore")}</div>
   </section></div>`;

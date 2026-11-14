@@ -2,9 +2,17 @@ import B from "../data/balance.json";
 import recipes from "../data/recipes.json";
 import facts from "../data/facts.json";
 import flares from "../data/donki_flares.json";
-import { fieldMissions, missionAvailable, missionSector, type FieldProgress } from "../expedition";
+import {
+  fieldMissions,
+  missionAvailable,
+  missionSector,
+  type FieldProgress,
+} from "../expedition";
 import { type ReturnProgress } from "../returnMission";
 import { returnAction, scoreLesson, updateFlight } from "./returnActions";
+import { type AlienProgress } from "../alien";
+import { alienAction } from "./alienActions";
+import { fieldPartRewards, recoverPart } from "../shipRewards";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -61,7 +69,14 @@ export type Gait = "walk" | "sprint" | "crouch";
 /** Speed for a gait (m/s). Cold suits (no heater power) slow everyone down. */
 export function gaitSpeed(gait: Gait | undefined, cold: boolean) {
   const base = cold ? B.coldSpeed : B.speed;
-  return base * (gait === "sprint" ? B.sprintMultiplier : gait === "crouch" ? B.crouchMultiplier : 1);
+  return (
+    base *
+    (gait === "sprint"
+      ? B.sprintMultiplier
+      : gait === "crouch"
+        ? B.crouchMultiplier
+        : 1)
+  );
 }
 export type Pickup = Point & {
   id: string;
@@ -117,6 +132,7 @@ export type Game = {
   /** Optional for compatibility with pre-expedition saves and older crew rooms. */
   expedition?: FieldProgress;
   returnMission?: ReturnProgress;
+  alienQuest?: AlienProgress;
 };
 export type Action = { type: string; [key: string]: unknown };
 /** The base layout is spread out by this factor so buildings can be life-sized. */
@@ -308,7 +324,26 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   const p = s.players[id];
   if (!p) return "Join a crew first.";
   const fail = (text: string) => text;
-  if (["startLessonQuiz", "startSalvage", "salvageAnswer", "installPart", "launchShip", "flightTask"].includes(a.type))
+  if (
+    [
+      "acceptAlien",
+      "donateAlien",
+      "beginAlienRepair",
+      "finishAlienRepair",
+      "alienAnswer",
+    ].includes(a.type)
+  )
+    return alienAction(s, id, a);
+  if (
+    [
+      "startLessonQuiz",
+      "startSalvage",
+      "salvageAnswer",
+      "installPart",
+      "launchShip",
+      "flightTask",
+    ].includes(a.type)
+  )
     return returnAction(s, id, a);
   if (a.type === "move") {
     if (s.phase !== "day") return;
@@ -317,7 +352,8 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (!Number.isFinite(x) || !Number.isFinite(z)) return;
     const len = Math.max(1, Math.hypot(x, z));
     p.move = { x: x / len, z: z / len };
-    if (a.gait === "walk" || a.gait === "sprint" || a.gait === "crouch") p.gait = a.gait;
+    if (a.gait === "walk" || a.gait === "sprint" || a.gait === "crouch")
+      p.gait = a.gait;
     return;
   }
   if (a.type === "pos") {
@@ -345,7 +381,8 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       const len = Math.max(1, Math.hypot(mx, mz));
       p.move = { x: mx / len, z: mz / len };
     }
-    if (a.gait === "walk" || a.gait === "sprint" || a.gait === "crouch") p.gait = a.gait;
+    if (a.gait === "walk" || a.gait === "sprint" || a.gait === "crouch")
+      p.gait = a.gait;
     p.posAt = s.elapsed;
     return;
   }
@@ -435,9 +472,17 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   if (["fieldObserve", "fieldReset", "fieldAnswer"].includes(a.type)) {
     const m = fieldMissions.find((m) => m.id === a.mission);
     if (!m) return fail("Unknown field investigation.");
-    if (!close(p, missionSector(m))) return fail("Travel to this field station first.");
-    if (!missionAvailable(s, m)) return fail("This investigation is complete or needs an earlier mission.");
-    const f = (s.expedition ??= { completed: [], surveyed: [], observations: {} });
+    if (!close(p, missionSector(m)))
+      return fail("Travel to this field station first.");
+    if (!missionAvailable(s, m))
+      return fail(
+        "This investigation is complete or needs an earlier mission.",
+      );
+    const f = (s.expedition ??= {
+      completed: [],
+      surveyed: [],
+      observations: {},
+    });
     if (a.type === "fieldReset") {
       if (!f.surveyed.includes(m.id)) f.observations[m.id] = [];
       return;
@@ -445,28 +490,45 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (a.type === "fieldObserve") {
       if (f.surveyed.includes(m.id)) return;
       const value = Number(a.value);
-      if (!Number.isFinite(value)) return fail("Choose a valid instrument reading.");
+      if (!Number.isFinite(value))
+        return fail("Choose a valid instrument reading.");
       const observations = (f.observations[m.id] ??= []);
       if (m.tool === "tune") {
         if (value < 0 || value > 100 || Math.abs(value - m.target!) > 5)
           return fail("Tune the instrument to at least 95% signal.");
         observations.push(value);
       } else {
-        if (!Number.isInteger(value) || value < 0 || value >= m.samples.length) return fail("Choose a valid sample.");
+        if (!Number.isInteger(value) || value < 0 || value >= m.samples.length)
+          return fail("Choose a valid sample.");
         if (observations.includes(value)) return;
         if (m.tool === "sequence" && m.order![observations.length] !== value)
-          return fail("Check the process: what needs to happen before that step?");
+          return fail(
+            "Check the process: what needs to happen before that step?",
+          );
         observations.push(value);
       }
-      if (m.tool === "tune" || observations.length === m.samples.length) f.surveyed.push(m.id);
+      if (m.tool === "tune" || observations.length === m.samples.length)
+        f.surveyed.push(m.id);
       return;
     }
-    if (!f.surveyed.includes(m.id)) return fail("Collect the instrument readings before making a conclusion.");
-    if (a.answer !== m.correct) return fail("Recheck the evidence. " + m.explanation);
+    if (!f.surveyed.includes(m.id))
+      return fail(
+        "Collect the instrument readings before making a conclusion.",
+      );
+    if (a.answer !== m.correct)
+      return fail("Recheck the evidence. " + m.explanation);
     f.completed.push(m.id);
+    const partReward = fieldPartRewards[m.id];
+    if (partReward) recoverPart(s, partReward.part, partReward.rarity);
     scoreLesson(s, id, "field", m.id);
     for (const [kind, count] of Object.entries(m.reward))
-      spawn(s, kind as Item, count, missionSector(m).x + 3, missionSector(m).z + 2);
+      spawn(
+        s,
+        kind as Item,
+        count,
+        missionSector(m).x + 3,
+        missionSector(m).z + 2,
+      );
     log(s, `FIELD JOURNAL: ${m.title}. ${m.debrief}`);
     return;
   }
@@ -812,7 +874,8 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
     endCheck(s);
     if (s.phase === "summary" && s.sol >= B.missionSols) {
       s.phase = "ended";
-      s.result = "The return window closed. Recover and install all four ship systems, then launch before the end of Sol 15.";
+      s.result =
+        "The return window closed. Recover and install all four ship systems, then launch before the end of Sol 15.";
     }
   }
   endCheck(s);

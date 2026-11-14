@@ -1,0 +1,639 @@
+.modal.alien-modal {
+  width: min(560px, 100%);
+  background: #152833f5;
+  border: 1px solid #86e6d35c;
+  padding: 26px;
+  color: #f0f9ef;
+  max-height: calc(100dvh - 32px);
+}
+.alien-modal > h2 {
+  display: none;
+}
+.scrim:has(.alien-modal),
+.scrim:has(.ship-modal) {
+  justify-items: start;
+  padding: 24px;
+  background: linear-gradient(90deg, #0b1727b0, transparent 80%);
+}
+.alien-contact > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin: 0 24px 18px 0;
+}
+.contact-live {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #8bf0ce;
+}
+.alien-contact > header small {
+  font-size: 10px;
+  color: #c3c9d6;
+  text-align: right;
+}
+.alien-intro {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.alien-intro small {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: #b9a4e9;
+}
+.alien-intro h2 {
+  font:
+    800 38px/1 "Barlow Condensed",
+    sans-serif;
+  margin: 5px 0 9px;
+  color: #fff5df;
+}
+.alien-intro p {
+  font-size: 14px;
+  margin: 0;
+  color: #d1e3e3;
+  line-height: 1.5;
+}
+.nemi-portrait {
+  flex: 0 0 115px;
+  height: 122px;
+  position: relative;
+  isolation: isolate;
+}
+.nemi-halo {
+  position: absolute;
+  inset: 4px -3px 2px;
+  border: 1px solid #91edd44d;
+  border-radius: 50%;
+  box-shadow: inset 0 0 30px #8ce9d414;
+}
+.nemi-face {
+  position: absolute;
+  width: 83px;
+  height: 67px;
+  left: 16px;
+  top: 15px;
+  background: #93d8b8;
+  border-radius: 45% 45% 38% 38%;
+  transform: rotate(-5deg);
+  box-shadow: inset -10px -8px #5aaf9a;
+  border: 3px solid #284b4d;
+}
+.nemi-face:before,
+.nemi-face:after {
+  content: "";
+  position: absolute;
+  background: #93d8b8;
+  width: 19px;
+  height: 32px;
+  top: 10px;
+  border: 3px solid #284b4d;
+  border-radius: 90% 5%;
+}
+.nemi-face:before {
+  left: -18px;
+  transform: rotate(-32deg);
+}
+.nemi-face:after {
+  right: -18px;
+  transform: rotate(115deg);
+}
+.nemi-eye {
+  position: absolute;
+  width: 23px;
+  height: 30px;
+  top: 13px;
+  background: #17283b;
+  border-radius: 70%;
+  z-index: 1;
+  box-shadow: inset 3px 3px #c2f4ea;
+}
+.nemi-eye.left {
+  left: 10px;
+  transform: rotate(-20deg);
+}
+.nemi-eye.right {
+  right: 10px;
+  transform: rotate(20deg);
+}
+.nemi-mouth {
+  position: absolute;
+  left: 34px;
+  top: 48px;
+  width: 12px;
+  height: 4px;
+  background: #284b4d;
+  border-radius: 50%;
+}
+.nemi-freckles {
+  position: absolute;
+  top: 30px;
+  left: 31px;
+  color: #357461;
+  font-style: normal;
+}
+.nemi-suit {
+  position: absolute;
+  bottom: 2px;
+  left: 25px;
+  width: 66px;
+  height: 45px;
+  background: #7c6cbd;
+  border: 3px solid #29394d;
+  border-radius: 40% 40% 18% 18%;
+  z-index: -1;
+}
+.nemi-suit span {
+  display: block;
+  text-align: center;
+  margin: 9px;
+  color: #e6dbff;
+}
+.nemi-speaking .nemi-mouth {
+  animation: nemi-talk 0.23s ease-in-out infinite alternate;
+}
+.nemi-speaking .nemi-face {
+  animation: nemi-nod 1.2s ease-in-out infinite alternate;
+}
+.alien-dialogue {
+  padding: 17px 18px;
+  background: #0d1c26;
+  border: 1px solid #78cfbb38;
+  border-radius: 12px;
+}
+.alien-dialogue > span {
+  color: #8ce9cb;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 800;
+}
+.alien-dialogue p {
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 8px 0 12px;
+  color: #f1f8eb;
+}
+.voice-replay {
+  border: 0;
+  color: #a8efe2;
+  background: transparent;
+  padding: 3px 0;
+  font-size: 12px;
+  cursor: pointer;
+}
+.alien-dialogue > small {
+  display: block;
+  font-size: 11px;
+  color: #b8c8d4;
+  margin-top: 5px;
+}
+.alien-offer {
+  padding: 20px 0;
+}
+.alien-offer > span {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: #bed2d5;
+}
+.alien-offer b {
+  display: block;
+  font-size: 16px;
+  margin-top: 7px;
+}
+.alien-offer p,
+.alien-hint {
+  font-size: 14px;
+  color: #cedbdc;
+  line-height: 1.5;
+}
+.alien-contact > .button {
+  width: 100%;
+  background: #b5efcd;
+  color: #183735;
+  border-color: #9cd5bb;
+  margin-top: 10px;
+}
+.alien-manifest {
+  margin-top: 20px;
+}
+.manifest-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.manifest-heading h3 {
+  font-size: 17px;
+  margin: 0;
+}
+.manifest-heading > span {
+  font-size: 12px;
+  color: #c7d6d3;
+}
+.supply-line {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid #8ab9bd22;
+}
+.supply-line > span {
+  font-size: 24px;
+}
+.supply-line > div {
+  flex: 1;
+}
+.supply-line b {
+  display: block;
+  font-size: 14px;
+}
+.supply-line small {
+  display: block;
+  font-size: 12px;
+  color: #c5d6d7;
+  margin: 3px 0;
+}
+.supply-line progress {
+  height: 5px;
+  width: 100%;
+  accent-color: #94e8c4;
+}
+.supply-line > .button {
+  font-size: 12px;
+  min-height: 40px;
+  padding: 8px 12px;
+}
+.collector-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 14px;
+}
+.crew-deliveries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  font-size: 11px;
+}
+.crew-deliveries > span {
+  padding: 6px 8px;
+  border: 1px solid #98d9b33a;
+  border-radius: 6px;
+  color: #d1e9df;
+}
+.alien-answers {
+  display: grid;
+  gap: 7px;
+}
+.alien-answers > .button {
+  text-align: left;
+  font-size: 14px;
+  white-space: normal;
+}
+.alien-evidence h3 {
+  font-size: 18px;
+}
+.alien-evidence p {
+  font-size: 14px;
+}
+.alien-feedback:empty {
+  display: none;
+}
+.alien-feedback {
+  font-size: 14px;
+  color: #ffd7a6;
+  padding: 10px;
+  background: #714f323d;
+  border-radius: 7px;
+}
+.alien-success {
+  color: #b2f4cb;
+  padding: 12px 0;
+  font-size: 14px;
+}
+.alien-science {
+  font-size: 12px;
+  margin-top: 18px;
+  color: #cbdbdc;
+}
+.alien-science summary {
+  cursor: pointer;
+  color: #c9b5f6;
+}
+.alien-science article {
+  margin-top: 14px;
+}
+.alien-science p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.alien-science a {
+  color: #a7e8de;
+}
+.alien-cleaning h3 {
+  font:
+    800 34px/1.1 "Barlow Condensed",
+    sans-serif;
+}
+.alien-cleaning > small {
+  font-size: 11px;
+  color: #b4e8da;
+  letter-spacing: 0.1em;
+}
+.alien-cleaning > p {
+  font-size: 14px;
+}
+.alien-dust {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 20px 0;
+  background: #14304a;
+  padding: 8px;
+  border: 4px solid #7a8e99;
+  border-radius: 10px;
+}
+.alien-dust button {
+  height: 68px;
+  border: 1px solid #ca9d6b;
+  background: #966c48;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.alien-dust button span {
+  opacity: 0.2;
+  color: #fff;
+  font-size: 25px;
+}
+.alien-dust button.cleared {
+  background: #266a9f;
+  border-color: #88bbdf;
+}
+.alien-dust button.cleared span {
+  opacity: 1;
+  color: #b3f9eb;
+}
+.alien-cleaning output {
+  font-size: 14px;
+  display: block;
+  margin-bottom: 15px;
+}
+.part-art {
+  color: var(--part-color);
+  position: relative;
+  width: 120px;
+  min-width: 90px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.part-art:before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--part-color) 24%, transparent),
+    transparent 70%
+  );
+  z-index: -1;
+}
+.part-art svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 5px 7px #0006);
+  animation: part-hover 3s ease-in-out infinite;
+}
+.part-art.damaged svg {
+  filter: grayscale(0.8);
+  opacity: 0.45;
+}
+.part-art.damaged:after {
+  content: "×";
+  position: absolute;
+  bottom: 4px;
+  right: 7px;
+  border: 1px solid #e69778;
+  background: #492b2b;
+  color: #ffb194;
+  border-radius: 50%;
+  width: 24px;
+  text-align: center;
+  font-size: 20px;
+}
+.part-orbit {
+  position: absolute;
+  inset: 8%;
+  border: 1px dashed color-mix(in srgb, var(--part-color) 25%, transparent);
+  border-radius: 50%;
+  transform: rotateX(60deg);
+  bottom: -25%;
+  pointer-events: none;
+}
+.part-reward {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  animation: reward-enter 0.45s ease-out;
+}
+.part-reward small {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: #cdbbf5;
+}
+.part-reward h3 {
+  font:
+    800 30px/1 "Barlow Condensed",
+    sans-serif;
+  margin: 5px 0;
+}
+.part-reward b {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #abf2ce;
+}
+.part-reward p {
+  font-size: 13px;
+  color: #cedada;
+}
+.part-reward .part-art {
+  width: 125px;
+}
+.ship-part-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #a3c8dc30;
+  border-radius: 12px;
+  background: #122333;
+  padding: 10px;
+  margin: 9px 0;
+}
+.ship-part-card > .part-art {
+  width: 90px;
+  min-width: 90px;
+}
+.ship-part-card > div:last-child {
+  flex: 1;
+}
+.ship-part-card h3 {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+.ship-part-card p {
+  font-size: 12px;
+  margin: 4px 0;
+  color: #c2cedc;
+}
+.ship-part-card small {
+  font-size: 11px;
+  color: #ecb89b;
+}
+.ship-part-card.installed {
+  border-color: #9de7b665;
+}
+.ship-part-card.installed small {
+  color: #9de7b6;
+}
+.ship-part-card .button {
+  font-size: 12px;
+  min-height: 36px;
+  padding: 7px 12px;
+  margin-top: 6px;
+}
+.modal.quiz-modal.ship-modal {
+  width: min(480px, 100%);
+  background: #102332f2;
+  border: 1px solid #9bd1d65c;
+}
+.ship-overview {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: #a5e7cd;
+}
+.ship-progress {
+  width: 100%;
+  height: 7px;
+  accent-color: #b1eacb;
+  margin: 10px 0;
+}
+.ship-hint {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.ship-install-label {
+  position: fixed;
+  right: 8%;
+  bottom: 22%;
+  background: #0c202cdb;
+  color: #bdf8d1;
+  border: 1px solid #7bc4aa;
+  padding: 12px 18px;
+  border-radius: 9px;
+  pointer-events: none;
+  font-size: 14px;
+  animation: reward-enter 0.3s ease-out;
+}
+.ship-install-label:empty {
+  display: none;
+}
+@keyframes nemi-talk {
+  to {
+    height: 10px;
+    top: 45px;
+  }
+}
+@keyframes nemi-nod {
+  to {
+    transform: rotate(2deg) translateY(-2px);
+  }
+}
+@keyframes part-hover {
+  50% {
+    transform: translateY(-5px) rotate(3deg);
+  }
+}
+@keyframes reward-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 760px) {
+  .scrim:has(.alien-modal),
+  .scrim:has(.ship-modal) {
+    justify-items: center;
+    padding: 12px;
+    background: #0a172bd4;
+  }
+  .modal.alien-modal {
+    padding: 20px;
+    max-height: calc(100dvh - 24px);
+  }
+  .alien-intro {
+    gap: 13px;
+  }
+  .alien-intro h2 {
+    font-size: 32px;
+  }
+  .nemi-portrait {
+    flex-basis: 100px;
+    transform: scale(0.9);
+    transform-origin: left center;
+  }
+  .alien-contact > header {
+    margin-right: 25px;
+    gap: 9px;
+  }
+  .alien-contact > header small {
+    font-size: 9px;
+  }
+  .contact-live {
+    font-size: 10px;
+  }
+  .alien-dialogue p {
+    font-size: 14px;
+  }
+  .part-reward .part-art {
+    width: 95px;
+    min-width: 95px;
+  }
+  .part-reward h3 {
+    font-size: 26px;
+  }
+  .ship-install-label {
+    right: 14px;
+    bottom: 16px;
+  }
+  .ship-part-card {
+    gap: 6px;
+  }
+  .ship-part-card > .part-art {
+    width: 72px;
+    min-width: 72px;
+  }
+  .alien-offer b {
+    font-size: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nemi-speaking .nemi-mouth,
+  .nemi-speaking .nemi-face,
+  .part-art svg,
+  .part-reward,
+  .ship-install-label {
+    animation: none !important;
+  }
+}

@@ -487,7 +487,7 @@ export const fieldMissions: FieldMission[] = [
     ],
     correct: 2,
     explanation:
-      "Science is a process of comparing ideas with evidence. Your expedition is complete; continue the 15-sol survival mission and keep your base ready for the return window.",
+      "Science is a process of comparing ideas with evidence. Your expedition is complete; use your recovered ship parts, keep the crew supplied, and launch before the end of Sol 15.",
     debrief:
       "EXPEDITION COMPLETE. Twelve investigations. Seven destinations. One crew. Your notebook is available on the field map—now bring everyone home.",
     reward: { food: 2 },
