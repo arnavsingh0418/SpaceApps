@@ -1,3 +1,5 @@
+import { HAB_LAYOUT } from "../../../shared/src/hab";
+import { HabInterior } from "./habInterior";
 import { RoverView } from "./rover";
 import type { RoverController } from "./roverController";
 import { roverState, roverSeat, angleDelta } from "../../../shared/src/rover";
@@ -69,6 +71,7 @@ function buildSpot(p: { x: number; z: number }, push = 7) {
 }
 export class World {
   cabin?: FlightCabin;
+  habInterior: HabInterior;
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 1600);
   terrain = new Terrain();
@@ -149,6 +152,7 @@ export class World {
     });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
     this.renderer.setSize(innerWidth, innerHeight);
+    this.habInterior = new HabInterior(this.renderer);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -223,6 +227,10 @@ export class World {
     solid(wreck(WRECK.x, WRECK.z));
     const habitat = solid(hab(HAB.x, HAB.z, 6.2));
     this.buildings.set("hab", habitat);
+    const airlockMarker = new THREE.Group();
+    airlockMarker.position.set(HAB_LAYOUT.exterior.x,0,HAB_LAYOUT.exterior.z);
+    this.scene.add(airlockMarker);
+    this.addLabel("hab-airlock",airlockMarker,"Habitat airlock",3.5);
     solid(crate(-8, -8, 0x9b6e44, 1.5));
     solid(crate(-9.8, -9.6, 0xa37c50, 1.1));
     solid(crate(-8.4, -10.6, 0x8b6a45, 0.9));
@@ -396,6 +404,12 @@ export class World {
       );
       return;
     }
+    if (s.players[id]?.hab && !this.menu && s.phase !== "flight" && s.phase !== "ended") {
+      document.querySelector<HTMLElement>("#labels")!.hidden = true;
+      this.habInterior.update(s,id,dt,this.local,this.yaw,this.pitch,this.zoom,this.motion);
+      this.frameMs = performance.now() - renderBegin;
+      return;
+    }
     document.querySelector<HTMLElement>("#labels")!.hidden = false;
     if (this.lastSeed !== s.seed) {
       for (const [k, o] of this.buildings)
@@ -432,6 +446,8 @@ export class World {
         g!.position.set(p.x, 0, p.z);
       }
       const player = g!;
+      player.visible = !p.hab;
+      if (p.hab) continue;
       updateRoleBadge(player, p.role);
       const seat = roverSeat(rover, p.id);
       if (seat >= 0) {
@@ -801,7 +817,7 @@ export class World {
       this.hovered,
     );
     for (const [key, l] of this.labels) {
-      if (roverSeat(rover, key) >= 0 || (key === "rover" && aboard)) l.el.hidden = true;
+      if (s.players[key]?.hab || roverSeat(rover, key) >= 0 || (key === "rover" && aboard)) l.el.hidden = true;
       if (
         this.actors.has(key) ||
         key === "nemi" ||

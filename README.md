@@ -170,3 +170,9 @@ Run `npm test` for the actual-GLB rig, solar-state isolation, asset integrity an
 ### Blender sandstorm effect
 
 Dust-storm events now play the Blender-authored [sandstorm VFX](client/public/mars/vfx/README.md): soft billows, ground drift and windblown grains, with a seamless 12-second loop. The runtime GLB is loaded on demand and uses embedded alpha textures. It follows local terrain height, fades with storm intensity and preserves the existing particle fallback. Reduced-motion users see lighter, static dust without moving grains. Source `.blend` and a reproducible generator are in `assets/blender/`. Use `/?qaScene=storm` in development to preview it.
+
+### Walkable Blender habitat interior
+
+Approach the habitat's south airlock beside the workbench and press **E** to enter. The [furnished interior](client/public/mars/interiors/README.md) has four individually assigned crew quarters, environmental control/life-support equipment, galley, hygiene area, command/comms, medical bay and airlock suit preparation. Walk and orbit the camera normally; **E** inspects nearby equipment and **Q** opens the floor plan. Return to the airlock and choose **Cycle airlock · Go outside** to leave.
+
+The expanded interior deck uses its own cutaway scene, with shared collision footprints, bounded server movement, crew synchronization and solo-save compatibility. Equipment displays existing mission readings; furniture does not introduce new resource, healing or inventory rules. Original `.blend`, review render and reproducible generator are under `assets/blender/`. `npm test` includes full-crew occupancy, room connectivity, movement/exit validation and actual-GLB checks. With the server running, `TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/hab-multiplayer.ts` verifies real-client interior synchronization and berth reuse; CI runs this alongside the existing network checks.
