@@ -137,3 +137,13 @@ The return platform shows damaged components, replacement plinths and installati
 **No ElevenLabs key is configured and no voice-generation API is called.** Subtitles always work. A device speech voice is used when available; otherwise the dialogue remains text with a brief gesture. Add original pre-generated voice clips later using `client/public/alien/voice.json`; see that folder’s README. Never include a key in the browser build.
 
 New validation: `npm test` includes shared deliveries, action validation, duplicate protection, solo/co-op rewards and component animation state. With the dev server: `node scripts/alien-qa.mjs`. With a crew server: `TEST_SERVER=ws://127.0.0.1:2572 node --import tsx tests/alien-multiplayer.ts` (PowerShell: set `$env:TEST_SERVER` first). Screenshots and state snapshots are in `references/alien-mission/`.
+
+## Fly the rebuilt ship home
+
+Installing all four parts and launching now puts the crew inside a walkable cutaway ship. WASD/arrows move, E uses nearby stations, and Escape closes a station or opens Pause. Space moves past the bridge and Earth grows during the compressed three-minute flight. The helm has directional steering and a 30-second autopilot hold: center the marker and lock departure guidance, then lock entry guidance again after 120 seconds. Autopilot lets solo players leave the helm to repair systems.
+
+Five timed faults affect electrical power, oxygen, hull seals and engine cooling. Walk to the relevant station to match circuits, reset valves, seal leaks or tune coolant. Repairs take at least three seconds and update everyone’s ship state. In co-op, one player can steer while others repair; helm ownership, movement, proximity, answers and contributor points are server-validated. Solo pauses in Pause; co-op keeps running. Faults continue while station puzzles are open.
+
+Ship condition and the two guidance locks determine Earth arrival or recovery by a rescue craft, followed by a crew report. The ending has no random success roll. Flight progress saves locally in solo, and older in-flight saves migrate into the cabin. Travel duration, failures and spacecraft systems are fictional gameplay, not a real mission simulation. Remote co-op still requires a separately deployed WebSocket server.
+
+Run `node scripts/flight-qa.mjs` against the dev server for a complete real-input solo flight, all repair types, both endings, pause, reduced motion and responsive screenshots. `node --import tsx tests/flight-multiplayer.ts` against the crew server verifies two actual clients launching, walking, steering and repairing together. Flight screenshots and state snapshots live in `references/flight/`.

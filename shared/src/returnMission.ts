@@ -1,5 +1,6 @@
 import { sectors } from "./expedition";
 import type { Game } from "./sim";
+import type { DeckFlight } from "./flight";
 import { alienSite, alienProgress } from "./alien";
 
 export type Quiz = {
@@ -220,6 +221,7 @@ export type CacheRun = {
   reward?: Rarity;
 };
 export type Flight = {
+  deck?: DeckFlight;
   stage: number;
   deadline: number;
   passed: boolean[];

@@ -13,6 +13,7 @@ import { returnAction, scoreLesson, updateFlight } from "./returnActions";
 import { type AlienProgress } from "../alien";
 import { alienAction } from "./alienActions";
 import { fieldPartRewards, recoverPart } from "../shipRewards";
+import { flightAction, tickDeckFlight } from "../flight";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -324,6 +325,18 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   const p = s.players[id];
   if (!p) return "Join a crew first.";
   const fail = (text: string) => text;
+  if (
+    [
+      "flightMove",
+      "takeHelm",
+      "releaseHelm",
+      "flightSteer",
+      "holdCourse",
+      "beginFlightRepair",
+      "finishFlightRepair",
+    ].includes(a.type)
+  )
+    return flightAction(s, id, a);
   if (
     [
       "acceptAlien",
@@ -783,7 +796,7 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
   for (const m of s.pending.filter((m) => m.at <= s.elapsed)) log(s, m.text);
   s.pending = s.pending.filter((m) => m.at > s.elapsed);
   if (s.phase === "flight") {
-    updateFlight(s);
+    tickDeckFlight(s, dt);
     return;
   }
   if (s.phase !== "day" || !advanceSurface) return;

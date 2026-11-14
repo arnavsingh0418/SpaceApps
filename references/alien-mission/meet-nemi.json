@@ -1,5 +1,6 @@
 {
   "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "cabin": null,
   "started": true,
   "arrival": null,
   "modal": "alien",
@@ -49,7 +50,7 @@
   },
   "nemi": {
     "speaking": false,
-    "mouth": 0.8470163869786985,
+    "mouth": 0.8434965782674025,
     "water": 0.15
   },
   "shipAssembly": {
@@ -150,7 +151,7 @@
         "scale": 1
       }
     ],
-    "particles": 50,
+    "particles": 47,
     "reduced": false,
     "scans": 0,
     "flights": 0,
@@ -161,17 +162,17 @@
         "y": -0.020211375630727613,
         "z": -6.2527594621409595,
         "scaleY": 1.35,
-        "arm": 0.05167373344211658,
-        "leg": 0.00019975658500910167,
+        "arm": 0.04375215016505093,
+        "leg": 2.342893029744256e-27,
         "heading": -3.141592527925139,
         "carrying": false
       }
     ]
   },
   "render": {
-    "drawCalls": 387,
-    "triangles": 382681,
+    "drawCalls": 373,
+    "triangles": 382332,
     "stepFps": 10,
-    "frameMs": 11.1
+    "frameMs": 16.6
   }
 }

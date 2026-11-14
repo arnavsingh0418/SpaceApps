@@ -1,3 +1,4 @@
+import { flyHome } from "./flight-helpers";
 import { it, expect } from "vitest";
 import {
   createGame,
@@ -12,7 +13,13 @@ import {
   type Point,
   type Item,
 } from "../shared/src/sim";
-import { flightTasks, launchSite, partSlots, returnProgress, salvageSites } from "../shared/src/returnMission";
+import {
+  flightTasks,
+  launchSite,
+  partSlots,
+  returnProgress,
+  salvageSites,
+} from "../shared/src/returnMission";
 function run(s: Game, seconds: number) {
   for (let i = 0; i < Math.ceil(seconds * 10); i++) tick(s, 0.1);
 }
@@ -87,11 +94,19 @@ it("the outpost supports a complete mission from gathering to Earth entry", () =
       action(s, { type: "finishTask", value: 72 });
     }
     if (sol === 5 || sol === 6) {
-      for (const site of salvageSites.slice(sol === 5 ? 0 : 2, sol === 5 ? 2 : 4)) {
+      for (const site of salvageSites.slice(
+        sol === 5 ? 0 : 2,
+        sol === 5 ? 2 : 4,
+      )) {
         walk(s, site);
         action(s, { type: "startSalvage", site: site.id });
         site.questions.forEach((quiz, step) =>
-          action(s, { type: "salvageAnswer", site: site.id, step, answer: quiz.correct }),
+          action(s, {
+            type: "salvageAnswer",
+            site: site.id,
+            step,
+            answer: quiz.correct,
+          }),
         );
       }
     }
@@ -99,9 +114,7 @@ it("the outpost supports a complete mission from gathering to Earth entry", () =
       walk(s, launchSite);
       for (const part of partSlots) action(s, { type: "installPart", part });
       action(s, { type: "launchShip" });
-      flightTasks.forEach((task, step) =>
-        action(s, { type: "flightTask", step, value: task.control === "trim" ? task.target : task.quiz.correct }),
-      );
+      flyHome(s, "pilot");
       break;
     }
     while (s.phase === "day") {
@@ -137,6 +150,8 @@ it("the outpost supports a complete mission from gathering to Earth entry", () =
   );
   expect(s.aligned).toBe(true);
   expect(s.phase).toBe("ended");
-  expect(returnProgress(s).flight).toMatchObject({ chance: 90, passed: [true, true, true] });
+  expect(returnProgress(s).flight).toMatchObject({
+    deck: { outcome: "home", repaired: 5, guidance: [true, true] },
+  });
   expect(s.result).toContain("Mission complete");
 });

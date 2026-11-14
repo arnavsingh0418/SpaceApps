@@ -1,3 +1,4 @@
+import { FlightCabin } from "./flightCabin";
 import { WorldMotion } from "./motion";
 import { placeLabels } from "./labels";
 import { Terrain } from "./terrain";
@@ -56,6 +57,7 @@ function buildSpot(p: { x: number; z: number }, push = 7) {
   return { x: p.x + (p.x / r) * push, z: p.z + (p.z / r) * push };
 }
 export class World {
+  cabin?: FlightCabin;
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 1600);
   terrain = new Terrain();
@@ -368,6 +370,12 @@ export class World {
   }
   update(s: Game, id: string, dt: number) {
     const renderBegin = performance.now();
+    if ((s.phase === "flight" || s.phase === "ended") && s.returnMission?.flight?.deck) {
+      document.querySelector<HTMLElement>("#labels")!.hidden = true;
+      (this.cabin ??= new FlightCabin(this.renderer)).update(s,id,dt,this.motion.reduced);
+      return;
+    }
+    document.querySelector<HTMLElement>("#labels")!.hidden = false;
     if (this.lastSeed !== s.seed) {
       for (const [k, o] of this.buildings)
         if (k !== "hab") {

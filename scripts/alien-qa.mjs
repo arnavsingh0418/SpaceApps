@@ -24,7 +24,10 @@ try {
   const step = async (ms) => page.evaluate((ms) => window.advanceTime(ms), ms);
   const capture = async (name) => {
     // Manual stepping batches simulation ticks; settle the visual camera separately.
-    if (name !== "installing-core") await page.evaluate(() => { for (let i=0;i<12;i++) window.advanceTime(100); });
+    if (name !== "installing-core")
+      await page.evaluate(() => {
+        for (let i = 0; i < 12; i++) window.advanceTime(100);
+      });
     await page.screenshot({
       path: `${dir}/${name}.png`,
       animations: "disabled",
@@ -127,20 +130,8 @@ try {
   await page.click("[data-do=launchShip]");
   await step(100);
   assert.equal((await state()).phase, "flight");
-  await page.locator("#flight-trim").fill("68");
-  await page.click("[data-do=flightTask]");
-  await step(100);
-  await page.click('[data-do=flightTask][data-answer="1"]');
-  await step(100);
-  await page.locator("#flight-trim").fill("36");
-  await page.click("[data-do=flightTask]");
-  await step(100);
-  assert.equal((await state()).phase, "ended");
-  assert.deepEqual((await state()).returnMission.flight.passed, [
-    true,
-    true,
-    true,
-  ]);
+  assert.ok((await state()).returnMission.flight.deck);
+  await capture("physical-flight-deck");
   for (const size of [
     { width: 1280, height: 720 },
     { width: 390, height: 844 },
@@ -166,7 +157,7 @@ try {
   assert.deepEqual(errors, []);
   await fs.writeFile(`${dir}/errors.json`, JSON.stringify(errors));
   console.log(
-    "PASS: real walk to Nemi; deliveries, cleaning, retry, shared core, four repair animations, launch tasks, 3 sizes, reduced motion, no page/console errors.",
+    "PASS: real walk to Nemi; deliveries, cleaning, retry, shared core, four repair animations, physical ship launch, 3 sizes, reduced motion, no page/console errors.",
   );
 } finally {
   await browser.close();

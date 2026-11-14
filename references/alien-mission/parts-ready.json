@@ -1,5 +1,6 @@
 {
   "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "cabin": null,
   "started": true,
   "arrival": null,
   "modal": "hangar",
@@ -50,7 +51,7 @@
   "nemi": {
     "speaking": false,
     "mouth": 0.22,
-    "water": 0.32619712873750367
+    "water": 0.1541309144770619
   },
   "shipAssembly": {
     "installing": "",
@@ -153,7 +154,7 @@
         "scale": 1
       }
     ],
-    "particles": 33,
+    "particles": 39,
     "reduced": false,
     "scans": 0,
     "flights": 0,
@@ -164,17 +165,17 @@
         "y": -2.3839780357712255,
         "z": -216,
         "scaleY": 1.35,
-        "arm": 0.051284023399627246,
-        "leg": 7.872829658795804e-92,
+        "arm": 0.05090818303213579,
+        "leg": 1.747381093729893e-206,
         "heading": -3.141592527925139,
         "carrying": false
       }
     ]
   },
   "render": {
-    "drawCalls": 376,
-    "triangles": 374144,
-    "stepFps": 16,
-    "frameMs": 16.9
+    "drawCalls": 393,
+    "triangles": 375916,
+    "stepFps": 12,
+    "frameMs": 28.8
   }
 }

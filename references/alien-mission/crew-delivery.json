@@ -1,5 +1,6 @@
 {
   "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "cabin": null,
   "started": true,
   "arrival": null,
   "modal": "alien",
@@ -164,7 +165,7 @@
         "scale": 1
       }
     ],
-    "particles": 32,
+    "particles": 36,
     "reduced": false,
     "scans": 0,
     "flights": 0,
@@ -175,17 +176,17 @@
         "y": -0.020211375630727613,
         "z": -5,
         "scaleY": 1.35,
-        "arm": -1.2257756134560542,
-        "leg": 5.33098259671349e-17,
+        "arm": 0.05151835410343196,
+        "leg": 7.333477701150409e-63,
         "heading": -3.141592527925139,
-        "carrying": true
+        "carrying": false
       }
     ]
   },
   "render": {
-    "drawCalls": 374,
-    "triangles": 382380,
-    "stepFps": 13,
+    "drawCalls": 373,
+    "triangles": 382332,
+    "stepFps": 11,
     "frameMs": 15
   }
 }

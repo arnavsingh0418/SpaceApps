@@ -1,3 +1,27 @@
+import {
+  flightHUD,
+  helmPanel,
+  repairPanel,
+  flightGuide,
+} from "./ui/flightDeck";
+import {
+  flightStations,
+  nearestFlightStation,
+  type FlightStation,
+} from "../../shared/src/flight";
+let helmPad = { x: 0, y: 0 };
+let helmPointer: number | null = null;
+let deckRepair: {
+  fault: string;
+  kind: string;
+  wires: Set<number>;
+  left: number | null;
+  valves: number[];
+  patches: Set<number>;
+} | null = null;
+let deckSentAt = -1;
+let lastShipAlert = 0,
+  lastShipRepair = 0;
 import { Sfx } from "./ui/sound";
 import { AlienVoice } from "./ui/alienVoice";
 import { alienScreen, alienBrush } from "./ui/alien";
@@ -144,6 +168,9 @@ function sound(kind = "click") {
   if (kind !== "build") sfx.play(kind);
 }
 document.addEventListener("input", (event) => {
+  const coolant = event.target as HTMLInputElement;
+  if (coolant.id === "coolant-flow")
+    $("#coolant-value").textContent = coolant.value;
   const el = event.target as HTMLInputElement;
   if (el.id === "field-dial") {
     const signal = Math.max(
@@ -185,6 +212,7 @@ function open(
   closable = true,
   cls = "",
 ) {
+  if (modal === "helm" && kind !== "helm") act({ type: "releaseHelm" });
   if (kind !== "alien" && kind !== "alienBrush") alienVoice.stop();
   world.focus =
     kind === "alien" || kind === "alienBrush"
@@ -209,6 +237,7 @@ function open(
   validateCopy(root);
 }
 function close() {
+  if (modal === "helm") act({ type: "releaseHelm" });
   alienVoice.stop();
   world.focus = null;
   stopInput();
@@ -217,6 +246,170 @@ function close() {
   missionPanelState = "";
   root.innerHTML = "";
   hudSignature = "";
+}
+
+function interactDeck() {
+  const d = game.returnMission?.flight?.deck;
+  if (!d || d.arrivalAt !== undefined) return;
+  const key = nearestFlightStation(game.players[id]);
+  if (!key) {
+    toast("Walk closer to a ship station.");
+    return;
+  }
+  if (key === "helm") {
+    if (!act({ type: "takeHelm" })) return;
+    open("helm", "STEER THE SHIP", helmPanel(game, id), true, "deck-modal");
+    return;
+  }
+  const fault = d.incidents.find((f) => f.kind === key && !f.fixed);
+  if (!fault) {
+    toast(`${flightStations[key].name}: system online`);
+    return;
+  }
+  if (!act({ type: "beginFlightRepair", fault: fault.id })) return;
+  deckRepair = {
+    fault: fault.id,
+    kind: key,
+    wires: new Set(),
+    left: null,
+    valves: [],
+    patches: new Set(),
+  };
+  open(
+    "flightRepair",
+    "REPAIR STATION",
+    repairPanel(fault),
+    true,
+    "deck-modal",
+  );
+}
+function finishDeckRepair() {
+  if (!deckRepair) return;
+  const r = deckRepair,
+    value =
+      r.kind === "power"
+        ? Array.from(r.wires).sort().join(",")
+        : r.kind === "air"
+          ? r.valves.join(",")
+          : r.kind === "hull"
+            ? Array.from(r.patches).sort().join(",")
+            : Number(
+                root.querySelector<HTMLInputElement>("#coolant-flow")?.value,
+              );
+  dispatchMission({ type: "finishFlightRepair", fault: r.fault, value });
+}
+function drawDeck() {
+  if (phase !== game.phase) {
+    deckSentAt = -1;
+    phase = game.phase;
+    close();
+    if (phase === "ended") {
+      open("ended", "", screens.endScreen(game, id), false);
+      root.querySelector("h2")?.remove();
+      root.querySelector(".modal")?.classList.add("fullscreen");
+      saved = null;
+      try {
+        localStorage.removeItem("outpost-save-v1");
+      } catch {}
+    }
+  }
+  if (joyPointer === null) ui.innerHTML = flightHUD(game, id);
+  const d = game.returnMission!.flight!.deck!;
+  if (modal === "helm") {
+    const marker = root.querySelector<HTMLElement>("#course-marker");
+    if (marker) {
+      marker.style.left = `${50 + d.course.x * 40}%`;
+      marker.style.top = `${50 + d.course.y * 40}%`;
+    }
+    const owner = root.querySelector("#helm-owner");
+    if (owner)
+      owner.textContent =
+        d.pilot === id
+          ? d.autopilot > 0
+            ? `Autopilot hold: ${Math.ceil(d.autopilot)}s`
+            : "You have control"
+          : d.pilot
+            ? `${game.players[d.pilot]?.name || "Crewmate"} has control`
+            : "Helm available — close and reopen to take control";
+  }
+  if (modal === "flightRepair" && deckRepair) {
+    const fault = d.incidents.find((f) => f.id === deckRepair!.fault);
+    if (!fault || fault.fixed) {
+      close();
+      deckRepair = null;
+      toast("Repair complete. Crew systems updated.");
+      return;
+    }
+    const seconds = root.querySelector("#repair-seconds");
+    if (seconds)
+      seconds.textContent = `${Math.max(0, Math.ceil(3 - (game.elapsed - (game.players[id].task?.at ?? game.elapsed))))}s minimum work remaining`;
+    const timer = root.querySelector("#fault-deadline");
+    if (timer)
+      timer.textContent = fault.late
+        ? "Overdue — repair now"
+        : `${Math.max(0, Math.ceil(fault.deadline - d.time))}s to escalation`;
+  }
+}
+function updateDeck(dt: number, render: boolean) {
+  if (!game.returnMission?.flight?.deck && game.phase === "flight")
+    tick(game, 0.0001);
+  const d = game.returnMission!.flight!.deck!;
+  const x =
+    (keys.has("d") || keys.has("arrowright") ? 1 : 0) -
+    (keys.has("a") || keys.has("arrowleft") ? 1 : 0);
+  const z =
+    (keys.has("s") || keys.has("arrowdown") ? 1 : 0) -
+    (keys.has("w") || keys.has("arrowup") ? 1 : 0);
+  if (
+    game.phase === "flight" &&
+    !document.hidden &&
+    d.arrivalAt === undefined &&
+    game.elapsed - deckSentAt >= 0.08
+  ) {
+    if (modal === "helm" && d.pilot === id)
+      act({
+        type: "flightSteer",
+        x: Math.max(-1, Math.min(1, x + helmPad.x)),
+        y: Math.max(-1, Math.min(1, z + helmPad.y)),
+      });
+    act({
+      type: "flightMove",
+      x: modal ? 0 : x + joy.x,
+      z: modal ? 0 : z + joy.z,
+    });
+    deckSentAt = game.elapsed;
+  }
+  fixed += dt;
+  while (fixed >= 0.1) {
+    if (
+      !connection &&
+      !document.hidden &&
+      modal !== "pause" &&
+      game.phase === "flight"
+    )
+      tick(game, 0.1);
+    fixed -= 0.1;
+  }
+  if (d.nextEvent !== lastShipAlert) {
+    if (d.nextEvent > lastShipAlert) sound("flare");
+    lastShipAlert = d.nextEvent;
+  }
+  if (d.repaired !== lastShipRepair) {
+    if (d.repaired > lastShipRepair) sound("success");
+    lastShipRepair = d.repaired;
+  }
+  sfx.stopLoops();
+  tickToast();
+  redraw += dt;
+  if (render && redraw >= 0.12) {
+    drawDeck();
+    redraw = 0;
+  }
+  if (!connection && game.elapsed - saveAt > 2 && game.phase !== "ended") {
+    saveSolo();
+    saveAt = game.elapsed;
+  }
+  if (render) world.update(game, id, dt);
 }
 function menu() {
   clearIntro();
@@ -502,20 +695,6 @@ function syncMissionPanel() {
       );
       missionPanelState = signature;
     }
-  } else if (game.phase === "flight" && progress.flight) {
-    const flight = progress.flight;
-    const signature = `flight-${flight.stage}`;
-    if (missionPanelState !== signature) {
-      open(
-        "flight",
-        flightTasks[flight.stage].name,
-        flightScreen(game),
-        false,
-        "quiz-modal return-modal flight-modal",
-      );
-      missionPanelState = signature;
-    }
-    deadline = flight.deadline;
   } else if (modal === "learn" || modal === "field") {
     lesson = true;
     deadline =
@@ -555,7 +734,7 @@ function dispatchMission(a: Action) {
 }
 function fieldFeedback(error: string) {
   const feedback = root.querySelector(
-    ".quiz-feedback, .field-feedback, .alien-feedback",
+    ".quiz-feedback, .field-feedback, .alien-feedback, .flight-feedback",
   );
   if (feedback) feedback.textContent = error;
   else toast(error);
@@ -601,6 +780,14 @@ function crewScreen() {
   );
 }
 function pause() {
+  if (game.phase === "flight") {
+    open(
+      "pause",
+      "FLIGHT PAUSED",
+      `<p>${connection ? "The crew flight keeps running." : "Solo flight paused."}</p>${Button("RESUME", "close")}${Button("CREW PLAN", "flightGuide", "", true)}${Button("MAIN MENU", "menu", "", true)}`,
+    );
+    return;
+  }
   open(
     "pause",
     "PAUSED",
@@ -618,6 +805,17 @@ type Nearby = {
 function nearest(): Nearby | null {
   const p = game.players[id];
   if (!p) return null;
+  if (game.phase === "flight") {
+    const key = nearestFlightStation(p);
+    return key
+      ? {
+          type: "shipStation",
+          target: key,
+          pos: flightStations[key],
+          text: `Use ${flightStations[key].name}`,
+        }
+      : null;
+  }
   const all: Nearby[] = [];
   all.push({
     type: "alien",
@@ -674,7 +872,12 @@ function nearest(): Nearby | null {
   );
 }
 function interact() {
-  if (modal || game.phase !== "day") return;
+  if (modal) return;
+  if (game.phase === "flight") {
+    interactDeck();
+    return;
+  }
+  if (game.phase !== "day") return;
   const n = nearest();
   if (!n) {
     toast("Move closer to an object.");
@@ -713,6 +916,14 @@ function interact() {
     );
 }
 function draw() {
+  if (
+    started &&
+    game.returnMission?.flight?.deck &&
+    ["flight", "ended"].includes(game.phase)
+  ) {
+    drawDeck();
+    return;
+  }
   if (!started || !game.players[id]) return;
   const n = nearest();
   const current = {
@@ -913,6 +1124,8 @@ async function connect(join: boolean) {
       [
         "alien",
         "alienBrush",
+        "helm",
+        "flightRepair",
         "field",
         "learn",
         "salvage",
@@ -989,6 +1202,21 @@ document.addEventListener("click", (e) => {
   const d = el.dataset;
   sound();
   switch (d.do) {
+    case "flightGuide":
+      open(
+        "flightGuide",
+        "CREW FLIGHT PLAN",
+        flightGuide(),
+        true,
+        "deck-modal",
+      );
+      break;
+    case "holdCourse":
+      dispatchMission({ type: "holdCourse" });
+      break;
+    case "finishFlightRepair":
+      finishDeckRepair();
+      break;
     case "alienSpeak":
       if (d.line) void alienVoice.speak(d.line as AlienLine);
       break;
@@ -1409,7 +1637,17 @@ addEventListener("keydown", (e) => {
     hudSignature = "";
   }
   if (e.key.toLowerCase() === "e") interact();
-  if (e.key.toLowerCase() === "q") mapScreen();
+  if (e.key.toLowerCase() === "q") {
+    if (game.phase === "flight")
+      open(
+        "flightGuide",
+        "CREW FLIGHT PLAN",
+        flightGuide(),
+        true,
+        "deck-modal",
+      );
+    else mapScreen();
+  }
   if (e.key.toLowerCase() === "b") {
     if (distance(game.players[id], stations.workbench) <= B.interactRadius)
       bench();
@@ -1431,7 +1669,11 @@ function stopInput() {
   sfx.stopLoops();
   keys.clear();
   joy = { x: 0, z: 0 };
-  if (started) act({ type: "move", x: 0, z: 0 });
+  helmPad = { x: 0, y: 0 };
+  if (started)
+    act({ type: game.phase === "flight" ? "flightMove" : "move", x: 0, z: 0 });
+  if (started && document.hidden && game.phase === "flight")
+    act({ type: "releaseHelm" });
 }
 addEventListener("blur", stopInput);
 document.addEventListener("visibilitychange", () => {
@@ -1513,6 +1755,14 @@ function updateTutorial() {
           : null;
 }
 function update(dt: number, render = true) {
+  if (
+    started &&
+    game.returnMission?.flight &&
+    ["flight", "ended"].includes(game.phase)
+  ) {
+    updateDeck(dt, render);
+    return;
+  }
   if (arrival) {
     arrival.update(dt);
     return;
@@ -1712,7 +1962,10 @@ window.advanceTime = (ms) => {
 };
 window.render_game_to_text = () =>
   JSON.stringify({
-    coordinates: "meters; +x right, +z toward camera; origin at hab",
+    coordinates: game.returnMission?.flight?.deck
+      ? "ship deck meters; +x right, +z aft; helm at (0,-8)"
+      : "meters; +x right, +z toward camera; origin at hab",
+    cabin: world.cabin?.state || null,
     started,
     arrival: arrival?.state || null,
     modal,
@@ -1842,6 +2095,33 @@ if (import.meta.env.DEV)
       }
       showAlien();
     }
+    if (
+      name === "flight" ||
+      name === "flight-fault" ||
+      name === "flight-arrival"
+    ) {
+      game.returnMission = {
+        ...returnProgress(game),
+        installed: {
+          booster: "Rare",
+          hull: "Rare",
+          nav: "Prototype",
+          air: "Rare",
+        },
+      };
+      Object.assign(game.players[id], launchSite);
+      dispatch(game, id, { type: "launchShip" });
+      phase = "";
+      if (name === "flight-fault") {
+        for (let i = 0; i < 190; i++) tick(game, 0.1);
+      }
+      if (name === "flight-arrival") {
+        const deck = game.returnMission.flight!.deck!;
+        deck.time = 180;
+        deck.arrivalAt = 180;
+        deck.outcome = "home";
+      }
+    }
     if (name === "ship" || name === "ship-ready") {
       Object.assign(game.players[id], launchSite);
       if (name === "ship-ready")
@@ -1906,7 +2186,17 @@ if (import.meta.env.DEV)
 menu();
 if (import.meta.env.DEV) {
   const scene = new URL(location.href).searchParams.get("qaScene");
-  if (["alien", "alien-reward", "ship", "ship-ready"].includes(scene || ""))
+  if (
+    [
+      "alien",
+      "alien-reward",
+      "ship",
+      "ship-ready",
+      "flight",
+      "flight-fault",
+      "flight-arrival",
+    ].includes(scene || "")
+  )
     window.__stageScene?.(scene!);
 }
 requestAnimationFrame(frame);
@@ -1914,3 +2204,71 @@ if ("serviceWorker" in navigator && import.meta.env.PROD)
   navigator.serviceWorker
     .register(`${import.meta.env.BASE_URL}sw.js`)
     .catch(() => {});
+
+// Cabin controls stay local until a server-validated station action is submitted.
+document.addEventListener("pointerdown", (e) => {
+  const button = (e.target as HTMLElement).closest<HTMLElement>(
+    "[data-steer-x]",
+  );
+  if (!button || modal !== "helm") return;
+  e.preventDefault();
+  helmPointer = e.pointerId;
+  helmPad = {
+    x: Number(button.dataset.steerX),
+    y: Number(button.dataset.steerY),
+  };
+});
+document.addEventListener("pointerup", (e) => {
+  if (e.pointerId === helmPointer) {
+    helmPointer = null;
+    helmPad = { x: 0, y: 0 };
+  }
+});
+document.addEventListener("pointercancel", () => {
+  helmPointer = null;
+  helmPad = { x: 0, y: 0 };
+});
+document.addEventListener("click", (e) => {
+  if (modal !== "flightRepair" || !deckRepair) return;
+  const button = (e.target as HTMLElement).closest<HTMLElement>(
+    "[data-flight-wire],[data-flight-valve],[data-flight-patch]",
+  );
+  if (!button || button.classList.contains("done")) return;
+  const r = deckRepair;
+  if (button.dataset.flightWire !== undefined) {
+    const wire = Number(button.dataset.flightWire);
+    if (button.dataset.side === "0") {
+      r.left = wire;
+      root
+        .querySelectorAll(".deck-wires .selected")
+        .forEach((e) => e.classList.remove("selected"));
+      button.classList.add("selected");
+    } else if (r.left === wire) {
+      r.wires.add(wire);
+      root
+        .querySelectorAll('[data-flight-wire="' + wire + '"]')
+        .forEach((e) => e.classList.add("done"));
+      r.left = null;
+    }
+  }
+  if (button.dataset.flightPatch !== undefined) {
+    r.patches.add(Number(button.dataset.flightPatch));
+    button.classList.add("done");
+    button.textContent = "✓";
+  }
+  if (button.dataset.flightValve !== undefined) {
+    const value = Number(button.dataset.flightValve);
+    if ([2, 0, 1][r.valves.length] !== value) {
+      r.valves = [];
+      root
+        .querySelectorAll("[data-flight-valve]")
+        .forEach((e) => e.classList.remove("done"));
+      const el = root.querySelector(".flight-feedback");
+      if (el) el.textContent = "Isolate first, then purge, then reopen.";
+    } else {
+      r.valves.push(value);
+      button.classList.add("done");
+    }
+    $("#valve-order").textContent = r.valves.length + " / 3 valves";
+  }
+});

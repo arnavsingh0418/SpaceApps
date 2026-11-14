@@ -1,7 +1,20 @@
+import { flyHome } from "./flight-helpers";
 import { expect, it } from "vitest";
-import { addPlayer, createGame, dispatch, stations, tick } from "../shared/src/sim";
 import {
-  flightTasks, launchSite, partSlots, quizSeconds, returnChance, returnProgress, salvageSites,
+  addPlayer,
+  createGame,
+  dispatch,
+  stations,
+  tick,
+} from "../shared/src/sim";
+import {
+  flightTasks,
+  launchSite,
+  partSlots,
+  quizSeconds,
+  returnChance,
+  returnProgress,
+  salvageSites,
 } from "../shared/src/returnMission";
 
 function crew() {
@@ -13,9 +26,15 @@ function crew() {
 }
 
 it("shares salvage questions and awards points to the crew members who answered", () => {
-  const s = crew(), site = salvageSites[0];
+  const s = crew(),
+    site = salvageSites[0];
   const start = { type: "startSalvage", site: site.id };
-  const answer = (step: number) => ({ type: "salvageAnswer", site: site.id, step, answer: site.questions[step].correct });
+  const answer = (step: number) => ({
+    type: "salvageAnswer",
+    site: site.id,
+    step,
+    answer: site.questions[step].correct,
+  });
   expect(dispatch(s, "pilot", start)).toMatch(/closer/);
   Object.assign(s.players.pilot, site);
   Object.assign(s.players.scientist, site);
@@ -40,9 +59,17 @@ it("shares salvage questions and awards points to the crew members who answered"
 it("scores lesson speed once and lets players finish after bonus time", () => {
   const s = crew();
   Object.assign(s.players.pilot, stations.shield);
-  dispatch(s, "pilot", { type: "startLessonQuiz", kind: "beacon", quiz: "shield" });
+  dispatch(s, "pilot", {
+    type: "startLessonQuiz",
+    kind: "beacon",
+    quiz: "shield",
+  });
   tick(s, 10, false);
-  dispatch(s, "pilot", { type: "startLessonQuiz", kind: "beacon", quiz: "shield" });
+  dispatch(s, "pilot", {
+    type: "startLessonQuiz",
+    kind: "beacon",
+    quiz: "shield",
+  });
   tick(s, 11, false);
   dispatch(s, "pilot", { type: "learn", fact: "shield", answer: 0 });
   dispatch(s, "pilot", { type: "learn", fact: "shield", answer: 0 });
@@ -50,13 +77,15 @@ it("scores lesson speed once and lets players finish after bonus time", () => {
   expect(s.clock).toBe(0);
 });
 
-it("validates assembly and pilot permissions, then resolves a single return roll", () => {
+it("validates assembly and launch permissions, then flies the crew home", () => {
   const s = crew();
-  for (const player of Object.values(s.players)) Object.assign(player, launchSite);
+  for (const player of Object.values(s.players))
+    Object.assign(player, launchSite);
   expect(dispatch(s, "pilot", { type: "launchShip" })).toMatch(/four/);
   const progress = s.returnMission!;
   for (const part of partSlots) progress.recovered[part] = "Standard";
-  for (const part of partSlots) dispatch(s, "scientist", { type: "installPart", part });
+  for (const part of partSlots)
+    dispatch(s, "scientist", { type: "installPart", part });
   const standard = returnChance(s);
   progress.recovered.booster = "Prototype";
   dispatch(s, "pilot", { type: "installPart", part: "booster" });
@@ -64,16 +93,12 @@ it("validates assembly and pilot permissions, then resolves a single return roll
   expect(dispatch(s, "scientist", { type: "launchShip" })).toMatch(/leader/);
   dispatch(s, "pilot", { type: "launchShip" });
   expect(s.phase).toBe("flight");
-  tick(s, quizSeconds);
-  const cruise = flightTasks[1];
-  dispatch(s, "scientist", { type: "flightTask", step: 1, value: cruise.quiz.correct });
-  expect(dispatch(s, "pilot", { type: "flightTask", step: 1, value: cruise.quiz.correct })).toMatch(/ended/);
-  tick(s, quizSeconds);
+  expect(
+    dispatch(s, "pilot", { type: "flightTask", step: 0, value: 68 }),
+  ).toContain("physical");
+  flyHome(s, "pilot");
   expect(s.phase).toBe("ended");
-  expect(progress.flight?.passed).toEqual([false, true, false]);
-  expect(progress.flight?.chance).toBe(standard + 6 - 14);
-  const roll = progress.flight?.roll;
-  tick(s, 60);
-  expect(progress.flight?.roll).toBe(roll);
-  expect(s.result.startsWith("Mission complete")).toBe(roll! < progress.flight!.chance!);
+  expect(progress.flight?.deck?.outcome).toBe("home");
+  expect(progress.flight?.roll).toBeUndefined();
+  expect(s.result).toContain("Mission complete");
 });

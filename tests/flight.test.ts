@@ -1,0 +1,143 @@
+import { it, expect } from "vitest";
+import { createGame, addPlayer, dispatch, tick } from "../shared/src/sim";
+import {
+  startDeckFlight,
+  flightStations,
+  walkableDeck,
+  flightDuration,
+} from "../shared/src/flight";
+import { flyHome, runFlight, lockGuidance } from "./flight-helpers";
+function setup() {
+  const s = createGame(42);
+  addPlayer(s, "a");
+  addPlayer(s, "b");
+  startDeckFlight(s);
+  return s;
+}
+it("puts the crew in a connected bounded physical cabin and rejects Mars teleport actions", () => {
+  const s = setup();
+  expect(Object.values(s.players).every((p) => walkableDeck(p.x, p.z))).toBe(
+    true,
+  );
+  const x = s.players.a.x;
+  dispatch(s, "a", { type: "pos", x: 100, z: 100 });
+  expect(s.players.a.x).toBe(x);
+  Object.assign(s.players.a, { x: 0, z: 1 });
+  dispatch(s, "a", { type: "flightMove", x: -1, z: 0 });
+  runFlight(s, 2);
+  expect(s.players.a.x).toBeLessThan(-7);
+  runFlight(s, 15);
+  expect(walkableDeck(s.players.a.x, s.players.a.z)).toBe(true);
+  expect(s.players.a.x).toBeGreaterThan(-12.1);
+  expect(dispatch(s, "a", { type: "flightMove", x: NaN, z: 0 })).toContain(
+    "valid",
+  );
+});
+it("requires a nearby exclusive pilot, valid inputs and a centered course", () => {
+  const s = setup(),
+    d = s.returnMission!.flight!.deck!;
+  expect(dispatch(s, "a", { type: "takeHelm" })).toContain("helm");
+  Object.assign(s.players.a, flightStations.helm);
+  Object.assign(s.players.b, flightStations.helm);
+  dispatch(s, "a", { type: "takeHelm" });
+  expect(dispatch(s, "b", { type: "takeHelm" })).toContain("crewmate");
+  expect(dispatch(s, "a", { type: "holdCourse" })).toContain("Center");
+  expect(dispatch(s, "a", { type: "flightSteer", x: 5, y: 0 })).toContain(
+    "Invalid",
+  );
+  dispatch(s, "a", { type: "flightSteer", x: -1, y: 1 });
+  runFlight(s, 0.2);
+  expect(d.course.x).toBeLessThan(0.35);
+  runFlight(s, 1);
+  expect(d.steer).toEqual({ x: 0, y: 0 });
+  dispatch(s, "a", { type: "releaseHelm" });
+  expect(dispatch(s, "b", { type: "takeHelm" })).toBeUndefined();
+});
+it("holds autopilot through zero steering input and frees a solo explorer for repairs", () => {
+  const s = setup();
+  lockGuidance(s, "a");
+  const d = s.returnMission!.flight!.deck!;
+  expect(d.autopilot).toBe(30);
+  expect(d.guidance[0]).toBe(true);
+  dispatch(s, "a", { type: "takeHelm" });
+  dispatch(s, "a", { type: "flightSteer", x: 0, y: 0 });
+  runFlight(s, 1);
+  expect(d.autopilot).toBeGreaterThan(28);
+  Object.assign(s.players.a, flightStations.power);
+  runFlight(s, 1);
+  expect(d.pilot).toBe("");
+});
+it("validates repair position, duration, puzzle and shared exactly-once credit", () => {
+  const s = setup();
+  runFlight(s, 18.1);
+  const f = s.returnMission!.flight!.deck!.incidents[0];
+  expect(
+    dispatch(s, "a", { type: "beginFlightRepair", fault: f.id }),
+  ).toContain("Electrical");
+  Object.assign(s.players.a, flightStations.power);
+  Object.assign(s.players.b, flightStations.power);
+  dispatch(s, "a", { type: "beginFlightRepair", fault: f.id });
+  dispatch(s, "b", { type: "beginFlightRepair", fault: f.id });
+  expect(
+    dispatch(s, "a", {
+      type: "finishFlightRepair",
+      fault: f.id,
+      value: "0,1,2",
+    }),
+  ).toContain("three seconds");
+  runFlight(s, 3.2);
+  expect(
+    dispatch(s, "a", { type: "finishFlightRepair", fault: f.id, value: "0,2" }),
+  ).toContain("steps");
+  expect(
+    dispatch(s, "a", {
+      type: "finishFlightRepair",
+      fault: f.id,
+      value: "0,1,2",
+    }),
+  ).toBeUndefined();
+  expect(
+    dispatch(s, "b", {
+      type: "finishFlightRepair",
+      fault: f.id,
+      value: "0,1,2",
+    }),
+  ).toContain("already");
+  expect(s.returnMission!.points).toBe(150);
+});
+it("repairs and two guidance locks produce an Earth arrival without a random roll", () => {
+  const s = setup();
+  flyHome(s, "a");
+  const f = s.returnMission!.flight!;
+  expect(s.phase).toBe("ended");
+  expect(f.deck).toMatchObject({
+    repaired: 5,
+    missed: 0,
+    arrived: true,
+    outcome: "home",
+    guidance: [true, true],
+  });
+  expect(f.roll).toBeUndefined();
+  expect(s.result).toContain("Mission complete");
+});
+it("unattended faults damage systems and produce a rescue ending instead of a free win", () => {
+  const s = setup();
+  runFlight(s, flightDuration + 25);
+  expect(s.phase).toBe("ended");
+  expect(s.returnMission!.flight!.deck!.outcome).toBe("rescue");
+  expect(s.result).toContain("rescue");
+});
+it("migrates an old flight save and retains deck progress across serialization", () => {
+  const s = setup();
+  delete s.returnMission!.flight!.deck;
+  s.players.a.x = 300;
+  tick(s, 0.1);
+  expect(walkableDeck(s.players.a.x, s.players.a.z)).toBe(true);
+  runFlight(s, 20);
+  const copy = JSON.parse(JSON.stringify(s));
+  expect(copy.returnMission.flight.deck.incidents).toHaveLength(1);
+  tick(copy, 0.1);
+  expect(copy.returnMission.flight.deck.time).toBeGreaterThan(
+    s.returnMission!.flight!.deck!.time,
+  );
+});

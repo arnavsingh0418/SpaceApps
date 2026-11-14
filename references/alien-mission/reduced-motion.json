@@ -1,5 +1,18 @@
 {
   "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "cabin": {
+    "earthScale": 2.000312962962963,
+    "progress": 0.007222222222222223,
+    "arrival": 0,
+    "starsMoving": true,
+    "actors": [
+      {
+        "id": "solo",
+        "x": -1.35,
+        "z": 2
+      }
+    ]
+  },
   "started": true,
   "arrival": null,
   "modal": "hangar",
@@ -50,7 +63,7 @@
   "nemi": {
     "speaking": false,
     "mouth": 0.22,
-    "water": 0.3189826245433424
+    "water": 0.15408350463002102
   },
   "shipAssembly": {
     "installing": "",
@@ -166,17 +179,17 @@
         "y": -2.3839780357712255,
         "z": -216,
         "scaleY": 1.35,
-        "arm": 0.04228988512774711,
-        "leg": 6.692085695386867e-286,
+        "arm": 0.04417944581623824,
+        "leg": 0,
         "heading": -3.141592527925139,
         "carrying": false
       }
     ]
   },
   "render": {
-    "drawCalls": 294,
-    "triangles": 334612,
-    "stepFps": 25,
-    "frameMs": 13.6
+    "drawCalls": 290,
+    "triangles": 353070,
+    "stepFps": 13,
+    "frameMs": 11
   }
 }

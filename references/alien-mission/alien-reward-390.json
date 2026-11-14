@@ -1,5 +1,18 @@
 {
   "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "cabin": {
+    "earthScale": 2.000312962962963,
+    "progress": 0.007222222222222223,
+    "arrival": 0,
+    "starsMoving": true,
+    "actors": [
+      {
+        "id": "solo",
+        "x": -1.35,
+        "z": 2
+      }
+    ]
+  },
   "started": true,
   "arrival": null,
   "modal": "alien",
@@ -64,8 +77,8 @@
   },
   "nemi": {
     "speaking": true,
-    "mouth": 0.22,
-    "water": 0.41875384767897655
+    "mouth": 0.8997060418491087,
+    "water": 0.939149353534138
   },
   "shipAssembly": {
     "installing": "",
@@ -167,7 +180,7 @@
         "scale": 1
       }
     ],
-    "particles": 30,
+    "particles": 37,
     "reduced": false,
     "scans": 0,
     "flights": 0,
@@ -179,16 +192,16 @@
         "z": -5,
         "scaleY": 1.35,
         "arm": -1.2257756134563953,
-        "leg": 1.5693140857102933e-265,
+        "leg": 0,
         "heading": -3.141592527925139,
         "carrying": true
       }
     ]
   },
   "render": {
-    "drawCalls": 242,
-    "triangles": 343598,
-    "stepFps": 22,
-    "frameMs": 13.3
+    "drawCalls": 331,
+    "triangles": 368877,
+    "stepFps": 13,
+    "frameMs": 13
   }
 }
