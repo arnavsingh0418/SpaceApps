@@ -1,3 +1,4 @@
+import { shipMoveInput } from "../../shared/src/flightLayout";
 import { HAB_LAYOUT, habBlocked, moveInHab, nearestHabStation, habRoom, habSpeed } from "../../shared/src/hab";
 import { habDirectory, habEquipment } from "./ui/hab";
 import { RoverController } from "./render/roverController";
@@ -381,6 +382,13 @@ function updateDeck(dt: number, render: boolean) {
   if (!game.returnMission?.flight?.deck && game.phase === "flight")
     tick(game, 0.0001);
   const d = game.returnMission!.flight!.deck!;
+  if (!world.firstPerson) {
+    world.yaw = 0;
+    world.pitch = 0.03;
+    world.releaseMouse();
+  }
+  world.lookAllowed = () => started && !modal && !document.hidden &&
+    game.phase === "flight" && d.arrivalAt === undefined;
   const x =
     (keys.has("d") || keys.has("arrowright") ? 1 : 0) -
     (keys.has("a") || keys.has("arrowleft") ? 1 : 0);
@@ -399,11 +407,8 @@ function updateDeck(dt: number, render: boolean) {
         x: Math.max(-1, Math.min(1, x + helmPad.x)),
         y: Math.max(-1, Math.min(1, z + helmPad.y)),
       });
-    act({
-      type: "flightMove",
-      x: modal ? 0 : x + joy.x,
-      z: modal ? 0 : z + joy.z,
-    });
+    const move = shipMoveInput(x + joy.x, z + joy.z, world.yaw);
+    act({ type: "flightMove", x: modal ? 0 : move.x, z: modal ? 0 : move.z });
     deckSentAt = game.elapsed;
   }
   fixed += dt;
@@ -2150,7 +2155,7 @@ window.advanceTime = (ms) => {
 window.render_game_to_text = () =>
   JSON.stringify({
     coordinates: game.returnMission?.flight?.deck
-      ? "ship deck meters; +x right, +z aft; helm at (0,-8)"
+      ? `ship deck meters; +x starboard, +z aft; helm at (${flightStations.helm.x},${flightStations.helm.z})`
       : "meters; +x right, +z toward camera; origin at hab",
     cabin: world.cabin?.state || null,
     started,
@@ -2301,7 +2306,9 @@ if (import.meta.env.DEV)
     if (
       name === "flight" ||
       name === "flight-fault" ||
-      name === "flight-arrival"
+      name === "flight-arrival" ||
+      name === "flight-cockpit" ||
+      name === "flight-crew"
     ) {
       game.returnMission = {
         ...returnProgress(game),
@@ -2317,6 +2324,15 @@ if (import.meta.env.DEV)
       phase = "";
       if (name === "flight-fault") {
         for (let i = 0; i < 190; i++) tick(game, 0.1);
+      }
+      if (name === "flight-cockpit") Object.assign(game.players[id], flightStations.helm);
+      if (name === "flight-crew") {
+        for (let n = 0; n < 3; n++) {
+          const crewId = `ship-crew-${n}`;
+          addPlayer(game, crewId, ["Imani", "Juno", "Vega"][n]);
+          Object.assign(game.players[crewId],
+            [flightStations.power, flightStations.air, { x: 1.5, z: -19 }][n]);
+        }
       }
       if (name === "flight-arrival") {
         const deck = game.returnMission.flight!.deck!;
@@ -2447,6 +2463,8 @@ if (import.meta.env.DEV) {
       "flight",
       "flight-fault",
       "flight-arrival",
+      "flight-cockpit",
+      "flight-crew",
       "models",
       "hab",
       "hab-crew",

@@ -1,38 +1,16 @@
 import * as T from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { updateHeldItem } from "./heldItem";
 import { astronaut } from "./builders.js";
+import { disposeModel } from "./modelAssets";
+import { SHIP_LAYOUT } from "../../../shared/src/flightLayout";
 import {
-  deckRooms,
   flightStations,
   flightDuration,
   arrivalDuration,
   type FlightStation,
 } from "../../../shared/src/flight";
 import type { Game } from "../../../shared/src/sim";
-
-function label(text: string, color: string, w = 5) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 128;
-  const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = color;
-  ctx.font = "800 52px sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, 256, 64, 490);
-  const texture = new T.CanvasTexture(canvas);
-  texture.colorSpace = T.SRGBColorSpace;
-  const m = new T.Mesh(
-    new T.PlaneGeometry(w, w / 4),
-    new T.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      depthWrite: false,
-    }),
-  );
-  m.rotation.x = -Math.PI / 2;
-  return m;
-}
 function earthTexture() {
   const c = document.createElement("canvas");
   c.width = 512;
@@ -110,18 +88,28 @@ function earthTexture() {
   texture.colorSpace = T.SRGBColorSpace;
   return texture;
 }
+/** Eye camera uses the same yaw as camera-relative walking. */
+export function setFlightView(
+  camera: T.PerspectiveCamera,
+  at: { x: number; z: number },
+  yaw: number,
+  pitch: number,
+) {
+  camera.position.set(at.x, SHIP_LAYOUT.eyeHeight, at.z);
+  camera.rotation.order = "YXZ";
+  camera.rotation.set(-T.MathUtils.clamp(pitch, -1.1, 1.1), yaw, 0, "YXZ");
+}
 export class FlightCabin {
   scene = new T.Scene();
-  camera = new T.OrthographicCamera(-28, 28, 16, -16, 0.1, 250);
+  camera = new T.PerspectiveCamera(78, innerWidth / innerHeight, 0.08, 300);
   actors = new Map<string, T.Group>();
+  status: "loading" | "ready" | "fallback" = "loading";
+  ready: Promise<void>;
   private root = new T.Group();
   private earth: T.Mesh;
   private stars: T.InstancedMesh;
   private dummy = new T.Object3D();
-  private lamps = new Map<
-    FlightStation,
-    T.Mesh<T.BufferGeometry, T.MeshStandardMaterial>
-  >();
+  private lamps = new Map<FlightStation, T.Object3D>();
   private alarm: T.PointLight;
   private capsule = new T.Group();
   private seed = -1;
@@ -130,163 +118,94 @@ export class FlightCabin {
   private shownArrival = 0;
   constructor(private renderer: T.WebGLRenderer) {
     this.scene.background = new T.Color(0x060c20);
-    this.scene.add(new T.HemisphereLight(0xd2efff, 0x33405e, 2.2));
-    const sun = new T.DirectionalLight(0xffeed7, 3.3);
-    sun.position.set(-12, 28, 12);
-    this.scene.add(sun);
-    this.scene.add(this.root);
-    this.alarm = new T.PointLight(0xff4c4c, 0, 40);
-    this.alarm.position.set(0, 6, 0);
-    this.scene.add(this.alarm);
-    const mat = (color: number | string, emissive = 0) =>
-      new T.MeshStandardMaterial({
-        color,
-        roughness: 0.65,
-        metalness: 0.2,
-        emissive,
-        emissiveIntensity: 0.4,
-      });
+    this.scene.add(this.root, new T.HemisphereLight(0xf2f4dd, 0x5d736c, 2.0));
+    const fill = new T.DirectionalLight(0xffefd1, 1.4);
+    fill.position.set(2, 8, 5);
+    this.scene.add(fill);
+    for (const z of [7, -2, -11, -21]) {
+      const light = new T.PointLight(0xfff0d4, 15, 16, 2);
+      light.position.set(0, 3.3, z);
+      this.root.add(light);
+    }
+    this.alarm = new T.PointLight(0xff4c4c, 0, 30);
+    this.alarm.position.set(0, 3, -5);
+    this.root.add(this.alarm);
+    const fallback = new T.Group();
+    this.root.add(fallback);
     const box = (
       parent: T.Object3D,
+      x: number,
+      y: number,
+      z: number,
       w: number,
       h: number,
       d: number,
-      color: number | string,
-      x = 0,
-      y = 0,
-      z = 0,
+      color: number,
     ) => {
-      const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat(color));
-      m.position.set(x, y, z);
-      parent.add(m);
-      return m;
+      const mesh = new T.Mesh(
+        new T.BoxGeometry(w, h, d),
+        new T.MeshStandardMaterial({ color, roughness: 0.7 }),
+      );
+      mesh.position.set(x, y, z);
+      parent.add(mesh);
+      return mesh;
     };
-    for (const room of deckRooms) {
-      box(
-        this.root,
-        room.w,
-        0.3,
-        room.d,
-        room.name === "CORRIDOR" ? 0x71899e : 0x41576d,
-        room.x,
-        -0.16,
-        room.z,
-      );
-      const edge = box(
-        this.root,
-        room.w,
-        0.055,
-        0.09,
-        room.color,
-        room.x,
-        0.02,
-        room.z - room.d / 2 + 0.05,
-      );
-      const name = label(
-        room.name,
-        room.color,
-        room.name === "CORRIDOR" ? 2.6 : 5,
-      );
-      name.position.set(room.x, 0.04, room.z + room.d / 2 - 1.2);
-      this.root.add(name);
-      for (let x = -room.w / 2 + 0.8; x < room.w / 2; x += 2)
+    for (const room of SHIP_LAYOUT.rooms) {
+      box(fallback, room.x, -0.1, room.z, room.w, 0.2, room.d, 0x68736b);
+      box(fallback, 0, 3.9, room.z, room.w, 0.15, room.d, 0xd7ddce);
+      for (const sign of [-1, 1])
         box(
-          this.root,
-          0.025,
-          0.015,
-          room.d,
-          0x8da2b1,
-          room.x + x,
-          0.015,
+          fallback,
+          (sign * room.w) / 2,
+          1.9,
           room.z,
+          0.15,
+          3.8,
+          room.d,
+          0xc1cabb,
         );
-      void edge;
     }
-    // Low outer walls keep the playable interior visible in this cutaway view.
-    for (const x of [-12.45, 12.45])
-      box(this.root, 0.3, 0.8, 16.5, 0xc0ccd3, x, 0.4, 2.3);
-    box(this.root, 25, 0.8, 0.3, 0xc0ccd3, 0, 0.4, 10.2);
-    for (const x of [-5.65, 5.65])
-      box(this.root, 0.25, 0.8, 6.3, 0xc0ccd3, x, 0.4, -7);
-    for (const x of [-9, 9])
-      box(this.root, 6, 0.8, 0.25, 0xc0ccd3, x, 0.4, -3.6);
-    // Bridge windows: real space remains visible beyond the cabin.
-    for (let i = 0; i < 5; i++) {
-      box(this.root, 2.1, 0.12, 0.15, 0x82b8cb, -4.4 + i * 2.2, 2.2, -10.1);
-      box(this.root, 0.09, 2.2, 0.12, 0x83a8bb, -5.5 + i * 2.2, 1.1, -10.1);
-    }
-    for (const [key, station] of Object.entries(flightStations)) {
-      const g = new T.Group();
-      g.position.set(station.x, 0, station.z);
-      this.root.add(g);
-      box(g, 2.1, 0.9, 1.1, 0x263b50, 0, 0.45, -0.65);
-      const panel = box(g, 1.65, 0.65, 0.15, station.color, 0, 1.05, -1.1);
-      panel.rotation.x = -0.28;
-      const lamp = new T.Mesh(
-        new T.SphereGeometry(0.18, 10, 8),
-        mat(station.color, 0x4be1c5),
-      );
-      lamp.position.set(1.1, 1.3, -0.65);
-      g.add(lamp);
-      this.lamps.set(key as FlightStation, lamp);
-      const sign = label(station.name.toUpperCase(), station.color, 3.3);
-      sign.position.set(0, 0.05, 1);
-      g.add(sign);
-      if (key === "power")
-        for (let i = 0; i < 3; i++)
-          box(
-            g,
-            0.38,
-            1.2,
-            0.5,
-            [0xdf925a, 0x70abdd, 0xe8c557][i],
-            -0.7 + i * 0.7,
-            0.65,
-            -1.2,
-          );
-      if (key === "air")
-        for (const x of [-0.5, 0.5]) {
-          const tank = new T.Mesh(
-            new T.CapsuleGeometry(0.3, 0.9, 4, 12),
-            mat(0xb0d8de),
-          );
-          tank.position.set(x, 0.8, -1.5);
-          g.add(tank);
+    for (const r of SHIP_LAYOUT.colliders)
+      box(fallback, r.x, 0.85, r.z, r.w, 1.7, r.d, 0x29473e);
+    this.ready = new GLTFLoader()
+      .loadAsync(
+        `${import.meta.env.BASE_URL}mars/interiors/Mars_Return_Ship_Interior.glb`,
+      )
+      .then((gltf) => {
+        this.root.add(gltf.scene);
+        fallback.removeFromParent();
+        disposeModel(fallback);
+        for (const key of Object.keys(flightStations) as FlightStation[]) {
+          const group = gltf.scene.getObjectByName(`Indicator_${key}`);
+          if (group) {
+            group.traverse((o) => {
+              if (o instanceof T.Mesh)
+                o.material = Array.isArray(o.material)
+                  ? o.material.map((m) => m.clone())
+                  : o.material.clone();
+            });
+            this.lamps.set(key, group);
+          }
         }
-      if (key === "hull") {
-        box(g, 2.5, 1.6, 0.18, 0xaebdcb, 0, 0.8, -1.5);
-        for (let i = 0; i < 4; i++)
-          box(g, 0.22, 0.23, 0.08, 0xed9b83, -0.75 + i * 0.5, 0.8, -1.36);
-      }
-      if (key === "engine") {
-        const core = new T.Mesh(
-          new T.TorusKnotGeometry(0.45, 0.12, 40, 6),
-          mat(0xb8a0eb, 0x856bcc),
-        );
-        core.name = "reactor-core";
-        core.position.set(0, 1.4, -1.2);
-        g.add(core);
-      }
-    }
-    // Unattended seats and handrails give the cabin a physical scale.
-    for (const x of [-3, 3]) {
-      box(this.root, 0.9, 0.22, 0.9, 0x628298, x, 0.7, -6.3);
-      box(this.root, 0.9, 1.1, 0.18, 0x52657d, x, 1.1, -5.9);
-      box(this.root, 0.15, 0.8, 0.15, 0x92a6b7, x, 0.4, -6.3);
-    }
+        this.status = "ready";
+      })
+      .catch((e) => {
+        this.status = "fallback";
+        console.warn("Return ship: keeping enclosed fallback", e);
+      });
     this.earth = new T.Mesh(
       new T.SphereGeometry(1, 40, 24),
       new T.MeshStandardMaterial({
         map: earthTexture(),
         roughness: 1,
         emissive: 0x123354,
-        emissiveIntensity: 0.28,
+        emissiveIntensity: 0.35,
       }),
     );
-    this.earth.position.set(0, 1, -16);
+    this.earth.position.set(0, 2, -65);
     this.scene.add(this.earth);
     const glow = new T.Mesh(
-      new T.SphereGeometry(1.08, 32, 20),
+      new T.SphereGeometry(1.035, 32, 20),
       new T.MeshBasicMaterial({
         color: 0x6ad7ff,
         transparent: true,
@@ -297,26 +216,39 @@ export class FlightCabin {
     );
     this.earth.add(glow);
     this.stars = new T.InstancedMesh(
-      new T.SphereGeometry(0.045, 4, 3),
+      new T.SphereGeometry(0.06, 4, 3),
       new T.MeshBasicMaterial({ color: 0xcde8ff }),
       180,
     );
     this.stars.frustumCulled = false;
     this.scene.add(this.stars);
-    const shell = new T.Mesh(new T.ConeGeometry(1.1, 2.6, 14), mat(0xf3e6cf));
+    const shell = new T.Mesh(
+      new T.ConeGeometry(1.1, 2.6, 14),
+      new T.MeshStandardMaterial({ color: 0xf3e6cf }),
+    );
     shell.rotation.x = Math.PI / 2;
     this.capsule.add(shell);
-    box(this.capsule, 0.8, 0.4, 0.35, 0x304f70, 0, 0.3, 0.2);
+    box(this.capsule, 0, 0.3, 0.2, 0.8, 0.4, 0.35, 0x304f70);
     this.capsule.visible = false;
     this.scene.add(this.capsule);
   }
-  update(s: Game, id: string, dt: number, reduced: boolean) {
+  update(
+    s: Game,
+    id: string,
+    dt: number,
+    reduced: boolean,
+    yaw = 0,
+    pitch = 0.03,
+  ) {
     const d = s.returnMission!.flight!.deck!;
     this.time += dt;
     this.progress = Math.min(1, d.time / flightDuration);
     if (this.seed !== s.seed) {
       this.seed = s.seed;
-      for (const actor of this.actors.values()) this.root.remove(actor);
+      for (const actor of this.actors.values()) {
+        actor.removeFromParent();
+        disposeModel(actor);
+      }
       this.actors.clear();
     }
     const arrival = d.arrivalAt !== undefined;
@@ -326,110 +258,116 @@ export class FlightCabin {
     const danger = d.incidents.filter((i) => !i.fixed).length;
     this.alarm.intensity = danger
       ? reduced
-        ? 1.2
-        : 1.4 + Math.sin(this.time * 5) * 0.6
+        ? 0.8
+        : 1.1 + Math.sin(this.time * 5) * 0.3
       : 0;
-    for (const [key, lamp] of this.lamps) {
+    for (const [key, group] of this.lamps) {
       const bad = d.incidents.some((i) => i.kind === key && !i.fixed);
-      lamp.material.color.set(bad ? 0xff6854 : flightStations[key].color);
-      lamp.material.emissive.set(bad ? 0xff3528 : 0x4be1c5);
-      lamp.material.emissiveIntensity = bad
-        ? reduced
-          ? 0.6
-          : 1 + Math.sin(this.time * 6) * 0.5
-        : 0.4;
+      group.traverse((o) => {
+        if (o instanceof T.Mesh) {
+          const materials = Array.isArray(o.material)
+            ? o.material
+            : [o.material];
+          for (const m of materials)
+            if (m instanceof T.MeshStandardMaterial) {
+              m.color.set(bad ? 0xff6854 : 0x6cdac0);
+              m.emissive.set(bad ? 0xff3528 : 0x4be1c5);
+              m.emissiveIntensity = bad
+                ? reduced
+                  ? 0.5
+                  : 0.9 + Math.sin(this.time * 6) * 0.25
+                : 0.4;
+            }
+        }
+      });
     }
-    const core = this.root.getObjectByName("reactor-core");
-    if (core && !reduced) core.rotation.y = this.time;
     for (const [key, actor] of this.actors)
       if (!s.players[key]) {
-        this.root.remove(actor);
+        actor.removeFromParent();
+        disposeModel(actor);
         this.actors.delete(key);
       }
     for (const p of Object.values(s.players)) {
       let actor = this.actors.get(p.id);
       if (!actor) {
         actor = astronaut(p.color);
-        this.root.add(actor);
-        actor.scale.setScalar(0.9);
-        actor.position.set(p.x, 0, p.z);
-        this.actors.set(p.id, actor);
+        this.root.add(actor!);
+        actor!.scale.setScalar(0.9);
+        actor!.position.set(p.x, 0, p.z);
+        this.actors.set(p.id, actor!);
       }
-      actor.position.lerp(new T.Vector3(p.x, 0, p.z), 1 - Math.exp(-dt * 18));
-      const held = updateHeldItem(actor, p);
-      const moving = Math.hypot(p.move.x, p.move.z) > 0.01;
-      if (moving) actor.rotation.y = Math.atan2(p.move.x, p.move.z);
-      const phase = this.time * 9,
-        amp = moving && !reduced ? 0.6 : 0;
+      actor!.position.lerp(new T.Vector3(p.x, 0, p.z), 1 - Math.exp(-dt * 18));
+      // Your body would intersect the eye camera; crewmates remain fully visible.
+      actor!.visible = p.id !== id;
+      const held = updateHeldItem(actor!, p),
+        moving = Math.hypot(p.move.x, p.move.z) > 0.01;
+      if (moving) actor!.rotation.y = Math.atan2(p.move.x, p.move.z);
       for (const [name, sign] of [
         ["armL", 1],
         ["armR", -1],
         ["legL", -1],
         ["legR", 1],
       ] as const) {
-        const limb = actor.getObjectByName(name);
-        if (limb) limb.rotation.x = Math.sin(phase) * amp * sign;
+        const limb = actor!.getObjectByName(name);
+        if (limb)
+          limb.rotation.x =
+            Math.sin(this.time * 9) * (moving && !reduced ? 0.6 : 0) * sign;
       }
-      const wrench = actor.getObjectByName("wrench");
       if (held)
         for (const name of ["armL", "armR"]) {
-          const arm = actor.getObjectByName(name);
+          const arm = actor!.getObjectByName(name);
           if (arm) arm.rotation.x = -1.15;
         }
+      const wrench = actor!.getObjectByName("wrench");
       if (wrench) wrench.visible = p.task?.kind === "flightRepair";
-      if (p.task?.kind === "flightRepair") {
-        const arm = actor.getObjectByName("armR");
-        if (arm)
-          arm.rotation.x = -1 + (reduced ? 0 : Math.sin(this.time * 12) * 0.3);
-      }
     }
-    const earthScale = arrival
-      ? 8 + this.shownArrival * 12
-      : 2 + Math.pow(this.progress, 2) * 6;
-    this.earth.scale.setScalar(earthScale);
+    this.earth.scale.setScalar(
+      arrival ? 14 + this.shownArrival * 14 : 8 + this.progress * 6,
+    );
     this.earth.rotation.y = reduced ? 0.5 : this.time * 0.015;
     for (let i = 0; i < 180; i++) {
+      // Every star stays beyond the pressure hull; no streaks pass through the cabin.
       this.dummy.position.set(
-        Math.sin(i * 81.7) * 45,
-        Math.sin(i * 13.1) * 11 - 3,
-        reduced
-          ? Math.cos(i * 37.3) * 45
-          : ((i * 5.71 + this.time * 3) % 90) - 50,
+        Math.sin(i * 81.7) * 70,
+        Math.sin(i * 13.1) * 40,
+        -45 - ((i * 5.71 + (reduced ? 0 : this.time * 0.5)) % 60),
       );
-      this.dummy.scale.set(1, 1, reduced ? 1 : 2.5);
+      this.dummy.scale.setScalar(1);
       this.dummy.updateMatrix();
       this.stars.setMatrixAt(i, this.dummy.matrix);
     }
     this.stars.instanceMatrix.needsUpdate = true;
     this.root.visible = !arrival;
     this.capsule.visible = arrival;
-    this.capsule.position.set(
-      (1 - this.shownArrival) * 7,
-      2 - this.shownArrival * 2,
-      -4 - this.shownArrival * 6,
-    );
-    this.capsule.rotation.z = reduced ? 0 : Math.sin(this.time) * 0.08;
-    const mobile = innerWidth < 700,
-      half = mobile ? 16 : 16,
-      aspect = innerWidth / innerHeight;
-    this.camera.left = -half * aspect;
-    this.camera.right = half * aspect;
-    this.camera.top = half;
-    this.camera.bottom = -half;
+    this.camera.aspect = innerWidth / innerHeight;
+    this.camera.fov = arrival ? 48 : 78;
     this.camera.updateProjectionMatrix();
-    const me = s.players[id],
-      followX = mobile ? T.MathUtils.clamp(me?.x || 0, -6, 6) : 0,
-      followZ = mobile ? T.MathUtils.clamp(me?.z || 0, -3, 3) : 0;
-    this.camera.position.set(followX, 32, 29 + followZ);
-    this.camera.lookAt(followX, 0, followZ - 2);
     if (arrival) {
-      this.camera.position.set(0, 15, 20);
-      this.camera.lookAt(0, 2, -12);
+      this.capsule.position.set(
+        (1 - this.shownArrival) * 6,
+        2,
+        -37 - this.shownArrival * 7,
+      );
+      this.capsule.rotation.z = reduced ? 0 : Math.sin(this.time) * 0.06;
+      this.camera.position.set(9, 8, -24);
+      this.camera.lookAt(0, 2, -51);
+    } else {
+      const actor = this.actors.get(id),
+        me = s.players[id];
+      setFlightView(
+        this.camera,
+        { x: actor?.position.x ?? me.x, z: actor?.position.z ?? me.z },
+        yaw,
+        pitch,
+      );
     }
     this.renderer.render(this.scene, this.camera);
   }
   get state() {
     return {
+      model: this.status,
+      camera: "first-person",
+      eyeHeight: SHIP_LAYOUT.eyeHeight,
       earthScale: this.earth.scale.x,
       progress: this.progress,
       arrival: this.shownArrival,
@@ -438,6 +376,7 @@ export class FlightCabin {
         id,
         x: g.position.x,
         z: g.position.z,
+        visible: g.visible,
       })),
     };
   }

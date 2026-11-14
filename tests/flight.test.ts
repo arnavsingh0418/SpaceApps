@@ -23,13 +23,13 @@ it("puts the crew in a connected bounded physical cabin and rejects Mars telepor
   dispatch(s, "a", { type: "pos", x: 100, z: 100 });
   expect(s.players.a.x).toBe(x);
   Object.assign(s.players.a, { x: 0, z: 1 });
-  Object.assign(s.players.b, { x: 3, z: 2 });
+  Object.assign(s.players.b, { x: 1.5, z: 5 });
   dispatch(s, "a", { type: "flightMove", x: -1, z: 0 });
   runFlight(s, 2);
-  expect(s.players.a.x).toBeLessThan(-7);
+  expect(s.players.a.x).toBeLessThan(-2);
   runFlight(s, 15);
   expect(walkableDeck(s.players.a.x, s.players.a.z)).toBe(true);
-  expect(s.players.a.x).toBeGreaterThan(-12.1);
+  expect(s.players.a.x).toBeGreaterThan(-2.46);
   expect(dispatch(s, "a", { type: "flightMove", x: NaN, z: 0 })).toContain(
     "valid",
   );
