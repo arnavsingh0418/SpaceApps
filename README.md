@@ -137,3 +137,12 @@ The return platform shows damaged components, replacement plinths and installati
 **No ElevenLabs key is configured and no voice-generation API is called.** Subtitles always work. A device speech voice is used when available; otherwise the dialogue remains text with a brief gesture. Add original pre-generated voice clips later using `client/public/alien/voice.json`; see that folder’s README. Never include a key in the browser build.
 
 New validation: `npm test` includes shared deliveries, action validation, duplicate protection, solo/co-op rewards and component animation state. With the dev server: `node scripts/alien-qa.mjs`. With a crew server: `TEST_SERVER=ws://127.0.0.1:2572 node --import tsx tests/alien-multiplayer.ts` (PowerShell: set `$env:TEST_SERVER` first). Screenshots and state snapshots are in `references/alien-mission/`.
+
+
+## Matching Blender model pack
+
+The game loads the matching Mars asset pack from `client/public/mars/`: 49 self-contained GLBs, 16 transparent UI icons, four crew portraits and title artwork. The playable crew, base structures, pickups, solar cleanliness/covers, radio repair, field-site props and return rocket now use these models. Extra terrain/plant variants and the six-clip astronaut export remain available for further scene authoring. The existing Mars terrain, authoritative simulation, multiplayer protocol and mission costs are preserved.
+
+`client/src/render/modelAssets.ts` caches assets and adapts the imported crew to the existing gait rig. Models load asynchronously with the previous procedural visuals as fallbacks. Static opaque details are batched by material; per-instance material changes cannot tint another player's equipment. Runtime files are included in the offline production cache and use relative URLs for GitHub Pages.
+
+Run `npm test` for the actual-GLB rig, solar-state isolation, asset integrity and existing gameplay checks; `npm run build` validates TypeScript and produces the offline client. For a visual fixture, open `http://localhost:5173/?qaScene=models` in development. Additional fixture URLs include `?qaScene=workbench`, `?qaScene=tasks`, `?qaScene=ship` and `?qaScene=ended`. These fixtures are development-only.

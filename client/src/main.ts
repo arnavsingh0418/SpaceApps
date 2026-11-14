@@ -1856,6 +1856,21 @@ if (import.meta.env.DEV)
         };
       showHangar();
     }
+    if (name === "models") {
+      game.built = ["radio", "greenhouse", "shelter"];
+      game.learned = ["shield", "comms", "grow", "power", "oxygen"];
+      game.stock = { scrap: 6, ice: 6 };
+      game.players[id].bag = { scrap: 2, ice: 1, seeds: 1, circuit: 1, battery: 1 };
+      game.panels[0].clean = .15;
+      game.panels[1].covered = true;
+      for (const [n, role] of (["Scientist", "Medic", "Comms"] as const).entries()) {
+        const crewId = `model-crew-${n}`;
+        addPlayer(game, crewId, role);
+        game.players[crewId].role = role;
+        Object.assign(game.players[crewId], {x: -4 + n * 4, z: 3});
+      }
+      world.zoom = 21;world.pitch = .60;
+    }
     if (name === "tasks") {
       game.built = ["radio", "greenhouse"];
       game.learned = ["shield", "comms", "grow", "power", "oxygen"];
@@ -1906,7 +1921,7 @@ if (import.meta.env.DEV)
 menu();
 if (import.meta.env.DEV) {
   const scene = new URL(location.href).searchParams.get("qaScene");
-  if (["alien", "alien-reward", "ship", "ship-ready"].includes(scene || ""))
+  if (["alien", "alien-reward", "ship", "ship-ready", "models", "tasks", "workbench", "near-item", "ended", "title", "storm"].includes(scene || ""))
     window.__stageScene?.(scene!);
 }
 requestAnimationFrame(frame);

@@ -1,3 +1,4 @@
+import { installAstronaut, replaceVisual } from "./modelAssets";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 let S;
@@ -170,6 +171,7 @@ export function astronaut(color) {
   });
   g.scale.setScalar(1.35);
   S.add(g);
+  installAstronaut(g, color);
   return g;
 }
 // ---------------------------------------------------------------------------
@@ -327,6 +329,7 @@ export function wreck(x, z) {
   g.position.set(x, 0, z);
   g.rotation.y = 0.5;
   S.add(shade(g));
+  replaceVisual(g, "Rocket_Crashed", { width: 26, batch: true });
   return g;
 }
 export function smoke(x, y, z) {
@@ -353,6 +356,7 @@ export function crate(x, z, c = 0x8b6a45, s = 1.4) {
   g.position.set(x, 0, z);
   g.rotation.y = rnd() * Math.PI;
   S.add(shade(g));
+  replaceVisual(g, "Supply_Crate", { width: s, batch: true });
   return g;
 }
 /** Solar array on a tilt mount. children[1] is the cell surface (tinted by dust in world.ts). */
@@ -378,6 +382,7 @@ export function panel(x, z, rot = 0, dusty = 0) {
   g.position.set(x, 0, z);
   g.rotation.y = rot;
   S.add(shade(g));
+  replaceVisual(g, "Solar_Panels_Dusty", { width: 5.3 });
   return g;
 }
 /** Simple dome. */
@@ -448,6 +453,7 @@ export function hab(x, z, r = 6.2) {
   g.add(part(new THREE.CylinderGeometry(0.35, 0.35, 1.2, 16), dark, "vent", -2.5, y0 + r - 0.6, 1.5, 0.02));
   g.position.set(x, 0, z);
   S.add(shade(g));
+  replaceVisual(g, "Habitat_With_Workbench", { width: r * 2, center: false, batch: true });
   return g;
 }
 /** Outdoor workbench with a tool board and a glowing tablet. Returns { group, top }. */
@@ -471,6 +477,7 @@ export function workbench(x, z) {
   g.add(tablet);
   g.position.set(x, 0, z);
   S.add(shade(g));
+  replaceVisual(g, "Workbench", { width: 3.2, batch: true });
   return { group: g, top };
 }
 /** Science beacon: footing, pole, floating crystal and halo. */
@@ -492,6 +499,7 @@ export function beacon(x, z) {
   g.add(halo);
   g.position.set(x, 0, z);
   S.add(shade(g));
+  replaceVisual(g, "Science_Beacon", { height: 3.4, batch: true });
   return g;
 }
 /** Greenhouse tunnel: glass shell on ribs, soil beds, leafy plants and purple grow lights. */
@@ -544,6 +552,7 @@ export function greenhouse(x, z) {
   }
   g.position.set(x, 0, z);
   S.add(shade(g));
+  replaceVisual(g, "Greenhouse_Tunnel", { size: 9, rotation: Math.PI / 2, batch: true });
   return g;
 }
 /** Storm shelter: regolith-grey dome ringed by water tanks and sandbags (water blocks radiation). */
@@ -566,6 +575,7 @@ export function shelter(x, z) {
   }
   g.position.set(x, 0, z);
   S.add(shade(g));
+  replaceVisual(g, "Storm_Shelter", { size: 10.8, batch: true });
   return g;
 }
 /** Radio dish on a tripod. broken = knocked over. */
@@ -614,6 +624,7 @@ export function dish(x, z, broken = false) {
   g.add(lamp);
   g.position.set(x, 0, z);
   S.add(shade(g));
+  replaceVisual(g, broken ? "Radio_Dish_Broken" : "Radio_Dish_Fixed", { height: 5.2 });
   return g;
 }
 /** Battery bank (generic built module). */
