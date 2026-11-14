@@ -146,3 +146,7 @@ The game loads the matching Mars asset pack from `client/public/mars/`: 49 self-
 `client/src/render/modelAssets.ts` caches assets and adapts the imported crew to the existing gait rig. Models load asynchronously with the previous procedural visuals as fallbacks. Static opaque details are batched by material; per-instance material changes cannot tint another player's equipment. Runtime files are included in the offline production cache and use relative URLs for GitHub Pages.
 
 Run `npm test` for the actual-GLB rig, solar-state isolation, asset integrity and existing gameplay checks; `npm run build` validates TypeScript and produces the offline client. For a visual fixture, open `http://localhost:5173/?qaScene=models` in development. Additional fixture URLs include `?qaScene=workbench`, `?qaScene=tasks`, `?qaScene=ship` and `?qaScene=ended`. These fixtures are development-only.
+
+### Blender sandstorm effect
+
+Dust-storm events now play the Blender-authored [sandstorm VFX](client/public/mars/vfx/README.md): soft billows, ground drift and windblown grains, with a seamless 12-second loop. The runtime GLB is loaded on demand and uses embedded alpha textures. It follows local terrain height, fades with storm intensity and preserves the existing particle fallback. Reduced-motion users see lighter, static dust without moving grains. Source `.blend` and a reproducible generator are in `assets/blender/`. Use `/?qaScene=storm` in development to preview it.

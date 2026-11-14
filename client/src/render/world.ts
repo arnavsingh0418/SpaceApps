@@ -1,4 +1,5 @@
 import { WorldMotion } from "./motion";
+import { SANDSTORM_LAYER } from "./sandstorm";
 import { replaceVisual, disposeModel, updateRoleBadge, updatePanelModel, updateDishModel } from "./modelAssets";
 import { placeLabels } from "./labels";
 import { Terrain } from "./terrain";
@@ -127,6 +128,7 @@ export class World {
     }),
   );
   constructor() {
+    this.camera.layers.enable(SANDSTORM_LAYER);
     this.renderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("#world")!,
       antialias: true,
@@ -777,6 +779,23 @@ export class World {
       this.objectiveMarker.children[0].position.y =
         3.3 + (this.motion.reduced ? 0 : Math.sin(this.motion.time * 4) * 0.12);
     }
+    const weather = this.menu ? 0 : this.motion.storm;
+    // A shallow weather volume follows the local terrain height. It stays out of
+    // collision and shared simulation; the same storm event drives every client.
+    const weatherOrigin = this.actors.get(id)?.position || this.camera.position;
+    this.motion.sandstorm.update(
+      dt,
+      weather,
+      {
+        x: weatherOrigin.x,
+        y: this.terrain.heightAt(weatherOrigin.x, weatherOrigin.z),
+        z: weatherOrigin.z,
+      },
+      this.motion.reduced,
+    );
+    const fog = this.scene.fog as THREE.Fog;
+    fog.near = THREE.MathUtils.lerp(110, 18, weather);
+    fog.far = THREE.MathUtils.lerp(620, 145, weather);
     this.renderer.render(this.scene, this.camera);
     this.frameMs = performance.now() - renderBegin;
     this.fps = this.fps * 0.95 + 0.05 / Math.max(0.001, dt);
