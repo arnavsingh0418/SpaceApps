@@ -417,6 +417,11 @@ export class World {
       );
       return;
     }
+    if (this.firstPerson) {
+      this.yaw = 0;
+      this.pitch = 0.36;
+      this.releaseMouse();
+    }
     this.firstPerson = false;
     if (s.players[id]?.hab && !this.menu && s.phase !== "flight" && s.phase !== "ended") {
       this.screenDust.update(0, 0, this.motion.reduced);
