@@ -2422,6 +2422,12 @@ if (import.meta.env.DEV)
       }
     }
     if (name === "rover-crew") { wasRiding = true; world.yaw = 2.4; world.pitch = .32; world.zoom = 22; }
+    if (name === "rover-east") {
+      const rover = roverState(game);
+      rover.heading = -Math.PI / 2;
+      Object.assign(game.players[id], { x: rover.x, z: rover.z });
+      dispatch(game, id, { type: "boardRover" });
+    }
     if (name === "models") {
       stagePanels(2);
       game.built = ["radio", "greenhouse", "shelter"];
@@ -2545,6 +2551,7 @@ if (import.meta.env.DEV) {
     "rover",
     "rover-driving",
     "rover-crew",
+      "rover-east",
       "tasks",
       "workbench",
       "near-item",

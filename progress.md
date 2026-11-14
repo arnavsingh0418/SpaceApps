@@ -1,5 +1,9 @@
 Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.git from the supplied NASA mission brief; then apply CODEX_REDESIGN_PROMPT.md to the existing game, preserving simulation rules.
 
+## Rover range
+- Replaced the flat footprint check with independent terrain samples and a shared chassis pose. The rover follows uneven ground with smoother suspension motion, steers a little tighter at low speed, and still stops for abrupt ledges, excessive tilt, obstacles, or low clearance.
+- A terrain-only comparison from the rover spawn on the shipped Mars GLB used 16 straight headings. Seven reached farther and nine matched or nearly matched. The east route increased from 45 to 118 meters and one southwest heading from 134 to 260 meters. Actual driving also depends on surface props and crew positions.
+
 ## Surface tracks and weather
 - Bootprints alternate by distance walked and rover tires leave two lines of tread. Marks follow the local ground and last up to 85 seconds before weathering away, with fixed rendering budgets.
 - Dust devils continuously push, spin, and lift explorers and the rover. The crew server applies the same forces for every client, and seated players stay with the vehicle. Forces increase toward the vortex core.
