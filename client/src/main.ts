@@ -3,6 +3,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { createTerrain } from "./render/terrain";
 import { createBase, stations } from "./render/base";
 import { createConstruction, recipeIds, recipes, type Structure } from "./construction";
+import { connectPowerPlan } from "./powerPlan";
 import "./style.css";
 
 declare global {
@@ -72,6 +73,7 @@ try {
     "#station-description",
   )!;
   const construction = createConstruction();
+  connectPowerPlan(() => construction.built.has("panel"));
   const workbench = document.querySelector<HTMLElement>("#construction")!;
   const stock = workbench.querySelector<HTMLElement>("#construction-stock")!;
   const recipeList = workbench.querySelector<HTMLElement>("#construction-recipes")!;
