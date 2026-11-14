@@ -145,6 +145,30 @@ nav button[aria-pressed="true"] {
   padding: 8px;
   color: #add9cd;
 }
+#solar-quiz {
+  margin-top: 10px;
+  font-size: 12px;
+}
+#solar-quiz summary {
+  cursor: pointer;
+  color: #add9cd;
+}
+#solar-quiz form {
+  max-height: 30dvh;
+  overflow: auto;
+  padding: 8px 2px;
+}
+#solar-quiz fieldset {
+  border: 1px solid #ffffff30;
+  margin: 0 0 8px;
+}
+#solar-quiz label {
+  display: block;
+  padding: 4px 0;
+}
+#solar-quiz a {
+  color: #add9cd;
+}
 #load-status {
   margin: 14px 0 0;
   font-size: 9px;
