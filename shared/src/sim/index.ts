@@ -1,3 +1,4 @@
+import { habAction, type HabPosition } from "../hab";
 import { createRover, roverState, roverSeat, roverAction, tickRover, leaveRover, type RoverState } from "../rover";
 import B from "../data/balance.json";
 import recipes from "../data/recipes.json";
@@ -54,6 +55,9 @@ export type Bag = Partial<Record<Item, number>>;
 export type Point = { x: number; z: number };
 export type Player = Point & {
   id: string;
+  /** Separate interior coordinates; surface position stays at the hab. */
+  hab?: HabPosition;
+  habBerth?: number;
   name: string;
   color: number;
   role: Role;
@@ -332,6 +336,10 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   const p = s.players[id];
   if (!p) return "Join a crew first.";
   const fail = (text: string) => text;
+  if (["enterHab", "exitHab", "habPos"].includes(a.type)) return habAction(s,p,a);
+  if (p.hab && a.type === "move" && Number(a.x) === 0 && Number(a.z) === 0) return;
+  if (p.hab && s.phase !== "flight" && s.phase !== "ended" && !["chat","role","selectSlot","power","next","choice"].includes(a.type))
+    return "Leave the habitat through its airlock to use outdoor equipment.";
   if (a.type === "selectSlot") {
     if (
       !Number.isInteger(a.slot) ||
@@ -414,7 +422,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       movePastPlayers(
         p,
         { x: p.x + dx, z: p.z + dz },
-        Object.values(s.players).filter((other) => other.id !== id),
+        Object.values(s.players).filter((other) => other.id !== id && !other.hab),
       ),
     );
     clampToWorld(p);
@@ -824,6 +832,7 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
   if (!Number.isFinite(dt) || dt <= 0) return;
   s.elapsed += dt;
   tickRover(s);
+  if (s.phase === "flight" || s.phase === "ended") for (const p of Object.values(s.players)) delete p.hab;
   for (const m of s.pending.filter((m) => m.at <= s.elapsed)) log(s, m.text);
   s.pending = s.pending.filter((m) => m.at > s.elapsed);
   if (s.phase === "flight") {
@@ -833,7 +842,7 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
   if (s.phase !== "day" || !advanceSurface) return;
   s.clock += dt;
   for (const p of Object.values(s.players)) {
-    if (s.rover && roverSeat(s.rover, p.id) >= 0) continue;
+    if (p.hab || (s.rover && roverSeat(s.rover, p.id) >= 0)) continue;
     // A client that is reporting its own position drives this player directly.
     if (p.posAt !== undefined && s.elapsed - p.posAt < 0.5) continue;
     const speed = gaitSpeed(p.gait, s.allocation.heat < 1);
@@ -842,7 +851,7 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
       movePastPlayers(
         p,
         { x: p.x + p.move.x * speed * dt, z: p.z + p.move.z * speed * dt },
-        Object.values(s.players).filter((other) => other.id !== p.id),
+        Object.values(s.players).filter((other) => other.id !== p.id && !other.hab),
       ),
     );
     clampToWorld(p);

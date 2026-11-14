@@ -11,3 +11,7 @@ Regenerate with `build_sandstorm.py` (see the runtime [VFX guide](../../client/p
 ## Wayfarer expedition rover
 
 `Mars_Rover.blend` is the editable six-wheel rover; `Mars_Rover_Preview.png` shows the finished asset. Its ceramic-white shell, deep-teal frame and orange details match the habitat. Separate wheel and steering pivots animate in the game. The GLB is in `client/public/mars/vehicles/`; see its README for dimensions, hierarchy and regeneration instructions using `build_rover.py`.
+
+## Ares habitat interior
+
+`Mars_Hab_Interior.blend` contains the furnished four-crew interior, with a cutaway preview in `Mars_Hab_Interior_Preview.png`. Regenerate with `build_hab_interior.py`; layout footprints come from `shared/src/data/hab-layout.json`. The [runtime guide](../../client/public/mars/interiors/README.md) documents the zone hierarchy, controls, integration and design references. Roof and front pressure panels are hidden in the saved review view; the GLB retains them for the runtime cutaway camera.

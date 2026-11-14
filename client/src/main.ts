@@ -1,3 +1,5 @@
+import { HAB_LAYOUT, habBlocked, moveInHab, nearestHabStation, habRoom, habSpeed } from "../../shared/src/hab";
+import { habDirectory, habEquipment } from "./ui/hab";
 import { RoverController } from "./render/roverController";
 import { ROVER, roverState, roverSeat, roverExits, roverBlocks } from "../../shared/src/rover";
 import {
@@ -843,9 +845,14 @@ function nearest(): Nearby | null {
         }
       : null;
   }
+  if (p.hab) {
+    const station = nearestHabStation({x:controller.x,z:controller.z});
+    return station ? {type: "habStation", target: station.id, pos: p.hab, text: station.id === "airlock" ? "Cycle airlock · go outside" : `Inspect ${station.name}`} : null;
+  }
   const r = roverState(game);
   if (roverSeat(r, id) >= 0) return { type: "rover", target: "rover", pos: r, text: Math.abs(r.speed) > .5 ? "Brake before exiting" : "Exit rover" };
   const all: Nearby[] = [];
+  if (distance(p,HAB_LAYOUT.exterior)<3.1) all.push({type:"habEnter",target:"hab",pos:HAB_LAYOUT.exterior,text:"Enter habitat airlock"});
   if (distance(p, r) <= ROVER.boardRadius && Math.abs(r.speed) < .5)
     all.push({ type: "rover", target: "rover", pos: r, text: r.driver ? "Ride rover" : "Drive rover" });
   all.push({
@@ -912,6 +919,15 @@ function interact() {
   const n = nearest();
   if (!n) {
     toast("Move closer to an object.");
+    return;
+  }
+  if (n.type === "habEnter") {
+    if (act({type:"enterHab"})) { hudSignature = ""; world.releaseMouse(); }
+    return;
+  }
+  if (n.type === "habStation") {
+    open("habEquipment", "HABITAT", habEquipment(game,id,n.target));
+    hudSignature = "";
     return;
   }
   if (n.type === "rover") {
@@ -1026,6 +1042,7 @@ function draw() {
     Math.round(game.players[id].z),
     game.stock,
     game.players[id].bag,
+    game.players[id].hab && [Math.round(game.players[id].hab!.x),Math.round(game.players[id].hab!.z),game.players[id].habBerth],
     game.rover && [game.rover.driver, game.rover.passengers, Math.round(game.rover.speed * 3.6), Math.round(game.rover.odometer)],
     game.messages,
     game.panels.map((p) => [p.covered, p.clean]),
@@ -1509,6 +1526,13 @@ document.addEventListener("click", (e) => {
       reportBefore = { ...previous };
       act({ type: "next" });
       break;
+    case "habExit":
+      if (act({type:"exitHab"})) close();
+      hudSignature = "";
+      break;
+    case "habDirectory":
+      open("habDirectory", "HABITAT FLOOR PLAN", habDirectory(game,id));
+      break;
     case "takeRover":
       act({ type: "takeRover" });
       hudSignature = "";
@@ -1709,11 +1733,13 @@ addEventListener("keydown", (e) => {
     if (document.fullscreenElement) void document.exitFullscreen();
     else void document.documentElement.requestFullscreen();
   }
-  if (modal === "map" && e.key.toLowerCase() === "q") {
+  if (["map", "habDirectory"].includes(modal) && e.key.toLowerCase() === "q") {
     close();
     return;
   }
   if (modal) return;
+  if (game.players[id]?.hab && ["b","g"].includes(e.key.toLowerCase())) { toast("Use the airlock to return to outdoor equipment."); return; }
+  if (game.players[id]?.hab && e.key.toLowerCase() === "q") { open("habDirectory","HABITAT FLOOR PLAN",habDirectory(game,id)); return; }
   if (roverSeat(roverState(game),id)>=0 && ["b","g"].includes(e.key.toLowerCase())) { toast("Exit the rover to use field equipment."); return; }
   if (e.key === "Tab") {
     goalsOpen = !goalsOpen;
@@ -1812,7 +1838,7 @@ let last = performance.now(),
   lookTipShown = false;
 const controller = new LocalController();
 const roverController = new RoverController();
-let roverDriverKey = "", wasRiding = false, roverBrake = false;
+let roverDriverKey = "", wasRiding = false, roverBrake = false, wasInHab = false;
 function updateTutorial() {
   if (tutorial >= 4) {
     const field = trackedMission && nextFieldMission(game, trackedMission);
@@ -1863,7 +1889,7 @@ function update(dt: number, render = true) {
     return;
   }
   if (started) {
-    updateTutorial();
+    if (!game.players[id]?.hab) updateTutorial();
     if (pendingScan && game.elapsed >= pendingScan.at) {
       const key = pendingScan.key;
       pendingScan = null;
@@ -1905,7 +1931,19 @@ function update(dt: number, render = true) {
       : { x: 0, z: 0, sprint: false, crouch: false, jump: false };
     if (modal) world.releaseMouse();
     if (riding && !wasRiding) { world.yaw = rover.heading + .25; world.cameraFollow = null; }
-    if (me && riding) {
+    if (me?.hab) {
+      if (!wasInHab || controllerSeed !== game.seed || Math.hypot(controller.x-me.hab.x,controller.z-me.hab.z)>3) {
+        controller.reset(me.hab.x,me.hab.z,0);controllerSeed=game.seed;
+        if (!wasInHab) { world.yaw=0;world.pitch=.75;world.zoom=14;world.habInterior.resetCamera();world.releaseMouse(); }
+      }
+      const before={x:controller.x,z:controller.z};
+      const len=Math.max(1,Math.hypot(input.x,input.z));
+      const to={x:before.x+input.x/len*habSpeed*dt,z:before.z+input.z/len*habSpeed*dt};
+      const next=moveInHab(before,to,Object.values(game.players).filter(p=>p.id!==id&&p.hab).map(p=>p.hab!));
+      controller.x=next.x;controller.z=next.z;controller.y=0;controller.vx=(next.x-before.x)/Math.max(.001,dt);controller.vz=(next.z-before.z)/Math.max(.001,dt);
+      if (controller.speed>.05) controller.heading=Math.atan2(controller.vx,controller.vz);
+      if (game.phase==="day" && (!connection || game.elapsed-inputAt>.05)) { act({type:"habPos",x:next.x,z:next.z});inputAt=game.elapsed; }
+    } else if (me && riding) {
       if (rover.driver === id) {
         const canDrive = canMove && world.terrain.ready;
         const key = `${game.seed}/${rover.driver}`;
@@ -1916,7 +1954,7 @@ function update(dt: number, render = true) {
         if (!canDrive) roverController.speed = 0;
         roverController.update(dt, { throttle: canDrive ? -z : 0, steer: canDrive ? x : 0, brake: !canDrive || keys.has(" ") || roverBrake },
           (x,z,y) => world.terrain.heightAt(x,z,y),
-          (x,z,y) => world.terrain.collides(x,z,y,.6,ROVER.height,.65) || Object.values(game.players).some((p) => roverSeat(rover,p.id)<0 && Math.hypot(p.x-x,p.z-z)<1.7),
+          (x,z,y) => world.terrain.collides(x,z,y,.6,ROVER.height,.65) || Object.values(game.players).some((p) => !p.hab && roverSeat(rover,p.id)<0 && Math.hypot(p.x-x,p.z-z)<1.7),
         );
         if (game.phase === "day" && (!connection || game.elapsed-inputAt>.05)) {
           act({type:"driveRover",x:roverController.x,z:roverController.z,heading:roverController.heading,speed:roverController.speed});
@@ -1924,6 +1962,7 @@ function update(dt: number, render = true) {
         }
       } else roverDriverKey = "";
     } else if (me) {
+      if (wasInHab) {controller.reset(me.x,me.z,world.terrain.heightAt(me.x,me.z));world.cameraFollow=null;world.pitch=.36;world.zoom=9;}
       if (wasRiding) controller.reset(me.x, me.z, world.terrain.heightAt(me.x,me.z));
       roverDriverKey = "";
       const drift = Math.hypot(me.x - controller.x, me.z - controller.z);
@@ -1942,7 +1981,7 @@ function update(dt: number, render = true) {
       const safe = movePastPlayers(
         before,
         controller,
-        Object.values(game.players).filter((p) => p.id !== id),
+        Object.values(game.players).filter((p) => p.id !== id && !p.hab),
       );
       if (
         (safe.x !== controller.x || safe.z !== controller.z) &&
@@ -1982,6 +2021,7 @@ function update(dt: number, render = true) {
     world.local = started && !riding ? controller : null;
     world.localRover = riding && rover.driver === id ? roverController : null;
     wasRiding = riding;
+    wasInHab = !!me?.hab;
     world.lookAllowed = () =>
       started && !modal && !arrival && game.phase === "day";
     if (started && !modal && !lookTipShown && game.phase === "day") {
@@ -2004,6 +2044,8 @@ function update(dt: number, render = true) {
           "fieldDebrief",
           "hangar",
           "alien",
+          "habDirectory",
+          "habEquipment",
         ].includes(modal);
         const quiz =
           ["learn", "salvage"].includes(modal) ||
@@ -2119,6 +2161,7 @@ window.render_game_to_text = () =>
     phase: game.phase,
     seconds: Math.round(game.clock),
     player: game.players[id],
+    hab: { inside: !!game.players[id].hab, position: game.players[id].hab, berth: game.players[id].habBerth, room: game.players[id].hab && habRoom(game.players[id].hab!), model: world.habInterior.status },
     rover: { ...roverState(game), seat: roverSeat(roverState(game),id), model: world.rover.status, local: world.localRover && { x: roverController.x, z: roverController.z, speed: roverController.speed } },
     crew: Object.values(game.players).map((p) => ({
       id: p.id,
@@ -2296,6 +2339,16 @@ if (import.meta.env.DEV)
         };
       showHangar();
     }
+    if (name === "hab" || name === "hab-crew" || name === "hab-airlock") {
+      Object.assign(game.players[id],HAB_LAYOUT.exterior);dispatch(game,id,{type:"enterHab"});
+      if (name !== "hab-airlock") Object.assign(game.players[id].hab!,{x:0,z:1.5});
+      if (name === "hab-crew") for(let n=0;n<3;n++) {
+        const crewId=`hab-crew-${n}`;addPlayer(game,crewId,["Imani","Juno","Vega"][n]);
+        Object.assign(game.players[crewId],HAB_LAYOUT.exterior);dispatch(game,crewId,{type:"enterHab"});
+        Object.assign(game.players[crewId].hab!,{x:[-5.5,0,6][n],z:[-4.2,-6.5,-6][n]});
+      }
+      controllerSeed=-1;
+    }
     if (name === "rover" || name === "rover-driving" || name === "rover-crew") {
       const r = roverState(game);
       Object.assign(game.players[id], { x: r.x + 3.8, z: r.z });
@@ -2395,6 +2448,9 @@ if (import.meta.env.DEV) {
       "flight-fault",
       "flight-arrival",
       "models",
+      "hab",
+      "hab-crew",
+      "hab-airlock",
     "rover",
     "rover-driving",
     "rover-crew",

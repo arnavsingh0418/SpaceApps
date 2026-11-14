@@ -54,18 +54,21 @@ try {
   a.action({ type: "power", value: { air: 3, light: 3, radio: 3, heat: 2 } });
   await b.until(() => b.state?.phase === "day", "explore");
   await Promise.all(
-    [a, b].map(async (c) => {
+    [a, b].map(async (c, index) => {
+      // Approach separate boarding positions so the newly added crew collision
+      // does not let the first arrival physically block the second explorer.
+      const target = { x: ROVER.spawn.x + (index === 0 ? -3 : 3), z: ROVER.spawn.z };
       const p = c.state!.players[c.id],
-        dx = ROVER.spawn.x - p.x,
-        dz = ROVER.spawn.z - p.z,
+        dx = target.x - p.x,
+        dz = target.z - p.z,
         d = Math.hypot(dx, dz);
       c.action({ type: "move", x: dx / d, z: dz / d });
       await c.until(
         () =>
           Math.hypot(
-            c.state!.players[c.id].x - ROVER.spawn.x,
-            c.state!.players[c.id].z - ROVER.spawn.z,
-          ) < 4.7,
+            c.state!.players[c.id].x - target.x,
+            c.state!.players[c.id].z - target.z,
+          ) < .8,
         "walk to rover",
       );
       c.action({ type: "move", x: 0, z: 0 });

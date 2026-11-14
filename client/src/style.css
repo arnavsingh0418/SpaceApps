@@ -389,3 +389,11 @@ to{opacity:0}
   letter-spacing: 1px;
   cursor: pointer;
 }
+
+/* Habitat interior */
+.hab-map{position:absolute;right:24px;top:24px;width:174px;padding:10px;background:#142b32ed;border-color:#83b5b14d}
+.hab-map button{width:100%;padding:0;background:none;border:0;color:#ddebe0;cursor:pointer;text-align:left;display:grid;gap:6px}.hab-map svg{width:100%;height:140px;background:#0a1a21;border-radius:5px}.hab-map span,.hab-map small{font-size:9px;letter-spacing:.1em;color:#a0c6c4}.hab-map b{font-size:11px}
+.hab-eyebrow{font-size:10px;letter-spacing:.15em;color:#87beb7}.hab-room-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:20px 0}.hab-room-grid article{display:grid;gap:6px;padding:12px;border:1px solid #82b7b342;border-radius:7px;background:#122b34}.hab-room-grid b{font-size:11px;color:#b6dbd2}.hab-room-grid span{font-size:12px}.hab-readout{border-left:3px solid #f0b66a;background:#142f38;padding:14px}.hab-equipment h3{color:#f2cc9a}.hab-equipment p,.hab-directory p{max-width:65ch;line-height:1.7}
+@media(max-width:760px){.hab-map{top:82px;right:10px;width:108px;padding:6px}.hab-map svg{height:85px}.hab-map b{font-size:9px}.hab-map span,.hab-map small{font-size:8px}.hab-room-grid{grid-template-columns:1fr 1fr;gap:5px}.hab-room-grid article{padding:8px}.hab-room-grid b{font-size:9px}.hab-room-grid span{font-size:10px}}
+
+.hab-airlock-status{display:flex;gap:16px;flex-wrap:wrap;padding:12px 0;font-size:11px;color:#9ecfb5}
