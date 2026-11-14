@@ -47,6 +47,20 @@
       <button id="reset" data-focus="overview" aria-pressed="true">
         ↗ View whole outpost
       </button>
+      <details id="solar-quiz" hidden>
+        <summary>Solar power quiz</summary>
+        <form>
+          <fieldset>
+            <legend>What helps a dusty panel make more power?</legend>
+            <label><input type="radio" name="answer" value="1" required /> Add more dust</label>
+            <label><input type="radio" name="answer" value="0" /> Clean off its dust</label>
+            <label><input type="radio" name="answer" value="2" /> Put it in the dark</label>
+          </fieldset>
+          <button type="submit">Check answer</button>
+          <p id="solar-feedback" role="status"></p>
+          <a href="https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/" target="_blank" rel="noopener noreferrer">NASA rover science ↗</a>
+        </form>
+      </details>
       <p id="load-status" role="status">Preparing your outpost…</p>
     </section>
     <div class="help">
