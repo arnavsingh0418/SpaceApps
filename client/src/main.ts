@@ -6,6 +6,8 @@ import {
   repairPanel,
   flightGuide,
 } from "./ui/flightDeck";
+import { equippedItem } from "../../shared/src/inventory";
+import { movePastPlayers } from "../../shared/src/playerCollision";
 import {
   flightStations,
   nearestFlightStation,
@@ -78,7 +80,7 @@ import {
   type Item,
   type Allocation,
 } from "../../shared/src/sim";
-import { Modal, Button, validateCopy } from "./ui/components";
+import { Modal, Button, validateCopy, escape } from "./ui/components";
 import { hud, type HudView } from "./ui/hud";
 import { powerPlan, powerKeys } from "./ui/powerPlan";
 import { flareCard, report } from "./ui/events";
@@ -113,6 +115,7 @@ let game = createGame(42),
   saved: Game | null = null,
   draft: Allocation = { air: 3, light: 3, radio: 3, heat: 2 };
 let arrival: Arrival | null = null;
+let crewConnecting = false;
 let trackedMission = "",
   selectedMission = "";
 let activeCache = "",
@@ -218,6 +221,13 @@ function act(a: Action) {
     return false;
   }
   return true;
+}
+function selectInventorySlot(slot: number) {
+  if (!Number.isInteger(slot) || slot < 0 || slot >= 5) return;
+  selected = slot;
+  if (game.players[id]) game.players[id].selectedSlot = slot;
+  if (started) act({ type: "selectSlot", slot });
+  hudSignature = "";
 }
 function open(
   kind: string,
@@ -482,7 +492,7 @@ function start(resume = false) {
   goalsOpen = chatOpen = false;
   unread = lastMessages = 0;
   lastEvent = "";
-  selected = 0;
+  selected = game.players[id]?.selectedSlot ?? 0;
   trackedMission = selectedMission = trackedSalvage = "";
   started = true;
   world.menu = false;
@@ -524,6 +534,15 @@ function powerScreen() {
   powerBody();
 }
 function powerBody() {
+  if (connection && game.host !== id && game.players[id]?.role !== "Comms") {
+    open(
+      "power",
+      "CREW CONNECTED",
+      `<div data-power-wait><p>Waiting for ${escape(game.players[game.host]?.name || "the crew leader")} to set today’s power and start the mission.</p><p>Your inventory belongs to you. Use slots 1–5 to choose what you hold.</p></div>`,
+      false,
+    );
+    return;
+  }
   open("power", "POWER FOR TODAY", powerPlan(game, draft, firstPlan), false);
 }
 function bench() {
@@ -1139,6 +1158,7 @@ function finishTask() {
   }
 }
 async function connect(join: boolean) {
+  if (crewConnecting) return;
   const name = ($("#crew-name") as HTMLInputElement).value,
     url =
       import.meta.env.VITE_CREW_SERVER ||
@@ -1146,9 +1166,17 @@ async function connect(join: boolean) {
     code = ($("#room-code") as HTMLInputElement).value.trim(),
     role = ($("#lobby-role") as HTMLSelectElement).value;
   if (join && !/^[1-9][0-9]{4}$/.test(code)) {
-    toast("Enter your friend’s five-digit crew code.");
+    $("#crew-error").textContent = "Enter your friend’s five-digit crew code.";
     return;
   }
+  crewConnecting = true;
+  const buttons = root.querySelectorAll<HTMLButtonElement>(
+    "[data-do=create],[data-do=join]",
+  );
+  buttons.forEach((b) => (b.disabled = true));
+  $("#crew-error").textContent = join
+    ? "Connecting to your friend’s crew…"
+    : "Creating your crew…";
   try {
     if (!/^wss?:\/\//.test(url)) throw Error("Use a ws:// or wss:// address.");
     const conn = new CrewConnection(url);
@@ -1170,6 +1198,10 @@ async function connect(join: boolean) {
       const old = JSON.stringify(game.expedition);
       const oldLearned = game.learned.includes(activeLesson);
       game = s;
+      if (started && modal === "power" && s.phase === "power") {
+        const wait = game.host !== id && game.players[id]?.role !== "Comms";
+        if (wait !== !!root.querySelector("[data-power-wait]")) powerBody();
+      }
       if (
         modal === "learn" &&
         !oldLearned &&
@@ -1196,14 +1228,20 @@ async function connect(join: boolean) {
         } else openFieldMission(m.id);
       }
     };
+    const lobbyStatus = $("#crew-error");
     await conn.join(
       name,
       join ? code : undefined,
       Math.floor(Math.random() * 1e6),
     );
+    if (!lobbyStatus.isConnected) {
+      conn.close();
+      return;
+    }
     connection?.close();
     connection = conn;
     id = conn.id;
+    selected = game.players[id]?.selectedSlot ?? 0;
     started = true;
     world.menu = false;
     phase = "";
@@ -1227,6 +1265,9 @@ async function connect(join: boolean) {
     const el = document.querySelector("#crew-error");
     if (el) el.textContent = (e as Error).message;
     else toast((e as Error).message);
+  } finally {
+    crewConnecting = false;
+    buttons.forEach((b) => (b.disabled = false));
   }
 }
 document.addEventListener("click", (e) => {
@@ -1478,8 +1519,7 @@ document.addEventListener("click", (e) => {
       interact();
       break;
     case "slot":
-      selected = Number(d.index);
-      hudSignature = "";
+      selectInventorySlot(Number(d.index));
       break;
     case "answer": {
       const f = facts.find((f) => f.id === d.fact)!;
@@ -1708,8 +1748,7 @@ addEventListener("keydown", (e) => {
     if (bag[selected]) act({ type: "drop", kind: bag[selected][0] });
   }
   if (/^[1-5]$/.test(e.key)) {
-    selected = Number(e.key) - 1;
-    hudSignature = "";
+    selectInventorySlot(Number(e.key) - 1);
   }
 });
 addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
@@ -1892,6 +1931,7 @@ function update(dt: number, render = true) {
         controller.reset(me.x, me.z, world.terrain.heightAt(me.x, me.z));
         controllerSeed = game.seed;
       }
+      const before = { x: controller.x, z: controller.z };
       const jumped = controller.update(
         dt,
         input,
@@ -1899,6 +1939,24 @@ function update(dt: number, render = true) {
         (px, pz, py) => world.terrain.heightAt(px, pz, py),
         (px, pz, py) => world.terrain.collides(px, pz, py) || roverBlocks(rover,px,pz),
       );
+      const safe = movePastPlayers(
+        before,
+        controller,
+        Object.values(game.players).filter((p) => p.id !== id),
+      );
+      if (
+        (safe.x !== controller.x || safe.z !== controller.z) &&
+        world.terrain.collides(safe.x, safe.z, controller.y)
+      ) {
+        safe.x = before.x;
+        safe.z = before.z;
+      }
+      if (Math.abs(safe.x - controller.x) > 0.001) controller.vx = 0;
+      if (Math.abs(safe.z - controller.z) > 0.001) controller.vz = 0;
+      controller.x = safe.x;
+      controller.z = safe.z;
+      if (controller.grounded)
+        controller.y = world.terrain.heightAt(safe.x, safe.z, controller.y);
       if (jumped) {
         act({ type: "jump" });
         if (!jumpTipShown) {
@@ -2062,6 +2120,15 @@ window.render_game_to_text = () =>
     seconds: Math.round(game.clock),
     player: game.players[id],
     rover: { ...roverState(game), seat: roverSeat(roverState(game),id), model: world.rover.status, local: world.localRover && { x: roverController.x, z: roverController.z, speed: roverController.speed } },
+    crew: Object.values(game.players).map((p) => ({
+      id: p.id,
+      name: p.name,
+      x: p.x,
+      z: p.z,
+      bag: p.bag,
+      selectedSlot: p.selectedSlot ?? 0,
+      held: equippedItem(p) ?? null,
+    })),
     nearby: game.items.filter((o) => distance(o, game.players[id]) < 6),
     resources: {
       power: game.power,

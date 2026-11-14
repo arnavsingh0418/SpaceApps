@@ -1,4 +1,5 @@
 import type { Action, Game, Player } from "./sim";
+import { movePastPlayers } from "./playerCollision";
 import { awardPoints, returnChance, returnProgress } from "./returnMission";
 
 export const flightDuration = 180;
@@ -110,8 +111,8 @@ export function startDeckFlight(s: Game) {
     },
   };
   Object.values(s.players).forEach((p, i) => {
-    p.x = (i - 1.5) * 0.9;
-    p.z = 2;
+    p.x = i % 2 === 0 ? -1.35 : 1.35;
+    p.z = 2 + Math.floor(i / 2) * 1.5;
     p.move = { x: 0, z: 0 };
     delete p.task;
     delete p.posAt;
@@ -148,6 +149,7 @@ export function tickDeckFlight(s: Game, dt: number) {
   }
   d.time += dt;
   for (const p of Object.values(s.players)) {
+    const before = { x: p.x, z: p.z };
     const nx = p.x + p.move.x * deckSpeed * dt,
       nz = p.z + p.move.z * deckSpeed * dt;
     if (walkableDeck(nx, nz)) {
@@ -155,6 +157,13 @@ export function tickDeckFlight(s: Game, dt: number) {
       p.z = nz;
     } else if (walkableDeck(nx, p.z)) p.x = nx;
     else if (walkableDeck(p.x, nz)) p.z = nz;
+    const next = movePastPlayers(
+      before,
+      p,
+      Object.values(s.players).filter((other) => other.id !== p.id),
+    );
+    if (walkableDeck(next.x, next.z)) Object.assign(p, next);
+    else Object.assign(p, before);
   }
   if (
     d.pilot &&

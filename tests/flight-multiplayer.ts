@@ -139,7 +139,9 @@ try {
     `host launch (${a.state!.phase}, elapsed ${a.state!.elapsed})`,
   );
   await b.until(() => b.state!.phase === "flight", "shared launch");
-  await Promise.all([deckWalk(a, 0, -8), deckWalk(b, -8, 0)]);
+  await deckWalk(a, 0, -8);
+  await deckWalk(b, 1.35, 0);
+  await deckWalk(b, -8, 0);
   a.action({ type: "takeHelm" });
   await b.until(
     () => b.state!.returnMission!.flight!.deck!.pilot === a.id,

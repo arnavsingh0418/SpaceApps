@@ -1,5 +1,9 @@
 Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.git from the supplied NASA mission brief; then apply CODEX_REDESIGN_PROMPT.md to the existing game, preserving simulation rules.
 
+## Multiplayer inventory and collisions
+- Integrated the rover and sandstorm updates from main. Each player’s own selected slot drives their held model for everyone. Empty slots clear the model, and client and server movement both check against other players on Mars and aboard the ship.
+- Added an HTTPS fallback into the same rooms when the initial WebSocket connection fails. Guests see a waiting screen when the host is setting power. The browser exercise deliberately blocks the guest WebSocket and verifies independent slot selection after the host starts.
+
 ## Checkpoint
 - Original playable game: 80c245d, 30 passing tests and production build.
 - Existing private preview: https://outpost-down-mars-atreya.encouragingbean1.chatgpt.site

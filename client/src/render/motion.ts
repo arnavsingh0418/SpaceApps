@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { disposeModel } from "./modelAssets";
+import { updateHeldItem } from "./heldItem";
 import { B, stations, type Game } from "../../../shared/src/sim";
 import { ParticlePool } from "./particles";
 import { Sandstorm } from "./sandstorm";
@@ -232,9 +233,7 @@ export class WorldMotion {
       kneeR += 0.9 * k;
       lean += 0.25 * k;
     }
-    const carry = get("carried");
-    const carrying = Object.values(p.bag).some((n) => n && n > 0);
-    if (carry) carry.visible = carrying;
+    const carrying = !!updateHeldItem(g, p);
     if (carrying && st.grounded) {
       armL = armR = -1.15 + sin * 0.08;
       elbow = -0.35;

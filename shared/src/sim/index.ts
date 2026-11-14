@@ -15,6 +15,7 @@ import { type AlienProgress } from "../alien";
 import { alienAction } from "./alienActions";
 import { fieldPartRewards, recoverPart } from "../shipRewards";
 import { flightAction, tickDeckFlight } from "../flight";
+import { movePastPlayers } from "../playerCollision";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -57,6 +58,7 @@ export type Player = Point & {
   color: number;
   role: Role;
   bag: Bag;
+  selectedSlot?: number;
   task?: { kind: string; target: string; at: number };
   move: Point;
   joined: number;
@@ -330,6 +332,16 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   const p = s.players[id];
   if (!p) return "Join a crew first.";
   const fail = (text: string) => text;
+  if (a.type === "selectSlot") {
+    if (
+      !Number.isInteger(a.slot) ||
+      Number(a.slot) < 0 ||
+      Number(a.slot) >= B.maxSlots
+    )
+      return fail("Choose an inventory slot from 1 to 5.");
+    p.selectedSlot = Number(a.slot);
+    return;
+  }
   const r = roverState(s);
   const riding = s.phase === "day" && roverSeat(r, id) >= 0;
   if (["boardRover", "exitRover", "takeRover", "driveRover"].includes(a.type))
@@ -397,8 +409,14 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       dx *= maxStep / d;
       dz *= maxStep / d;
     }
-    p.x += dx;
-    p.z += dz;
+    Object.assign(
+      p,
+      movePastPlayers(
+        p,
+        { x: p.x + dx, z: p.z + dz },
+        Object.values(s.players).filter((other) => other.id !== id),
+      ),
+    );
     clampToWorld(p);
     const mx = Number(a.mx),
       mz = Number(a.mz);
@@ -819,8 +837,14 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
     // A client that is reporting its own position drives this player directly.
     if (p.posAt !== undefined && s.elapsed - p.posAt < 0.5) continue;
     const speed = gaitSpeed(p.gait, s.allocation.heat < 1);
-    p.x += p.move.x * speed * dt;
-    p.z += p.move.z * speed * dt;
+    Object.assign(
+      p,
+      movePastPlayers(
+        p,
+        { x: p.x + p.move.x * speed * dt, z: p.z + p.move.z * speed * dt },
+        Object.values(s.players).filter((other) => other.id !== p.id),
+      ),
+    );
     clampToWorld(p);
   }
   s.devil = {

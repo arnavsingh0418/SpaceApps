@@ -152,7 +152,7 @@ export function astronaut(color) {
     elbow.add(part(new THREE.SphereGeometry(0.13, 14, 10).scale(1, 1.1, 1), grey, "glove" + side, 0, -0.32, 0.01));
   }
 
-  const carried = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.5), mat(0x9ca3af));
+  const carried = new THREE.Group();
   carried.name = "carried";
   carried.position.set(0, 0.35, 0.62);
   carried.visible = false;

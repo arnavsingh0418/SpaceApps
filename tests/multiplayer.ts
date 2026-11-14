@@ -75,27 +75,28 @@ try {
   await a.until(() => a.state!.phase === "day", "start exploration");
   await b.until(() => b.state!.phase === "day", "broadcast phase");
   const target = a.state!.items[0];
-  async function walk(c: Client) {
+  async function walk(c: Client, offset: number) {
     const p = c.state!.players[c.id],
-      dx = target.x - p.x,
+      x = target.x + offset,
+      dx = x - p.x,
       dz = target.z - p.z,
       mag = Math.hypot(dx, dz);
     c.action({ type: "move", x: dx / mag, z: dz / mag });
     await c.until(
       () =>
         Math.hypot(
-          c.state!.players[c.id].x - target.x,
+          c.state!.players[c.id].x - x,
           c.state!.players[c.id].z - target.z,
-        ) < 0.8,
+        ) < 0.55,
       "server-authoritative walking",
     );
     c.action({ type: "move", x: 0, z: 0 });
   }
-  await Promise.all([walk(a), walk(b)]);
+  await Promise.all([walk(a, -1.2), walk(b, 1.2)]);
   await a.until(
     () =>
       Math.hypot(
-        a.state!.players[b.id].x - target.x,
+        a.state!.players[b.id].x - (target.x + 1.2),
         a.state!.players[b.id].z - target.z,
       ) < 1,
     "remote movement visible",
@@ -116,6 +117,15 @@ try {
     6,
   );
   assert.deepEqual(a.state!.players[a.id].bag, b.state!.players[a.id].bag);
+  const owner = a.state!.players[a.id].bag.scrap ? a : b;
+  const observer = owner === a ? b : a;
+  assert.equal(observer.state!.players[observer.id].bag.scrap ?? 0, 0);
+  owner.action({ type: "selectSlot", slot: 4 });
+  await observer.until(
+    () => observer.state!.players[owner.id].selectedSlot === 4,
+    "empty slot synced to teammate",
+  );
+  assert.equal(observer.state!.players[observer.id].selectedSlot ?? 0, 0);
   for (const name of ["C", "D"]) {
     const c = new Client();
     clients.push(c);

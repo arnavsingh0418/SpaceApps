@@ -1,4 +1,5 @@
 import * as T from "three";
+import { updateHeldItem } from "./heldItem";
 import { astronaut } from "./builders.js";
 import {
   deckRooms,
@@ -355,6 +356,7 @@ export class FlightCabin {
         this.actors.set(p.id, actor);
       }
       actor.position.lerp(new T.Vector3(p.x, 0, p.z), 1 - Math.exp(-dt * 18));
+      const held = updateHeldItem(actor, p);
       const moving = Math.hypot(p.move.x, p.move.z) > 0.01;
       if (moving) actor.rotation.y = Math.atan2(p.move.x, p.move.z);
       const phase = this.time * 9,
@@ -369,6 +371,11 @@ export class FlightCabin {
         if (limb) limb.rotation.x = Math.sin(phase) * amp * sign;
       }
       const wrench = actor.getObjectByName("wrench");
+      if (held)
+        for (const name of ["armL", "armR"]) {
+          const arm = actor.getObjectByName(name);
+          if (arm) arm.rotation.x = -1.15;
+        }
       if (wrench) wrench.visible = p.task?.kind === "flightRepair";
       if (p.task?.kind === "flightRepair") {
         const arm = actor.getObjectByName("armR");
