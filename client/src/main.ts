@@ -87,6 +87,18 @@ import "./ui/quiz.css";
 const $ = (q: string) => document.querySelector<HTMLElement>(q)!;
 const ui = $("#ui"),
   root = $("#modal-root");
+const crewBadge = document.createElement("button");
+crewBadge.id = "crew-invite";
+crewBadge.dataset.do = "copyCrewCode";
+crewBadge.hidden = true;
+document.body.append(crewBadge);
+function syncCrewBadge() {
+  crewBadge.hidden = !started || !connection;
+  if (connection) {
+    crewBadge.textContent = `CREW ${connection.room} · COPY`;
+    crewBadge.setAttribute("aria-label", `Copy crew code ${connection.room}`);
+  }
+}
 let game = createGame(42),
   id = "solo",
   started = false,
@@ -299,6 +311,7 @@ function finishDeckRepair() {
   dispatchMission({ type: "finishFlightRepair", fault: r.fault, value });
 }
 function drawDeck() {
+  syncCrewBadge();
   if (phase !== game.phase) {
     deckSentAt = -1;
     phase = game.phase;
@@ -412,6 +425,7 @@ function updateDeck(dt: number, render: boolean) {
   if (render) world.update(game, id, dt);
 }
 function menu() {
+  crewBadge.hidden = true;
   clearIntro();
   pendingBuild = null;
   pendingScan = null;
@@ -769,15 +783,7 @@ function sources() {
   open("sources", "NASA DATA", screens.dataSources(sourceIndex));
 }
 function crewScreen() {
-  open(
-    "crew",
-    "JOIN YOUR CREW",
-    screens.crewLobby(
-      import.meta.env.VITE_CREW_SERVER ||
-        localStorage.getItem("crew-url") ||
-        "ws://localhost:2567",
-    ),
-  );
+  open("crew", "PLAY WITH FRIENDS", screens.crewLobby());
 }
 function pause() {
   if (game.phase === "flight") {
@@ -916,6 +922,7 @@ function interact() {
     );
 }
 function draw() {
+  syncCrewBadge();
   if (
     started &&
     game.returnMission?.flight?.deck &&
@@ -1110,11 +1117,13 @@ function finishTask() {
 }
 async function connect(join: boolean) {
   const name = ($("#crew-name") as HTMLInputElement).value,
-    url = ($("#server-url") as HTMLInputElement).value.trim(),
-    code = ($("#room-code") as HTMLInputElement).value.trim().toUpperCase(),
+    url =
+      import.meta.env.VITE_CREW_SERVER ||
+      `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/crew`,
+    code = ($("#room-code") as HTMLInputElement).value.trim(),
     role = ($("#lobby-role") as HTMLSelectElement).value;
-  if (join && !/^[A-Z]{4}$/.test(code)) {
-    toast("Enter the four-letter crew code.");
+  if (join && !/^[1-9][0-9]{4}$/.test(code)) {
+    toast("Enter your friend’s five-digit crew code.");
     return;
   }
   try {
@@ -1180,9 +1189,10 @@ async function connect(join: boolean) {
     act({ type: "role", role });
     draw();
     toast(`Crew code: ${conn.room}`);
-    localStorage.setItem("crew-url", url);
+
     conn.onClose = () => {
       started = false;
+      crewBadge.hidden = true;
       open(
         "disconnected",
         "CONNECTION LOST",
@@ -1202,6 +1212,13 @@ document.addEventListener("click", (e) => {
   const d = el.dataset;
   sound();
   switch (d.do) {
+    case "copyCrewCode":
+      if (connection)
+        navigator.clipboard
+          ?.writeText(connection.room)
+          .then(() => toast("Crew code copied. Send it to your friends."))
+          .catch(() => toast(`Your crew code: ${connection!.room}`));
+      break;
     case "flightGuide":
       open(
         "flightGuide",

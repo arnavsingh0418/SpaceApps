@@ -2,6 +2,15 @@ import assert from "node:assert/strict";
 import { WebSocket } from "ws";
 import type { Game } from "../shared/src/sim";
 const url = process.env.TEST_SERVER || "ws://localhost:2567";
+const httpURL = url.replace(/^ws/, "http");
+const health = await fetch(`${httpURL}/health`);
+assert.equal(health.status, 200);
+assert.equal((await health.json()).service, "Outpost Down crew server");
+const website = await fetch(httpURL);
+assert.equal(website.status, 200);
+assert.match(website.headers.get("content-type") || "", /text\/html/);
+assert.match(await website.text(), /<html/i);
+assert.equal((await fetch(`${httpURL}/.env`)).status, 404);
 class Client {
   ws: WebSocket;
   id = "";
@@ -56,7 +65,7 @@ try {
     () => Object.keys(a.state!.players).length === 2,
     "two synchronized players",
   );
-  assert.match(a.room, /^[A-Z]{4}$/);
+  assert.match(a.room, /^[1-9][0-9]{4}$/);
   assert.equal(a.room, b.room);
   assert.equal(a.state!.seed, b.state!.seed);
   b.action({ type: "power", value: { air: 3, light: 3, radio: 3, heat: 2 } });

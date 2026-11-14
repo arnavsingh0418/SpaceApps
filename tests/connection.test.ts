@@ -1,5 +1,6 @@
 import { afterEach, it, expect, vi } from "vitest";
 import { CrewConnection } from "../client/src/net/crew";
+import { createGame, addPlayer } from "../shared/src/sim";
 class Socket {
   static OPEN = 1;
   readyState = 1;
@@ -29,14 +30,17 @@ it("keeps a crew connection alive without animation frames and stops on close", 
   const socket = client.socket as unknown as Socket;
   socket.onopen!();
   socket.onmessage!({
-    data: JSON.stringify({ type: "welcome", id: "player-1", room: "MARS" }),
+    data: JSON.stringify({ type: "welcome", id: "player-1", room: "48271" }),
   });
+  const state = createGame(42);
+  addPlayer(state, "player-1");
+  socket.onmessage!({ data: JSON.stringify({ type: "state", state }) });
   await joined;
   vi.advanceTimersByTime(100000);
   expect(socket.sent.filter((s) => JSON.parse(s).type === "ping")).toHaveLength(
     4,
   );
-  expect(client.room).toBe("MARS");
+  expect(client.room).toBe("48271");
   client.close();
   const sent = socket.sent.length;
   vi.advanceTimersByTime(100000);

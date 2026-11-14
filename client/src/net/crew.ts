@@ -12,11 +12,12 @@ export class CrewConnection {
   }
   async join(name: string, code?: string, seed = 42) {
     return new Promise<void>((resolve, reject) => {
+      let ready = false;
       const timeout = setTimeout(() => {
-        this.socket.close();
         reject(
           Error("Crew server did not answer. Solo play is always available."),
         );
+        this.socket.close();
       }, 8000);
       this.socket.onopen = () =>
         this.socket.send(
@@ -26,7 +27,7 @@ export class CrewConnection {
         clearTimeout(timeout);
         reject(
           Error(
-            "Could not reach the crew server. Check its address, or play solo.",
+            "Multiplayer is unavailable on this website right now. Try again shortly, or play solo.",
           ),
         );
       };
@@ -36,20 +37,26 @@ export class CrewConnection {
           if (m.type === "welcome") {
             this.id = m.id;
             this.room = m.room;
-            clearTimeout(timeout);
             this.heartbeat = setInterval(() => {
               if (this.socket.readyState === WebSocket.OPEN)
                 this.socket.send(JSON.stringify({ type: "ping" }));
             }, 25000);
-            resolve();
           }
-          if (m.type === "state") this.onState(m.state);
+          if (m.type === "state") {
+            this.onState(m.state);
+            // A welcome identifies us, but gameplay needs our authoritative player too.
+            if (!ready && this.id && m.state.players?.[this.id]) {
+              ready = true;
+              clearTimeout(timeout);
+              resolve();
+            }
+          }
           if (m.type === "error") {
             this.onError(m.message);
-            if (!this.id) {
+            if (!ready) {
               clearTimeout(timeout);
-              this.socket.close();
               reject(Error(m.message));
+              this.socket.close();
             }
           }
         } catch {
@@ -59,6 +66,10 @@ export class CrewConnection {
       this.socket.onclose = () => {
         clearTimeout(timeout);
         if (this.heartbeat) clearInterval(this.heartbeat);
+        if (!ready)
+          reject(
+            Error("Connection closed before the crew was ready. Try again."),
+          );
         this.onClose();
       };
     });

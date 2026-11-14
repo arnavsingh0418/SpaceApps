@@ -2,9 +2,10 @@ services:
   - type: web
     name: outpost-down-crew
     runtime: node
-    buildCommand: npm ci --include=dev
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run server
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
         value: 24
