@@ -117,6 +117,7 @@ let game = createGame(42),
   saved: Game | null = null,
   draft: Allocation = { air: 3, light: 3, radio: 3, heat: 2 };
 let arrival: Arrival | null = null;
+let wasBlown = false;
 let crewConnecting = false;
 let trackedMission = "",
   selectedMission = "";
@@ -1943,6 +1944,8 @@ function update(dt: number, render = true) {
       controller.x=next.x;controller.z=next.z;controller.y=0;controller.vx=(next.x-before.x)/Math.max(.001,dt);controller.vz=(next.z-before.z)/Math.max(.001,dt);
       if (controller.speed>.05) controller.heading=Math.atan2(controller.vx,controller.vz);
       if (game.phase==="day" && (!connection || game.elapsed-inputAt>.05)) { act({type:"habPos",x:next.x,z:next.z});inputAt=game.elapsed; }
+    } else if (me && riding && rover.gust) {
+      roverDriverKey = "";
     } else if (me && riding) {
       if (rover.driver === id) {
         const canDrive = canMove && world.terrain.ready;
@@ -1961,9 +1964,9 @@ function update(dt: number, render = true) {
           inputAt = game.elapsed;
         }
       } else roverDriverKey = "";
-    } else if (me) {
+    } else if (me && !me.gust) {
       if (wasInHab) {controller.reset(me.x,me.z,world.terrain.heightAt(me.x,me.z));world.cameraFollow=null;world.pitch=.36;world.zoom=9;}
-      if (wasRiding) controller.reset(me.x, me.z, world.terrain.heightAt(me.x,me.z));
+      if (wasRiding || wasBlown) controller.reset(me.x, me.z, world.terrain.heightAt(me.x,me.z));
       roverDriverKey = "";
       const drift = Math.hypot(me.x - controller.x, me.z - controller.z);
       if (controllerSeed !== game.seed || drift > (connection ? 6 : 4)) {
@@ -1994,7 +1997,7 @@ function update(dt: number, render = true) {
       if (Math.abs(safe.z - controller.z) > 0.001) controller.vz = 0;
       controller.x = safe.x;
       controller.z = safe.z;
-      if (controller.grounded)
+      if (controller.grounded && (safe.x !== before.x || safe.z !== before.z))
         controller.y = world.terrain.heightAt(safe.x, safe.z, controller.y);
       if (jumped) {
         act({ type: "jump" });
@@ -2018,8 +2021,9 @@ function update(dt: number, render = true) {
         inputAt = game.elapsed;
       }
     }
-    world.local = started && !riding ? controller : null;
-    world.localRover = riding && rover.driver === id ? roverController : null;
+    world.local = started && !riding && !me?.gust ? controller : null;
+    world.localRover = riding && rover.driver === id && !rover.gust ? roverController : null;
+    wasBlown = !!me?.gust;
     wasRiding = riding;
     wasInHab = !!me?.hab;
     world.lookAllowed = () =>
@@ -2153,6 +2157,7 @@ window.render_game_to_text = () =>
       ? "ship deck meters; +x right, +z aft; helm at (0,-8)"
       : "meters; +x right, +z toward camera; origin at hab",
     cabin: world.cabin?.state || null,
+    weather: { devil: game.devil, screenDust: world.screenDust.intensity, tracks: world.tracks.state },
     started,
     arrival: arrival?.state || null,
     modal,
@@ -2408,6 +2413,16 @@ if (import.meta.env.DEV)
       world.zoom = 19;
       world.pitch = 0.55;
     }
+    if (name === "storm-impact") {
+      game.event = { kind: "storm", at: 0, resolved: false };
+      game.clock = B.stormWarningSeconds - 0.1;
+    }
+    if (name === "devil") {
+      const center = { x: 18 * B.layoutScale, z: 0 };
+      Object.assign(game.players[id], center);
+      Object.assign(roverState(game), { x: center.x + 2, z: center.z });
+      game.devil = center;
+    }
     if (name === "flare") {
       game.sol = 3;
       game.phase = "power";
@@ -2460,6 +2475,8 @@ if (import.meta.env.DEV) {
       "ended",
       "title",
       "storm",
+      "storm-impact",
+      "devil",
     ].includes(scene || "")
   )
     window.__stageScene?.(scene!);
