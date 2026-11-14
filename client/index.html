@@ -114,6 +114,19 @@
             <input type="number" name="heat" min="0" step="1" required />
           </label>
         </fieldset>
+        <fieldset id="flare-alert" hidden disabled>
+          <legend>Solar flare alert</legend>
+          <strong data-flare-label></strong>
+          <label for="flare-response">Crew response</label>
+          <select id="flare-response" required>
+            <option value="">Choose a response</option>
+            <option value="shelter">Take shelter</option>
+            <option value="ice">Add shielding</option>
+            <option value="work">Keep working outside</option>
+          </select>
+          <small>Archived NASA data. Dose is a game value.</small>
+          <a target="_blank" rel="noopener noreferrer">NASA DONKI record ↗</a>
+        </fieldset>
         <button type="submit">Run sol 1</button>
       </form>
       <p id="power-summary" role="status"></p>

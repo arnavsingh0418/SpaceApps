@@ -73,7 +73,6 @@ try {
     "#station-description",
   )!;
   const construction = createConstruction();
-  connectPowerPlan(() => construction.built.has("panel"));
   const workbench = document.querySelector<HTMLElement>("#construction")!;
   const stock = workbench.querySelector<HTMLElement>("#construction-stock")!;
   const recipeList = workbench.querySelector<HTMLElement>("#construction-recipes")!;
@@ -97,6 +96,7 @@ try {
         reason || (button.disabled ? "Waiting for the model" : "Ready to build");
     });
   }
+  connectPowerPlan(construction, refreshWorkbench);
   cacheButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const cache = button.dataset.cache!;

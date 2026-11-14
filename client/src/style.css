@@ -258,6 +258,17 @@ nav button[aria-pressed="true"] {
   margin: 0 0 12px;
   border: 1px solid #ffffff30;
 }
+#power-dialog fieldset[hidden] {
+  display: none;
+}
+#flare-alert select {
+  width: 100%;
+  min-height: 36px;
+  font: inherit;
+}
+#flare-alert a {
+  color: #add9cd;
+}
 #power-dialog label {
   display: grid;
   grid-template-columns: 1fr 62px;
