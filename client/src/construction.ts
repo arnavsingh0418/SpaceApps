@@ -1,3 +1,5 @@
+import type { SolarArray } from "./solar";
+
 export const recipes = {
   shelter: {
     name: "Radiation shelter",
@@ -5,7 +7,7 @@ export const recipes = {
     cost: { ice: 3, soil: 2, scrap: 3 },
   },
   panel: {
-    name: "Extra solar panel",
+    name: "Solar panel",
     lesson: "solar",
     cost: { scrap: 2, glass: 1 },
   },
@@ -27,6 +29,7 @@ export function createConstruction() {
   const learned = new Set<string>();
   const built = new Set<Structure>();
   const collected = new Set<string>();
+  let array: SolarArray | undefined;
 
   function collect(cache: string) {
     if (!Object.hasOwn(caches, cache) || collected.has(cache)) return false;
@@ -50,8 +53,9 @@ export function createConstruction() {
     for (const [item, count] of Object.entries(recipes[id].cost))
       stock[item as Supply] -= count;
     built.add(id);
+    if (id === "panel") array = { clean: 1, covered: false };
     return true;
   }
 
-  return { stock, learned, built, collected, collect, problem, build };
+  return { stock, learned, built, collected, collect, problem, build, get array() { return array; } };
 }

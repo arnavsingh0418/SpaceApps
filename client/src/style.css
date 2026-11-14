@@ -184,7 +184,8 @@ nav button[aria-pressed="true"] {
   grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
-#construction button {
+#construction button,
+#solar-maintenance button {
   padding: 7px;
   border: 1px solid #ffffff30;
   border-radius: 6px;
@@ -192,7 +193,8 @@ nav button[aria-pressed="true"] {
   color: inherit;
   cursor: pointer;
 }
-#construction button:disabled {
+#construction button:disabled,
+#solar-maintenance button:disabled {
   opacity: 0.6;
   cursor: default;
 }
@@ -357,6 +359,16 @@ nav button[aria-pressed="true"] {
   top: 6px;
   width: 14px;
   height: 2px;
+}
+#ship-charge {
+  position: absolute;
+  top: 66px;
+  right: 20px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #d9e9e1;
+  background: #1f3436;
+  font-size: 12px;
 }
 #ship-look {
   position: absolute;

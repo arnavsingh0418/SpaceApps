@@ -7,6 +7,7 @@ import { createReturnShip } from "./render/ship";
 import { createShipWalk } from "./shipWalk";
 import { createConstruction, recipeIds, recipes, type Structure } from "./construction";
 import { connectPowerPlan } from "./powerPlan";
+import { launchBattery, solarOutput } from "./solar";
 import "./style.css";
 
 declare global {
@@ -135,7 +136,41 @@ try {
         reason || (button.disabled ? "Waiting for the model" : "Ready to build");
     });
   }
-  connectPowerPlan(construction, refreshWorkbench);
+  const solar = document.querySelector<HTMLElement>("#solar-maintenance")!;
+  const solarStatus = solar.querySelector<HTMLElement>("[data-solar-status]")!;
+  const coverArray = solar.querySelector<HTMLButtonElement>("#cover-array")!;
+  const cleanArray = solar.querySelector<HTMLButtonElement>("#clean-array")!;
+  const shipCharge = document.querySelector<HTMLElement>("#ship-charge")!;
+
+  function refreshSolar() {
+    const array = construction.array;
+    base.updateSolar(array);
+    if (array) {
+      solarStatus.textContent = array.covered
+        ? "Array covered · 0 power blocks"
+        : Math.round(array.clean * 100) + "% clean · " + Math.floor(solarOutput(array)) + " power blocks";
+      coverArray.textContent = array.covered ? "Uncover array" : "Cover array";
+      cleanArray.disabled = array.covered || array.clean === 1;
+    }
+    shipCharge.textContent = "Launch battery " + launchBattery(array) + "%";
+    render();
+  }
+  coverArray.addEventListener("click", () => {
+    const array = construction.array;
+    if (!array) return;
+    array.covered = !array.covered;
+    refreshSolar();
+  });
+  cleanArray.addEventListener("click", () => {
+    const array = construction.array;
+    if (!array || array.covered) return;
+    array.clean = 1;
+    refreshSolar();
+  });
+  connectPowerPlan(construction, () => {
+    refreshWorkbench();
+    refreshSolar();
+  });
   cacheButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const cache = button.dataset.cache!;
@@ -150,7 +185,8 @@ try {
     button.addEventListener("click", () => {
       const id = button.dataset.build as Structure;
       if (!base.constructionReady(id) || !construction.build(id)) return;
-      base.showStructure(id);
+      if (id === "panel") refreshSolar();
+      else base.showStructure(id);
       buildStatus.textContent = recipes[id].name + " built.";
       refreshWorkbench();
       render();
@@ -179,6 +215,7 @@ try {
     selected = station?.key || "overview";
     workbench.hidden = selected !== "workbench";
     if (!workbench.hidden) refreshWorkbench();
+    solar.hidden = selected !== "solar" || !construction.array;
     for (const { quiz, form, feedback } of quizzes) {
       quiz.hidden = selected !== quiz.dataset.quiz;
       if (quiz.hidden) {
@@ -238,6 +275,7 @@ try {
 
   function boardShip() {
     if (shipMode) return;
+    refreshSolar();
     shipMode = true;
     controls.enabled = false;
     document.querySelector<HTMLDialogElement>("#power-dialog")?.close();
@@ -363,6 +401,7 @@ try {
       },
     });
   void base.ready.then(() => {
+    refreshSolar();
     const rocket = base.root.getObjectByName("Rocket_Return");
     if (rocket) rocket.userData.board = true;
     refreshWorkbench();

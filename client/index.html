@@ -39,7 +39,7 @@
           <img src="./mars/icons/build_shelter.png" alt="" />Habitat
         </button>
         <button data-focus="solar" aria-pressed="false">
-          <img src="./mars/icons/build_solar_panel.png" alt="" />Solar array
+          <img src="./mars/icons/build_solar_panel.png" alt="" />Solar science
         </button>
         <button data-focus="workbench" aria-pressed="false">
           <img src="./mars/icons/scrap_metal.png" alt="" />Workbench
@@ -77,6 +77,13 @@
           <a href="https://www.nasa.gov/humans-in-space/space-radiation/" target="_blank" rel="noopener noreferrer">NASA space radiation ↗</a>
         </form>
       </details>
+      <section id="solar-maintenance" aria-label="Solar panel maintenance" hidden>
+        <p data-solar-status role="status"></p>
+        <div class="supply-actions">
+          <button type="button" id="cover-array">Cover array</button>
+          <button type="button" id="clean-array">Brush clean</button>
+        </div>
+      </section>
       <section id="construction" aria-label="Outpost construction" hidden>
         <p id="construction-stock"></p>
         <div class="supply-actions">
@@ -100,6 +107,10 @@
       <button id="close-power" type="button" aria-label="Close power plan">×</button>
       <h2 id="power-title">Daily power plan</h2>
       <p id="power-budget"></p>
+      <div id="dust-storm-warning" hidden>
+        <p>Dust storm today. A cover protects the array but cuts its output to zero. Backup power stays online.</p>
+        <button type="button" id="storm-cover" hidden>Cover array</button>
+      </div>
       <form>
         <fieldset>
           <legend>Allocate power blocks</legend>
@@ -135,6 +146,7 @@
     </dialog>
     <div id="ship-hud" hidden>
       <div id="crosshair" aria-hidden="true"></div>
+      <p id="ship-charge"></p>
       <p id="ship-look">Click the cabin to look around</p>
       <button id="leave-ship" type="button">Back to outpost</button>
     </div>

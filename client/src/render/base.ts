@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { loadModel } from "./models";
 import type { Structure } from "../construction";
+import type { SolarArray } from "../solar";
 
 export const stations = [
   {
@@ -17,13 +18,13 @@ export const stations = [
   },
   {
     key: "solar",
-    model: "Solar_Panels_Clean",
-    title: "Solar array",
+    model: "Science_Beacon",
+    title: "Solar science",
     tag: "02 / POWER",
     description:
-      "Sunlight keeps the outpost running. Matching clean and dusty arrays show how a panel could change during a dust storm.",
+      "Use this beacon to unlock a solar panel. Build it at the workbench, then maintain it here.",
     position: [10, 0, -2],
-    size: 7,
+    size: 2,
     rotation: -0.35,
     view: [10, 8, 13],
   },
@@ -54,6 +55,7 @@ export function createBase(
   const structures = new Map<Structure, THREE.Group>();
   const caches = new Map<string, THREE.Group>();
   const hiddenCaches = new Set<string>();
+  let dustyArray: THREE.Group | undefined;
   const groundOffsets = new Map<THREE.Group, number>();
   const place = async (
     id: string,
@@ -61,7 +63,7 @@ export function createBase(
     size: number,
     rotation = 0,
     station?: string,
-    placement?: { structure: Structure } | { cache: string },
+    placement?: { structure: Structure } | { cache: string } | { dusty: true },
   ) => {
     state.total++;
     try {
@@ -72,6 +74,10 @@ export function createBase(
       model.userData.station = station;
       if (placement && "structure" in placement) {
         structures.set(placement.structure, model);
+        model.visible = false;
+      }
+      if (placement && "dusty" in placement) {
+        dustyArray = model;
         model.visible = false;
       }
       if (placement && "cache" in placement) {
@@ -91,13 +97,12 @@ export function createBase(
     place(s.model, s.position, s.size, s.rotation, s.key),
   );
   jobs.push(
-    place("Solar_Panels_Dusty", [12, 0, -9], 6, -0.35, "solar"),
+    place("Solar_Panels_Dusty", [16, 0, -4], 6, -0.35, "solar", { dusty: true }),
     place("Greenhouse_Tunnel", [-13, 0, -6], 7, Math.PI / 2),
     place("Radio_Dish_Fixed", [3, 0, -13], 3.8, -0.8),
     place("Rocket_Return", [-15, 0, -17], 4.5),
     place("Storm_Shelter", [8, 0, -17], 5, 0, undefined, { structure: "shelter" }),
     place("Solar_Panels_Clean", [16, 0, -4], 6, -0.35, "solar", { structure: "panel" }),
-    place("Science_Beacon", [5, 0, 3], 1.4),
     place("Supply_Crate", [-8, 0, 4], 1.1, 0, undefined, { cache: "metal" }),
     place("Supply_Crate", [-9.4, 0, 4.8], 1.1, 0, undefined, { cache: "soil" }),
     place("Battery", [-2.1, 0, 4.9], 0.65),
@@ -116,6 +121,12 @@ export function createBase(
       }
     },
     constructionReady: (id: Structure) => structures.has(id),
+    updateSolar(array?: SolarArray) {
+      const cleanArray = structures.get("panel");
+      const dusty = !!array && (array.clean < 1 || array.covered);
+      if (cleanArray) cleanArray.visible = !!array && (!dusty || !dustyArray);
+      if (dustyArray) dustyArray.visible = dusty;
+    },
     showStructure(id: Structure) {
       const model = structures.get(id);
       if (model) model.visible = true;

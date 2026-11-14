@@ -2,11 +2,10 @@ import { flareEffect, type FlareResponse } from "./flare";
 
 export const jobs = ["air", "light", "radio", "heat"] as const;
 export type Allocation = Record<(typeof jobs)[number], number>;
-export const initialAllocation: Allocation = { air: 3, light: 3, radio: 3, heat: 2 };
+export const initialAllocation: Allocation = { air: 4, light: 3, radio: 0, heat: 1 };
 export const allocationLimit = 6;
 export const lastSol = 15;
 export const total = (plan: Allocation) => jobs.reduce((sum, job) => sum + plan[job], 0);
-export const powerBudget = (extraPanel: boolean) => 2 + 3 * (extraPanel ? 4 : 3);
 
 type Outpost = { sol: number; air: number; food: number; dose: number; signal: number; shield: number; complete: boolean };
 export function createOutpost(): Outpost {
