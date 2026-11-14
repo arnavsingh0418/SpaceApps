@@ -147,3 +147,13 @@ Five timed faults affect electrical power, oxygen, hull seals and engine cooling
 Ship condition and the two guidance locks determine Earth arrival or recovery by a rescue craft, followed by a crew report. The ending has no random success roll. Flight progress saves locally in solo, and older in-flight saves migrate into the cabin. Travel duration, failures and spacecraft systems are fictional gameplay, not a real mission simulation. Remote co-op still requires a separately deployed WebSocket server.
 
 Run `node scripts/flight-qa.mjs` against the dev server for a complete real-input solo flight, all repair types, both endings, pause, reduced motion and responsive screenshots. `node --import tsx tests/flight-multiplayer.ts` against the crew server verifies two actual clients launching, walking, steering and repairing together. Flight screenshots and state snapshots live in `references/flight/`.
+
+
+## Matching Blender model pack
+
+The game loads the matching Mars asset pack from `client/public/mars/`: 49 self-contained GLBs, 16 transparent UI icons, four crew portraits and title artwork. The playable crew, base structures, pickups, solar cleanliness/covers, radio repair, field-site props and return rocket now use these models. Extra terrain/plant variants and the six-clip astronaut export remain available for further scene authoring. The existing Mars terrain, authoritative simulation, multiplayer protocol and mission costs are preserved.
+
+`client/src/render/modelAssets.ts` caches assets and adapts the imported crew to the existing gait rig. Models load asynchronously with the previous procedural visuals as fallbacks. Static opaque details are batched by material; per-instance material changes cannot tint another player's equipment. Runtime files are included in the offline production cache and use relative URLs for GitHub Pages.
+
+Run `npm test` for the actual-GLB rig, solar-state isolation, asset integrity and existing gameplay checks; `npm run build` validates TypeScript and produces the offline client. For a visual fixture, open `http://localhost:5173/?qaScene=models` in development. Additional fixture URLs include `?qaScene=workbench`, `?qaScene=tasks`, `?qaScene=ship` and `?qaScene=ended`. These fixtures are development-only.
+

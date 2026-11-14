@@ -205,8 +205,8 @@
     "actors": []
   },
   "render": {
-    "drawCalls": 155,
-    "triangles": 26222,
+    "drawCalls": 151,
+    "triangles": 18818,
     "stepFps": 60,
     "frameMs": 0
   }

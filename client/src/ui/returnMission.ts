@@ -1,3 +1,4 @@
+import { crewPortrait } from "./modelArt";
 import type { Game } from "../../../shared/src/sim";
 import {
   fastAnswerSeconds,
@@ -77,9 +78,15 @@ export function flightScreen(s: Game) {
 export function returnReport(s: Game, id: string) {
   const progress = returnProgress(s);
   const flight = progress.flight;
+  const crew = `<div class="return-crew">${Object.values(s.players)
+    .map(
+      (p) =>
+        `<figure>${crewPortrait(p.role)}<figcaption>${escape(p.name)}</figcaption></figure>`,
+    )
+    .join("")}</div>`;
   if (flight?.deck) {
     const d = flight.deck;
-    return `<div class="return-result"><p>${escape(s.result)}</p><p><b>${d.repaired} systems repaired</b> · ${d.missed} escalations · guidance ${d.guidance.filter(Boolean).length}/2</p><p>Hull ${Math.round(d.hull)}% · Oxygen ${Math.round(d.oxygen)}% · ${progress.points} crew points</p><p>Your steering and repairs determined this ending.</p></div>`;
+    return `${crew}<div class="return-result"><p>${escape(s.result)}</p><p><b>${d.repaired} systems repaired</b> · ${d.missed} escalations · guidance ${d.guidance.filter(Boolean).length}/2</p><p>Hull ${Math.round(d.hull)}% · Oxygen ${Math.round(d.oxygen)}% · ${progress.points} crew points</p><p>Your steering and repairs determined this ending.</p></div>`;
   }
-  return `<div class="return-result"><p>${escape(s.result)}</p><p><b>${progress.points} crew points</b> · ${progress.crewPoints[id] ?? 0} contributed by you</p>${flight?.chance === undefined ? "" : `<p>Final success chance <b>${flight.chance}%</b> · Flight tasks passed <b>${flight.passed.filter(Boolean).length} / ${flightTasks.length}</b></p><p>${partSlots.map((slot) => `${progress.installed[slot]} ${partNames[slot].toLowerCase()}`).join(" · ")}</p>`}</div>`;
+  return `${crew}<div class="return-result"><p>${escape(s.result)}</p><p><b>${progress.points} crew points</b> · ${progress.crewPoints[id] ?? 0} contributed by you</p>${flight?.chance === undefined ? "" : `<p>Final success chance <b>${flight.chance}%</b> · Flight tasks passed <b>${flight.passed.filter(Boolean).length} / ${flightTasks.length}</b></p><p>${partSlots.map((slot) => `${progress.installed[slot]} ${partNames[slot].toLowerCase()}`).join(" · ")}</p>`}</div>`;
 }

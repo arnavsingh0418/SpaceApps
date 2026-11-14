@@ -1,5 +1,12 @@
 import { FlightCabin } from "./flightCabin";
 import { WorldMotion } from "./motion";
+import {
+  replaceVisual,
+  disposeModel,
+  updateRoleBadge,
+  updatePanelModel,
+  updateDishModel,
+} from "./modelAssets";
 import { placeLabels } from "./labels";
 import { Terrain } from "./terrain";
 import { Nemi } from "./alien";
@@ -211,7 +218,7 @@ export class World {
     solid(crate(-8.4, -10.6, 0x8b6a45, 0.9));
     const bench = workbench(stations.workbench.x, stations.workbench.z);
     solid(bench.group);
-    this.addLabel("workbench", bench.top, "🔧 WORKBENCH", 1.4);
+    this.addLabel("workbench", bench.group, "🔧 WORKBENCH", 2.6);
     for (const site of sectors)
       this.addLabel(
         `field-${site.id}`,
@@ -263,6 +270,7 @@ export class World {
     }
     this.devil.scale.setScalar(2);
     this.scene.add(this.devil);
+    void replaceVisual(this.devil, "Dust_Devil", { height: 6, batch: true });
     this.renderer.domElement.addEventListener("pointermove", (event) => {
       this.pointer.set(
         (event.clientX / innerWidth) * 2 - 1,
@@ -357,22 +365,25 @@ export class World {
     this.labels.set(id, { obj, el, height });
   }
   remove(id: string, obj: THREE.Object3D) {
+    obj.userData.marsDisposed = true;
     this.scene.remove(obj);
     this.labels.get(id)?.el.remove();
     this.labels.delete(id);
-    obj.traverse((o) => {
-      if (o instanceof THREE.Mesh) {
-        o.geometry.dispose();
-        for (const m of Array.isArray(o.material) ? o.material : [o.material])
-          m.dispose();
-      }
-    });
+    disposeModel(obj);
   }
   update(s: Game, id: string, dt: number) {
     const renderBegin = performance.now();
-    if ((s.phase === "flight" || s.phase === "ended") && s.returnMission?.flight?.deck) {
+    if (
+      (s.phase === "flight" || s.phase === "ended") &&
+      s.returnMission?.flight?.deck
+    ) {
       document.querySelector<HTMLElement>("#labels")!.hidden = true;
-      (this.cabin ??= new FlightCabin(this.renderer)).update(s,id,dt,this.motion.reduced);
+      (this.cabin ??= new FlightCabin(this.renderer)).update(
+        s,
+        id,
+        dt,
+        this.motion.reduced,
+      );
       return;
     }
     document.querySelector<HTMLElement>("#labels")!.hidden = false;
@@ -404,6 +415,7 @@ export class World {
         g!.position.set(p.x, 0, p.z);
       }
       const player = g!;
+      updateRoleBadge(player, p.role);
       const local = p.id === id ? this.local : null;
       if (local) {
         // Your own astronaut: drawn straight from the per-frame controller (no 10 Hz lag).
@@ -488,9 +500,23 @@ export class World {
             : new RoundedBoxGeometry(1.05, 1.05, 1.05, 3, 0.12),
           mat,
         );
-        m.position.y = 0.8;
         m.castShadow = true;
-        group.add(m);
+        const itemVisual = new THREE.Group();
+        itemVisual.position.y = 0.8;
+        itemVisual.add(m);
+        group.add(itemVisual);
+        const asset = {
+          scrap: "Scrap_Metal",
+          ice: "Ice_Chunk",
+          soil: "Soil_Bag",
+          seeds: "Seeds_Packet",
+          antenna: "Antenna_Part",
+          battery: "Battery",
+          circuit: "Circuit_Board",
+          food: "Supply_Crate",
+        }[i.kind as Exclude<Item, "glass">];
+        if (asset)
+          void replaceVisual(itemVisual, asset, { size: 1.25, batch: true });
         const ring = new THREE.Mesh(
           new THREE.TorusGeometry(1.1, 0.05, 4, 28),
           new THREE.MeshBasicMaterial({
@@ -550,7 +576,7 @@ export class World {
           segment.position.x = -0.5 + n * 0.33;
           meter.add(segment);
         }
-        o!.children[1].add(meter);
+        o!.add(meter);
       }
       const m = o!.children[1] as THREE.Mesh;
       // The cells are a texture; dust tints it toward Mars-tan, a tarp makes it dull brown.
@@ -563,7 +589,8 @@ export class World {
         panelColor,
         1 - Math.exp(-dt * 4),
       );
-      const meter = m.getObjectByName("clean-meter");
+      updatePanelModel(o!, p.clean, p.covered);
+      const meter = o!.getObjectByName("clean-meter");
       if (meter) {
         meter.visible =
           !this.menu &&
@@ -608,6 +635,8 @@ export class World {
     this.devil.rotation.y = s.elapsed * 1.5;
     for (const [k, o] of this.buildings) {
       if (k === "hab") continue;
+      if (k === "radio")
+        updateDishModel(o, s.aligned, this.motion.time, this.motion.reduced);
       const t = Math.min(
         1,
         (this.motion.time - Number(o.userData.born || 0)) / 0.65,

@@ -1,0 +1,492 @@
+[
+  {
+    "id": "Scrap_Metal",
+    "url": "models/Scrap_Metal.glb",
+    "category": "pickups",
+    "dimensions": [
+      0.68,
+      0.545,
+      0.317
+    ]
+  },
+  {
+    "id": "Ice_Chunk",
+    "url": "models/Ice_Chunk.glb",
+    "category": "pickups",
+    "dimensions": [
+      0.711,
+      0.48,
+      0.62
+    ]
+  },
+  {
+    "id": "Soil_Bag",
+    "url": "models/Soil_Bag.glb",
+    "category": "pickups",
+    "dimensions": [
+      0.7,
+      0.47,
+      0.38
+    ]
+  },
+  {
+    "id": "Seeds_Packet",
+    "url": "models/Seeds_Packet.glb",
+    "category": "pickups",
+    "dimensions": [
+      0.37,
+      0.151,
+      0.48
+    ]
+  },
+  {
+    "id": "Battery",
+    "url": "models/Battery.glb",
+    "category": "pickups",
+    "dimensions": [
+      0.41,
+      0.298,
+      0.56
+    ]
+  },
+  {
+    "id": "Circuit_Board",
+    "url": "models/Circuit_Board.glb",
+    "category": "pickups",
+    "dimensions": [
+      0.58,
+      0.42,
+      0.18
+    ]
+  },
+  {
+    "id": "Antenna_Part",
+    "url": "models/Antenna_Part.glb",
+    "category": "pickups",
+    "dimensions": [
+      0.48,
+      0.28,
+      0.84
+    ]
+  },
+  {
+    "id": "Supply_Crate",
+    "url": "models/Supply_Crate.glb",
+    "category": "pickups",
+    "dimensions": [
+      0.69,
+      0.574,
+      0.69
+    ]
+  },
+  {
+    "id": "Badge_Engineer",
+    "url": "models/Badge_Engineer.glb",
+    "category": "crew",
+    "dimensions": [
+      0.6,
+      0.6,
+      0.147
+    ]
+  },
+  {
+    "id": "Badge_Scientist",
+    "url": "models/Badge_Scientist.glb",
+    "category": "crew",
+    "dimensions": [
+      0.6,
+      0.6,
+      0.162
+    ]
+  },
+  {
+    "id": "Badge_Comms",
+    "url": "models/Badge_Comms.glb",
+    "category": "crew",
+    "dimensions": [
+      0.6,
+      0.6,
+      0.15
+    ]
+  },
+  {
+    "id": "Greenhouse_Tunnel",
+    "url": "models/Greenhouse_Tunnel.glb",
+    "category": "buildings",
+    "dimensions": [
+      3.56,
+      6.5,
+      2.376
+    ]
+  },
+  {
+    "id": "Plant_Sprout",
+    "url": "models/Plant_Sprout.glb",
+    "category": "plants",
+    "dimensions": [
+      0.284,
+      0.267,
+      0.245
+    ]
+  },
+  {
+    "id": "Plant_Seedling",
+    "url": "models/Plant_Seedling.glb",
+    "category": "plants",
+    "dimensions": [
+      0.474,
+      0.457,
+      0.428
+    ]
+  },
+  {
+    "id": "Plant_Mature",
+    "url": "models/Plant_Mature.glb",
+    "category": "plants",
+    "dimensions": [
+      0.656,
+      0.658,
+      0.656
+    ]
+  },
+  {
+    "id": "Storm_Shelter",
+    "url": "models/Storm_Shelter.glb",
+    "category": "buildings",
+    "dimensions": [
+      6.808,
+      6.79,
+      2.736
+    ]
+  },
+  {
+    "id": "Radio_Dish_Fixed",
+    "url": "models/Radio_Dish_Fixed.glb",
+    "category": "buildings",
+    "dimensions": [
+      2.45,
+      2.034,
+      2.614
+    ]
+  },
+  {
+    "id": "Radio_Dish_Broken",
+    "url": "models/Radio_Dish_Broken.glb",
+    "category": "buildings",
+    "dimensions": [
+      3.185,
+      1.866,
+      3.036
+    ]
+  },
+  {
+    "id": "Science_Beacon",
+    "url": "models/Science_Beacon.glb",
+    "category": "props",
+    "dimensions": [
+      0.706,
+      0.783,
+      1.889
+    ]
+  },
+  {
+    "id": "Resource_Air",
+    "url": "models/Resource_Air.glb",
+    "category": "ui/resource_models",
+    "dimensions": [
+      0.55,
+      0.25,
+      0.928
+    ]
+  },
+  {
+    "id": "Resource_Food",
+    "url": "models/Resource_Food.glb",
+    "category": "ui/resource_models",
+    "dimensions": [
+      0.58,
+      0.54,
+      0.6
+    ]
+  },
+  {
+    "id": "Resource_Radiation",
+    "url": "models/Resource_Radiation.glb",
+    "category": "ui/resource_models",
+    "dimensions": [
+      0.64,
+      0.64,
+      0.138
+    ]
+  },
+  {
+    "id": "Rock_01",
+    "url": "models/Rock_01.glb",
+    "category": "environment",
+    "dimensions": [
+      0.483,
+      0.413,
+      0.333
+    ]
+  },
+  {
+    "id": "Rock_02",
+    "url": "models/Rock_02.glb",
+    "category": "environment",
+    "dimensions": [
+      0.784,
+      0.552,
+      0.408
+    ]
+  },
+  {
+    "id": "Rock_03",
+    "url": "models/Rock_03.glb",
+    "category": "environment",
+    "dimensions": [
+      1.198,
+      0.926,
+      0.66
+    ]
+  },
+  {
+    "id": "Rock_04",
+    "url": "models/Rock_04.glb",
+    "category": "environment",
+    "dimensions": [
+      1.888,
+      1.45,
+      0.979
+    ]
+  },
+  {
+    "id": "Rock_05",
+    "url": "models/Rock_05.glb",
+    "category": "environment",
+    "dimensions": [
+      2.4,
+      1.626,
+      1.481
+    ]
+  },
+  {
+    "id": "Rock_06",
+    "url": "models/Rock_06.glb",
+    "category": "environment",
+    "dimensions": [
+      3.507,
+      2.372,
+      1.831
+    ]
+  },
+  {
+    "id": "Crater_Rim_01",
+    "url": "models/Crater_Rim_01.glb",
+    "category": "environment",
+    "dimensions": [
+      5.15,
+      2.465,
+      0.911
+    ]
+  },
+  {
+    "id": "Crater_Rim_02",
+    "url": "models/Crater_Rim_02.glb",
+    "category": "environment",
+    "dimensions": [
+      7.283,
+      2.958,
+      1.108
+    ]
+  },
+  {
+    "id": "Crater_Rim_03",
+    "url": "models/Crater_Rim_03.glb",
+    "category": "environment",
+    "dimensions": [
+      3.176,
+      2.21,
+      1.276
+    ]
+  },
+  {
+    "id": "Cliff_01",
+    "url": "models/Cliff_01.glb",
+    "category": "environment",
+    "dimensions": [
+      3.392,
+      1.29,
+      2.2
+    ]
+  },
+  {
+    "id": "Cliff_02",
+    "url": "models/Cliff_02.glb",
+    "category": "environment",
+    "dimensions": [
+      2.323,
+      1.29,
+      2.187
+    ]
+  },
+  {
+    "id": "Lava_Tube_Entrance",
+    "url": "models/Lava_Tube_Entrance.glb",
+    "category": "environment",
+    "dimensions": [
+      4.296,
+      3.742,
+      2.091
+    ]
+  },
+  {
+    "id": "Dust_Devil",
+    "url": "models/Dust_Devil.glb",
+    "category": "environment",
+    "dimensions": [
+      1.8,
+      1.785,
+      3.15
+    ]
+  },
+  {
+    "id": "Robotic_Lander_Wreck",
+    "url": "models/Robotic_Lander_Wreck.glb",
+    "category": "environment",
+    "dimensions": [
+      2.935,
+      2.575,
+      2.105
+    ]
+  },
+  {
+    "id": "Habitat_With_Workbench",
+    "url": "models/Habitat_With_Workbench.glb",
+    "category": "buildings",
+    "dimensions": [
+      7.7,
+      10.365,
+      4.145
+    ]
+  },
+  {
+    "id": "Astronaut_Orange",
+    "url": "models/Astronaut_Orange.glb",
+    "category": "crew",
+    "dimensions": [
+      1.104,
+      0.886,
+      2.003
+    ]
+  },
+  {
+    "id": "Astronaut_Blue",
+    "url": "models/Astronaut_Blue.glb",
+    "category": "crew",
+    "dimensions": [
+      1.104,
+      0.886,
+      2.003
+    ]
+  },
+  {
+    "id": "Astronaut_Yellow",
+    "url": "models/Astronaut_Yellow.glb",
+    "category": "crew",
+    "dimensions": [
+      1.104,
+      0.886,
+      2.003
+    ]
+  },
+  {
+    "id": "Badge_Medic",
+    "url": "models/Badge_Medic.glb",
+    "category": "crew",
+    "dimensions": [
+      0.6,
+      0.6,
+      0.13
+    ]
+  },
+  {
+    "id": "Resource_Power",
+    "url": "models/Resource_Power.glb",
+    "category": "ui/resource_models",
+    "dimensions": [
+      0.461,
+      0.687,
+      0.1
+    ]
+  },
+  {
+    "id": "Solar_Panels_Dusty",
+    "url": "models/Solar_Panels_Dusty.glb",
+    "category": "buildings",
+    "dimensions": [
+      6.26,
+      3.534,
+      2.502
+    ]
+  },
+  {
+    "id": "Solar_Panels_Clean",
+    "url": "models/Solar_Panels_Clean.glb",
+    "category": "buildings",
+    "dimensions": [
+      6.26,
+      3.534,
+      2.502
+    ]
+  },
+  {
+    "id": "Astronaut_Green",
+    "url": "models/Astronaut_Green.glb",
+    "category": "crew",
+    "dimensions": [
+      1.104,
+      0.886,
+      2.003
+    ]
+  },
+  {
+    "id": "Rocket_Return",
+    "url": "models/Rocket_Return.glb",
+    "category": "vehicles",
+    "dimensions": [
+      2.97,
+      2.97,
+      5.56
+    ]
+  },
+  {
+    "id": "Rocket_Crashed",
+    "url": "models/Rocket_Crashed.glb",
+    "category": "vehicles",
+    "dimensions": [
+      7.852,
+      4.013,
+      2.896
+    ]
+  },
+  {
+    "id": "Astronaut_Orange_Animated",
+    "url": "models/Astronaut_Orange_Animated.glb",
+    "category": "crew",
+    "dimensions": [
+      1.07,
+      0.886,
+      2.003
+    ]
+  },
+  {
+    "id": "Workbench",
+    "url": "models/Workbench.glb",
+    "category": "props",
+    "dimensions": [
+      3.02,
+      1.34,
+      2.31
+    ]
+  }
+]

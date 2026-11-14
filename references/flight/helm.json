@@ -1,8 +1,8 @@
 {
   "coordinates": "ship deck meters; +x right, +z aft; helm at (0,-8)",
   "cabin": {
-    "earthScale": 5.04356296296282,
-    "progress": 0.7122222222222055,
+    "earthScale": 5.057824074073931,
+    "progress": 0.7138888888888721,
     "arrival": 0,
     "starsMoving": true,
     "actors": [
@@ -112,21 +112,21 @@
       "passed": [],
       "baseChance": 68,
       "deck": {
-        "time": 128.199999999997,
-        "hull": 91.80000000000031,
+        "time": 128.499999999997,
+        "hull": 91.65000000000032,
         "oxygen": 100,
         "power": 100,
         "heat": 25,
         "course": {
-          "x": -0.02473244373047346,
-          "y": 0.013812366565868374
+          "x": -0.026913955125928524,
+          "y": 0.015045365805470603
         },
         "steer": {
           "x": 0,
           "y": 0
         },
         "pilot": "solo",
-        "pilotAt": 128.199999999997,
+        "pilotAt": 128.499999999997,
         "autopilot": 0,
         "guidance": [
           true,
@@ -248,8 +248,8 @@
     "actors": []
   },
   "render": {
-    "drawCalls": 165,
-    "triangles": 26996,
+    "drawCalls": 161,
+    "triangles": 19592,
     "stepFps": 60,
     "frameMs": 0
   }

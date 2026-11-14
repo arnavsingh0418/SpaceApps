@@ -13,8 +13,9 @@ import { Button, Panel, KeyChip, escape } from "./components";
 import { expeditionMap } from "./expedition";
 import { quizQuestion } from "./quiz";
 import { returnReport } from "./returnMission";
+import { artURL, itemArt, buildingArt, crewPortrait } from "./modelArt";
 export function titleScreen(hasSave: boolean) {
-  return `<div class="menu-top"><b>◈ MARS EXPLORATION PROGRAM</b><span>MISSION 001 / GALE CRATER</span></div><section class="title-screen"><div class="eyebrow">A LITTLE CREW. A BIG PLANET.</div><h1>OUTPOST<br><span>DOWN</span><i>↘</i></h1><div class="menu-actions">${Button("START MISSION ↗", "solo")}${hasSave ? Button("CONTINUE", "resume", "", true) : ""}${Button("PLAY WITH FRIENDS", "crew", "", true)}</div><div class="menu-links">${Button("HOW TO PLAY", "help", "", true)}${Button("NASA DATA", "sources", "", true)}</div></section><div class="mission-stamp"><span>5.4° S / 137.8° E</span><b>GALE CRATER</b></div><footer class="menu-footer">REBUILD YOUR SHIP / BRING THE CREW HOME · 15 SOLS</footer>`;
+  return `<img class="menu-model-art" src="${artURL("title-hero.png")}" alt="Mars crew beside their crashed rocket"><div class="menu-top"><b>◈ MARS EXPLORATION PROGRAM</b><span>MISSION 001 / GALE CRATER</span></div><section class="title-screen"><div class="eyebrow">A LITTLE CREW. A BIG PLANET.</div><h1>OUTPOST<br><span>DOWN</span><i>↘</i></h1><div class="menu-actions">${Button("START MISSION ↗", "solo")}${hasSave ? Button("CONTINUE", "resume", "", true) : ""}${Button("PLAY WITH FRIENDS", "crew", "", true)}</div><div class="menu-links">${Button("HOW TO PLAY", "help", "", true)}${Button("NASA DATA", "sources", "", true)}</div></section><div class="mission-stamp"><span>5.4° S / 137.8° E</span><b>GALE CRATER</b></div><footer class="menu-footer">REBUILD YOUR SHIP / BRING THE CREW HOME · 15 SOLS</footer>`;
 }
 export function pauseScreen(
   s: Game,
@@ -55,12 +56,12 @@ export function workbench(s: Game, id: string, index: number) {
     p = s.players[id],
     built = s.built.includes(r.id),
     locked = !s.learned.includes(r.fact);
-  return `<div class="recipe-tabs">${recipes.map((r, i) => `<button class="${i === index ? "selected" : ""}" data-do="recipe" data-index="${i}" aria-label="${r.name}">${r.icon}</button>`).join("")}</div><h3>${r.name}</h3><div class="ingredients">${Object.entries(
+  return `<div class="recipe-tabs">${recipes.map((r, i) => `<button class="${i === index ? "selected" : ""}" data-do="recipe" data-index="${i}" aria-label="${r.name}">${buildingArt(r.id, r.icon)}</button>`).join("")}</div><h3>${r.name}</h3><div class="ingredients">${Object.entries(
     r.cost,
   )
     .map(
       ([k, n]) =>
-        `<span class="${(s.stock[k as Item] || 0) + (p.bag[k as Item] || 0) >= n ? "enough" : ""}">${icons[k as Item]} ${n}</span>`,
+        `<span class="${(s.stock[k as Item] || 0) + (p.bag[k as Item] || 0) >= n ? "enough" : ""}">${itemArt(k as Item)} ${n}</span>`,
     )
     .join(
       "",
@@ -70,7 +71,7 @@ export function workbench(s: Game, id: string, index: number) {
     .filter(([, n]) => n)
     .map(
       ([k, n]) =>
-        `<span title="${itemNames[k as Item]}">${icons[k as Item]} ${n}</span>`,
+        `<span title="${itemNames[k as Item]}">${itemArt(k as Item)} ${n}</span>`,
     )
     .join("")}</div>`;
 }

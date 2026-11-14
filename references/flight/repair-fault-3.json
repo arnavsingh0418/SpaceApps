@@ -1,8 +1,8 @@
 {
   "coordinates": "ship deck meters; +x right, +z aft; helm at (0,-8)",
   "cabin": {
-    "earthScale": 3.493340740740713,
-    "progress": 0.4988888888888843,
+    "earthScale": 3.503335185185157,
+    "progress": 0.5005555555555509,
     "arrival": 0,
     "starsMoving": true,
     "actors": [
@@ -36,7 +36,7 @@
     "task": {
       "kind": "flightRepair",
       "target": "fault-3",
-      "at": 86.19999999999938
+      "at": 86.49999999999936
     }
   },
   "nearby": [
@@ -126,21 +126,21 @@
       "passed": [],
       "baseChance": 68,
       "deck": {
-        "time": 89.79999999999917,
-        "hull": 79.80000000000031,
+        "time": 90.09999999999916,
+        "hull": 79.65000000000032,
         "oxygen": 100,
         "power": 100,
         "heat": 25,
         "course": {
-          "x": -0.1375066267282444,
-          "y": -0.16277133483547607
+          "x": -0.13644767212778222,
+          "y": -0.16066485485181717
         },
         "steer": {
           "x": 0,
           "y": 0
         },
         "pilot": "",
-        "pilotAt": 5.599999999999996,
+        "pilotAt": 5.899999999999995,
         "autopilot": 0,
         "guidance": [
           true,
@@ -251,8 +251,8 @@
     "actors": []
   },
   "render": {
-    "drawCalls": 167,
-    "triangles": 27072,
+    "drawCalls": 163,
+    "triangles": 19668,
     "stepFps": 60,
     "frameMs": 0
   }

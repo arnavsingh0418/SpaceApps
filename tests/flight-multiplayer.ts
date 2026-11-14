@@ -74,6 +74,10 @@ class Client {
 }
 const a = new Client(),
   b = new Client();
+const heartbeat = setInterval(() => {
+  for (const c of [a, b])
+    if (c.ws.readyState === WebSocket.OPEN) c.send({ type: "ping" });
+}, 5000);
 async function deckWalk(c: Client, x: number, z: number) {
   for (const [axis, target] of [
     ["x", x],
@@ -130,7 +134,10 @@ try {
     "installed",
   );
   a.action({ type: "launchShip" });
-  await a.until(() => a.state!.phase === "flight", `host launch (${a.state!.phase}, elapsed ${a.state!.elapsed})`);
+  await a.until(
+    () => a.state!.phase === "flight",
+    `host launch (${a.state!.phase}, elapsed ${a.state!.elapsed})`,
+  );
   await b.until(() => b.state!.phase === "flight", "shared launch");
   await Promise.all([deckWalk(a, 0, -8), deckWalk(b, -8, 0)]);
   a.action({ type: "takeHelm" });
@@ -162,8 +169,16 @@ try {
     () => b.state!.players[b.id].task?.kind === "flightRepair",
     "repair starts",
   );
-  await new Promise((r) => setTimeout(r, 3300));
+  const repairAt = b.state!.players[b.id].task!.at;
+  await b.until(
+    () => b.state!.elapsed - repairAt >= 3.1,
+    "server repair duration",
+  );
   b.action({ type: "finishFlightRepair", fault: fault.id, value: "0,1,2" });
+  await b.until(
+    () => b.state!.returnMission!.flight!.deck!.repaired === 1,
+    "engineer repair confirmation",
+  );
   await a.until(
     () => a.state!.returnMission!.flight!.deck!.repaired === 1,
     "shared repair",
@@ -178,7 +193,7 @@ try {
     "PASS: two WebSocket clients salvage, install, launch, walk inside, steer and repair concurrently with shared ownership and credit.",
   );
 } finally {
+  clearInterval(heartbeat);
   a.ws.close();
   b.ws.close();
 }
-
