@@ -3,22 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SpaceApps — Mars terrain</title>
+    <meta
+      name="description"
+      content="Explore the first SpaceApps Mars outpost: a habitat, solar array and crafting bench on the red planet."
+    />
+    <title>SpaceApps — Mars Outpost</title>
     <link rel="icon" href="data:," />
-    <style>
-      * { box-sizing: border-box; }
-      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
-      body { background: #e0a982; color: #fff4e7; font: 14px/1.5 system-ui, sans-serif; }
-      canvas { display: block; width: 100%; height: 100%; }
-      header { position: absolute; top: 24px; left: 28px; pointer-events: none; text-shadow: 0 2px 6px #542719; }
-      h1 { margin: 0; font-size: clamp(24px, 5vw, 38px); letter-spacing: -.04em; }
-      p { margin: 2px 0 0; }
-      #error { position: absolute; inset: auto 20px 20px; padding: 16px; background: #3a211d; }
-    </style>
   </head>
   <body>
-    <canvas id="world" aria-label="Mars terrain with a flat landing area and scattered rocks"></canvas>
-    <header><h1>SpaceApps</h1><p>Mars terrain</p></header>
+    <canvas
+      id="world"
+      aria-label="Interactive Mars outpost. Drag to orbit, scroll to zoom, or use the station buttons."
+      tabindex="0"
+    ></canvas>
+    <header>
+      <div class="wordmark">
+        <span class="emblem" aria-hidden="true">✧</span>
+        <div>
+          <h1>SpaceApps</h1>
+          <p>Beyond the blue planet</p>
+        </div>
+      </div>
+      <div class="sol">MARS <strong> / </strong> SOL 001</div>
+    </header>
+    <section id="panel" aria-label="Explore the outpost">
+      <span id="station-tag">OUTPOST 01 / GALE CRATER</span>
+      <h2 id="station-title">A new home on Mars</h2>
+      <p id="station-description">
+        Explore your crew’s first outpost. A habitat to call home, sunlight for
+        power and a workbench for the next big idea.
+      </p>
+      <nav aria-label="Stations">
+        <button data-focus="habitat" aria-pressed="false">
+          <img src="./mars/icons/build_shelter.png" alt="" />Habitat
+        </button>
+        <button data-focus="solar" aria-pressed="false">
+          <img src="./mars/icons/build_solar_panel.png" alt="" />Solar array
+        </button>
+        <button data-focus="workbench" aria-pressed="false">
+          <img src="./mars/icons/scrap_metal.png" alt="" />Workbench
+        </button>
+      </nav>
+      <button id="reset" data-focus="overview" aria-pressed="true">
+        ↗ View whole outpost
+      </button>
+      <p id="load-status" role="status">Preparing your outpost…</p>
+    </section>
+    <div class="help">
+      <strong>Make yourself at home.</strong><br />Drag to orbit · Scroll or
+      pinch to zoom<br />Right-drag to pan · R to reset
+    </div>
     <p id="error" role="alert" hidden></p>
     <script type="module" src="/src/main.ts"></script>
   </body>
