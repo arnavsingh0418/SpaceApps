@@ -103,6 +103,11 @@ export class RoverView {
       if (this.last)
         this.travel += (x - this.last.x) * -s + (z - this.last.z) * -c;
     }
+    if (r.gust && !local) {
+      this.group.position.y += r.gust.height;
+      this.group.rotation.x += Math.sin(r.heading * 3) * Math.min(0.7, r.gust.height * 0.24);
+      this.group.rotation.z += Math.cos(r.heading * 2) * Math.min(0.8, r.gust.height * 0.28);
+    }
     if (local) this.frontSteer = local.steer;
     else if (this.last) {
       const travelled =

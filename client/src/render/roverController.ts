@@ -1,5 +1,6 @@
 import { ROVER, roverPoint, type RoverState } from "../../../shared/src/rover";
 import { WORLD } from "../../../shared/src/sim";
+import { steepRise } from "./controller";
 export type RoverGround = (x: number, z: number, fromY?: number) => number;
 export class RoverController {
   x = 0;
@@ -53,9 +54,12 @@ export class RoverController {
         z = this.z - Math.cos(heading) * this.speed * h;
       const candidate = { x, z, heading };
       const y = ground(x, z, this.y);
+      const movement = Math.hypot(x - this.x, z - this.z);
+      const probe = this.speed === 0 ? y : ground(this.x - Math.sin(heading) * Math.sign(this.speed), this.z - Math.cos(heading) * Math.sign(this.speed), this.y);
       let unsafe =
         Math.hypot(x - WORLD.x, z - WORLD.z) > WORLD.r - 5 ||
-        Math.abs(y - this.y) > 0.6;
+        steepRise(Math.abs(y - this.y), movement, 0.08) ||
+        steepRise(probe - this.y, 1);
       // Sample the complete footprint, including side sills, wheel contacts and roof clearance.
       const heights: number[] = [];
       for (const dz of [-2.7, 0, 2.7])

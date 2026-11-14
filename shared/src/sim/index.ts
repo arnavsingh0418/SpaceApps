@@ -17,6 +17,7 @@ import { alienAction } from "./alienActions";
 import { fieldPartRewards, recoverPart } from "../shipRewards";
 import { flightAction, tickDeckFlight } from "../flight";
 import { movePastPlayers } from "../playerCollision";
+import { blowDustDevil, type Gust } from "../dustDevil";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -63,6 +64,7 @@ export type Player = Point & {
   role: Role;
   bag: Bag;
   selectedSlot?: number;
+  gust?: Gust;
   task?: { kind: string; target: string; at: number };
   move: Point;
   joined: number;
@@ -355,6 +357,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   if (["boardRover", "exitRover", "takeRover", "driveRover"].includes(a.type))
     return roverAction(s, id, a, WORLD);
   if (riding && ["move", "pos", "jump"].includes(a.type)) return;
+  if (p.gust && ["move", "pos", "jump"].includes(a.type)) return;
   if (riding && !["chat", "role", "power", "next"].includes(a.type))
     return "Park and exit the rover to work at a field site.";
   if (
@@ -841,8 +844,35 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
   }
   if (s.phase !== "day" || !advanceSurface) return;
   s.clock += dt;
+  s.devil = {
+    x: 18 * L * Math.cos(s.elapsed * 0.045),
+    z: 16 * L * Math.sin(s.elapsed * 0.045),
+  };
+  const rover = s.rover;
+  if (rover) {
+    blowDustDevil(rover, s.devil, s.elapsed, dt, true);
+    if (rover.gust) {
+      const edge = { ...WORLD, r: WORLD.r - 5 };
+      const dx = rover.x - edge.x, dz = rover.z - edge.z;
+      const distance = Math.hypot(dx, dz);
+      if (distance > edge.r) {
+        rover.x = edge.x + dx / distance * edge.r;
+        rover.z = edge.z + dz / distance * edge.r;
+      }
+      rover.heading += dt * Math.min(2.6, Math.hypot(rover.gust.vx, rover.gust.vz) * 0.18);
+      rover.speed = 0;
+      tickRover(s);
+    }
+  }
   for (const p of Object.values(s.players)) {
     if (p.hab || (s.rover && roverSeat(s.rover, p.id) >= 0)) continue;
+    const wasBlown = !!p.gust;
+    blowDustDevil(p, s.devil, s.elapsed, dt);
+    if (p.gust || wasBlown) {
+      p.move = { x: 0, z: 0 };
+      clampToWorld(p);
+      continue;
+    }
     // A client that is reporting its own position drives this player directly.
     if (p.posAt !== undefined && s.elapsed - p.posAt < 0.5) continue;
     const speed = gaitSpeed(p.gait, s.allocation.heat < 1);
@@ -856,10 +886,6 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
     );
     clampToWorld(p);
   }
-  s.devil = {
-    x: 18 * L * Math.cos(s.elapsed * 0.045),
-    z: 16 * L * Math.sin(s.elapsed * 0.045),
-  };
   if (s.elapsed >= s.devilDropAt) {
     s.devilDropAt = s.elapsed + 3;
     for (const it of s.items) {

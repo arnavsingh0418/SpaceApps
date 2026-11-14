@@ -1,5 +1,9 @@
 import { B, WORLD, clampToWorld, gaitSpeed, type Gait } from "../../../shared/src/sim";
 
+export function steepRise(rise: number, distance: number, clearance = 0.1) {
+  return rise > distance * 0.85 + clearance;
+}
+
 export type MoveInput = {
   x: number; // -1..1, +x right
   z: number; // -1..1, +z toward the camera
@@ -115,11 +119,23 @@ export class LocalController {
     }
     // Solid things (rocks, cave walls, buildings): slide along them like Minecraft.
     // If you are somehow already inside something, let you walk out.
-    if ((nx !== this.x || nz !== this.z) && !collides(this.x, this.z, this.y) && collides(nx, nz, this.y)) {
-      if (!collides(nx, this.z, this.y)) {
+    const blocked = (x: number, z: number) => {
+      const dx = x - this.x, dz = z - this.z, distance = Math.hypot(dx, dz);
+      if (distance < 0.00001) return false;
+      const rise = groundAt(x, z, this.y) - this.y;
+      if (steepRise(rise, distance)) return true;
+      if (this.grounded && rise > 0.001) {
+        const ahead = 0.55;
+        const floor = groundAt(this.x + dx / distance * ahead, this.z + dz / distance * ahead, this.y);
+        if (steepRise(floor - this.y, ahead)) return true;
+      }
+      return collides(x, z, this.y) && !collides(this.x, this.z, this.y);
+    };
+    if (blocked(nx, nz)) {
+      if (!blocked(nx, this.z)) {
         nz = this.z;
         this.vz = 0;
-      } else if (!collides(this.x, nz, this.y)) {
+      } else if (!blocked(this.x, nz)) {
         nx = this.x;
         this.vx = 0;
       } else {

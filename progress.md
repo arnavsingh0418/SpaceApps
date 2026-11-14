@@ -1,5 +1,11 @@
 Original prompt: Build Outpost Down in https://github.com/AmoghAtreya/TEST_nasa.git from the supplied NASA mission brief; then apply CODEX_REDESIGN_PROMPT.md to the existing game, preserving simulation rules.
 
+## Surface tracks and weather
+- Bootprints alternate by distance walked and rover tires leave two lines of tread. Marks follow the local ground and last up to 85 seconds before weathering away, with fixed rendering budgets.
+- Dust devils continuously push, spin, and lift explorers and the rover. The crew server applies the same forces for every client, and seated players stay with the vehicle. Forces increase toward the vortex core.
+- Uphill movement checks the terrain rise and slope ahead for both walking and driving. A seven-second screen-dust burst begins at storm impact; reduced motion uses static motes. The habitat interior is sheltered.
+- Reproduce the browser checks with the development server and `node scripts/surface-weather-qa.mjs`. Captures are written under `artifacts/surface-weather/`.
+
 ## Multiplayer inventory and collisions
 - Integrated the rover and sandstorm updates from main. Each player’s own selected slot drives their held model for everyone. Empty slots clear the model, and client and server movement both check against other players on Mars and aboard the ship.
 - Added an HTTPS fallback into the same rooms when the initial WebSocket connection fails. Guests see a waiting screen when the host is setting power. The browser exercise deliberately blocks the guest WebSocket and verifies independent slot selection after the host starts.

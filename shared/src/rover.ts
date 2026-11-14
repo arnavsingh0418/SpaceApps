@@ -1,4 +1,5 @@
 import type { Game, Action } from "./sim";
+import type { Gust } from "./dustDevil";
 
 export const ROVER = {
   spawn: { x: 14, z: -17 },
@@ -12,6 +13,7 @@ export const ROVER = {
   boardRadius: 5.7,
 };
 export type RoverState = {
+  gust?: Gust;
   x: number;
   z: number;
   heading: number;
@@ -90,7 +92,7 @@ export function roverAction(
     if (seat >= 0) return;
     if (Math.hypot(p.x - r.x, p.z - r.z) > ROVER.boardRadius)
       return "Move closer to the rover.";
-    if (Math.abs(r.speed) > 0.5) return "Wait for the rover to stop.";
+    if (r.gust || Math.abs(r.speed) > 0.5) return "Wait for the rover to stop.";
     if (!r.driver) {
       r.driver = id;
       r.credit = 0.8;
@@ -113,7 +115,7 @@ export function roverAction(
   }
   if (a.type === "exitRover") {
     if (seat < 0) return;
-    if (Math.abs(r.speed) > 0.5) return "Brake to a stop before exiting.";
+    if (r.gust || Math.abs(r.speed) > 0.5) return "Wait for the rover to stop before exiting.";
     const x = Number(a.x),
       z = Number(a.z);
     if (
@@ -134,6 +136,7 @@ export function roverAction(
   }
   if (a.type === "driveRover") {
     if (r.driver !== id) return "Only the rover driver can steer.";
+    if (r.gust) return;
     const x = Number(a.x),
       z = Number(a.z),
       heading = Number(a.heading),

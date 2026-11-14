@@ -6,6 +6,8 @@ import { roverState, roverSeat, angleDelta } from "../../../shared/src/rover";
 import { FlightCabin } from "./flightCabin";
 import { WorldMotion } from "./motion";
 import { SANDSTORM_LAYER } from "./sandstorm";
+import { SurfaceTracks } from "./surfaceTracks";
+import { ScreenDust } from "./screenDust";
 import {
   replaceVisual,
   disposeModel,
@@ -94,6 +96,8 @@ export class World {
     { obj: THREE.Object3D; el: HTMLElement; height: number }
   >();
   devil = new THREE.Group();
+  tracks = new SurfaceTracks(this.scene);
+  screenDust = new ScreenDust();
   objectiveTarget: { x: number; z: number } | null = null;
   objectiveMarker = new THREE.Group();
   hovered = "";
@@ -401,6 +405,7 @@ export class World {
       s.returnMission?.flight?.deck
     ) {
       this.firstPerson = true;
+      this.screenDust.update(0, 0, this.motion.reduced);
       document.querySelector<HTMLElement>("#labels")!.hidden = true;
       (this.cabin ??= new FlightCabin(this.renderer)).update(
         s,
@@ -414,6 +419,8 @@ export class World {
     }
     this.firstPerson = false;
     if (s.players[id]?.hab && !this.menu && s.phase !== "flight" && s.phase !== "ended") {
+      this.screenDust.update(0, 0, this.motion.reduced);
+      this.tracks.forget(id);
       document.querySelector<HTMLElement>("#labels")!.hidden = true;
       this.habInterior.update(s,id,dt,this.local,this.yaw,this.pitch,this.zoom,this.motion);
       this.frameMs = performance.now() - renderBegin;
@@ -421,6 +428,7 @@ export class World {
     }
     document.querySelector<HTMLElement>("#labels")!.hidden = false;
     if (this.lastSeed !== s.seed) {
+      this.tracks.reset();
       for (const [k, o] of this.buildings)
         if (k !== "hab") {
           this.remove(k, o);
@@ -436,6 +444,9 @@ export class World {
     this.motion.update(s, id, this.actors, dt);
     const rover = roverState(s);
     this.rover.update(rover, this.terrain, dt, rover.driver === id ? this.localRover : null);
+    const vehicle = this.rover.group;
+    this.tracks.trace("rover", vehicle.position.x, vehicle.position.y, vehicle.position.z,
+      vehicle.rotation.y, !this.menu && s.phase === "day" && !rover.gust, this.terrain, s.elapsed, true);
     const aboard = roverSeat(rover, id) >= 0;
     if (aboard) {
       if (this.previousRoverHeading !== null) this.yaw += angleDelta(this.rover.group.rotation.y, this.previousRoverHeading);
@@ -443,6 +454,7 @@ export class World {
     } else this.previousRoverHeading = null;
     for (const [key, obj] of this.actors)
       if (!s.players[key]) {
+        this.tracks.forget(key);
         this.remove(key, obj);
         this.actors.delete(key);
       }
@@ -456,10 +468,14 @@ export class World {
       }
       const player = g!;
       player.visible = !p.hab;
-      if (p.hab) continue;
+      if (p.hab) {
+        this.tracks.forget(p.id);
+        continue;
+      }
       updateRoleBadge(player, p.role);
       const seat = roverSeat(rover, p.id);
       if (seat >= 0) {
+        this.tracks.forget(p.id);
         const at = new THREE.Vector3(seat % 2 === 0 ? -.86 : .86, 1.35, seat < 2 ? -1 : .9);
         this.rover.group.localToWorld(at);
         player.position.copy(at);
@@ -476,6 +492,8 @@ export class World {
       if (local) {
         // Your own astronaut: drawn straight from the per-frame controller (no 10 Hz lag).
         player.position.set(local.x, local.y, local.z);
+        this.tracks.trace(p.id, local.x, local.y, local.z, local.heading,
+          !this.menu && s.phase === "day" && local.grounded, this.terrain, s.elapsed);
         this.motion.actor(player, p, s, dt, {
           speed: local.speed,
           gait: local.gait,
@@ -525,16 +543,22 @@ export class World {
       );
       const airtime = (2 * B.jumpSpeed) / B.marsGravity;
       const since = s.elapsed - (p.jumpAt ?? -99);
-      const lift = since < airtime ? jumpArc(since) : 0;
+      const lift = p.gust?.height ?? (since < airtime ? jumpArc(since) : 0);
       player.position.set(x, this.terrain.heightAt(x, z) + lift, z);
+      this.tracks.trace(p.id, x, player.position.y, z, player.rotation.y,
+        !this.menu && s.phase === "day" && lift <= 0 && !p.gust, this.terrain, s.elapsed);
       this.motion.actor(player, p, s, dt, {
         speed: Number(player.userData.seen),
         gait: p.gait || "walk",
         grounded: lift <= 0,
-        vy: B.jumpSpeed - B.marsGravity * since,
+        vy: p.gust?.vy ?? (B.jumpSpeed - B.marsGravity * since),
         landAgo: since >= airtime ? since - airtime : 99,
         landImpact: 0.4,
       });
+      if (p.gust && !this.motion.reduced) {
+        player.rotation.y = s.elapsed * 5;
+        player.rotation.z = Math.sin(s.elapsed * 6) * Math.min(0.85, lift * 0.3);
+      }
     }
     for (const [key, obj] of this.pickups)
       if (!s.items.some((i) => i.id === key)) {
@@ -873,6 +897,11 @@ export class World {
         3.3 + (this.motion.reduced ? 0 : Math.sin(this.motion.time * 4) * 0.12);
     }
     const weather = this.menu ? 0 : this.motion.storm;
+    const impact = s.event?.kind === "storm" ? s.clock - s.event.at - B.stormWarningSeconds : -1;
+    const burst = !this.menu && s.phase === "day" && impact >= 0 && impact < 7
+      ? Math.min(1, (impact + 0.1) * 4, (7 - impact) / 2) : 0;
+    this.screenDust.update(s.clock, burst, this.motion.reduced);
+    this.tracks.update(s.elapsed);
     // A shallow weather volume follows the local terrain height. It stays out of
     // collision and shared simulation; the same storm event drives every client.
     const weatherOrigin = this.actors.get(id)?.position || this.camera.position;
@@ -887,8 +916,8 @@ export class World {
       this.motion.reduced,
     );
     const fog = this.scene.fog as THREE.Fog;
-    fog.near = THREE.MathUtils.lerp(110, 18, weather);
-    fog.far = THREE.MathUtils.lerp(620, 145, weather);
+    fog.near = THREE.MathUtils.lerp(THREE.MathUtils.lerp(110, 18, weather), 7, burst);
+    fog.far = THREE.MathUtils.lerp(THREE.MathUtils.lerp(620, 145, weather), 32, burst);
     this.renderer.render(this.scene, this.camera);
     this.frameMs = performance.now() - renderBegin;
     this.fps = this.fps * 0.95 + 0.05 / Math.max(0.001, dt);
