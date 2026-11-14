@@ -47,18 +47,32 @@
       <button id="reset" data-focus="overview" aria-pressed="true">
         ↗ View whole outpost
       </button>
-      <details id="solar-quiz" hidden>
+      <details class="station-quiz" data-quiz="solar" hidden>
         <summary>Solar power quiz</summary>
         <form>
           <fieldset>
             <legend>What helps a dusty panel make more power?</legend>
             <label><input type="radio" name="answer" value="1" required /> Add more dust</label>
-            <label><input type="radio" name="answer" value="0" /> Clean off its dust</label>
+            <label><input type="radio" name="answer" value="0" data-correct /> Clean off its dust</label>
             <label><input type="radio" name="answer" value="2" /> Put it in the dark</label>
           </fieldset>
           <button type="submit">Check answer</button>
-          <p id="solar-feedback" role="status"></p>
+          <p role="status" data-success="Correct. Dust blocks sunlight, so removing it helps the panels produce more power."></p>
           <a href="https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/" target="_blank" rel="noopener noreferrer">NASA rover science ↗</a>
+        </form>
+      </details>
+      <details class="station-quiz" data-quiz="habitat" hidden>
+        <summary>Radiation shielding quiz</summary>
+        <form>
+          <fieldset>
+            <legend>What helps shield the crew?</legend>
+            <label><input type="radio" name="answer" value="2" required /> A louder radio</label>
+            <label><input type="radio" name="answer" value="1" /> A bigger window</label>
+            <label><input type="radio" name="answer" value="0" data-correct /> Water and soil</label>
+          </fieldset>
+          <button type="submit">Check answer</button>
+          <p role="status" data-success="Radiation is energy that can harm living things. Water, ice, and Mars soil can help shield a crew, but cannot stop every particle."></p>
+          <a href="https://www.nasa.gov/humans-in-space/space-radiation/" target="_blank" rel="noopener noreferrer">NASA space radiation ↗</a>
         </form>
       </details>
       <p id="load-status" role="status">Preparing your outpost…</p>

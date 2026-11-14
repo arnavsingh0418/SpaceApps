@@ -70,25 +70,28 @@ try {
   const description = document.querySelector<HTMLParagraphElement>(
     "#station-description",
   )!;
-  const quiz = document.querySelector<HTMLDetailsElement>("#solar-quiz")!;
-  const form = quiz.querySelector<HTMLFormElement>("form")!;
-  const feedback = quiz.querySelector<HTMLElement>("#solar-feedback")!;
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const correct = new FormData(form).get("answer") === "0";
-    feedback.textContent = correct
-      ? "Correct. Dust blocks sunlight, so removing it helps the panels produce more power."
-      : "Try again. Which choice lets more sunlight reach the panel?";
+  const quizzes = Array.from(document.querySelectorAll<HTMLDetailsElement>("[data-quiz]"), (quiz) => {
+    const form = quiz.querySelector<HTMLFormElement>("form")!;
+    const feedback = quiz.querySelector<HTMLElement>("[data-success]")!;
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      feedback.textContent = form.querySelector("[data-correct]:checked")
+        ? feedback.dataset.success!
+        : "Try again. Choose another answer.";
+    });
+    return { quiz, form, feedback };
   });
   let selected = "overview";
   function focus(key: string) {
     const station = stations.find((s) => s.key === key);
     selected = station?.key || "overview";
-    quiz.hidden = selected !== "solar";
-    if (quiz.hidden) {
-      quiz.open = false;
-      form.reset();
-      feedback.textContent = "";
+    for (const { quiz, form, feedback } of quizzes) {
+      quiz.hidden = selected !== quiz.dataset.quiz;
+      if (quiz.hidden) {
+        quiz.open = false;
+        form.reset();
+        feedback.textContent = "";
+      }
     }
     if (station) {
       controls.target.set(station.position[0], 1.3, station.position[2]);
