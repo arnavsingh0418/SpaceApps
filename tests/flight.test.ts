@@ -33,6 +33,15 @@ it("puts the crew in a connected bounded physical cabin and rejects Mars telepor
     "valid",
   );
 });
+it("spawns late-joining crewmates in the central passage", () => {
+  const s = setup();
+  expect(addPlayer(s, "late")).toBe(true);
+  expect(addPlayer(s, "later")).toBe(true);
+  for (const id of ["late", "later"]) {
+    expect(s.players[id].z).toBe(2);
+    expect(Math.abs(s.players[id].x)).toBeLessThan(2);
+  }
+});
 it("requires a nearby exclusive pilot, valid inputs and a centered course", () => {
   const s = setup(),
     d = s.returnMission!.flight!.deck!;

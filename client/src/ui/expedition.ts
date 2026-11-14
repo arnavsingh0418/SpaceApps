@@ -110,11 +110,11 @@ export function missionTracker(
   if (
     nemi.accepted &&
     !nemi.completed &&
-    (!tracked || trackedSalvage === "nemi")
+    (!tracked && (!trackedSalvage || trackedSalvage === "nemi"))
   )
     return `<aside class="expedition-tracker"><small>CREW TASK / PROTOTYPE NAVIGATION</small><h3>Nemi’s water loop</h3><p>❄️ ${nemi.delivered.ice || 0}/3 · 🪟 ${nemi.delivered.glass || 0}/2 · 🔩 ${nemi.delivered.scrap || 0}/2</p><footer><span>☀ ${nemi.brushed ? "Collector clean" : "Brush the collector"}</span><button data-do="trackSalvage" data-site="nemi">Pin Nemi ↗</button></footer></aside>`;
   if (!tracked)
-    return `<aside class="expedition-tracker"><small>MAIN MISSION / REBUILD THE SHIP</small><h3>Four systems. One way home.</h3><p>Help Nemi, investigate field sites and recover ship parts.</p><footer><button data-do="trackSalvage" data-site="nemi">✧ Meet Nemi</button><button data-do="map">Repair map ↗</button></footer></aside>`;
+    return `<aside class="expedition-tracker"><small>MAIN MISSION / REBUILD THE SHIP</small><h3>Four systems. One way home.</h3><p>Investigate the rough landing or recover parts through the marked salvage caches.</p><footer>${fieldProgress(s).completed.includes("blackbox") ? "" : '<button data-do="trackMission" data-mission="blackbox">Pin flight recorder ↗</button>'}<button data-do="map">Repair map ↗</button></footer></aside>`;
   const m = nextFieldMission(s, tracked);
   if (!m)
     return `<aside class="expedition-tracker complete"><small>FIELD CAMPAIGN COMPLETE</small><h3>Rebuild the return ship</h3><p>Find salvage caches and bring the crew home.</p><button data-do="map">Open expedition atlas ↗</button></aside>`;

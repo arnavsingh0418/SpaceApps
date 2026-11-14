@@ -510,9 +510,13 @@ export function missionAvailable(s: Game, m: FieldMission) {
     m.requires.every((id) => p.completed.includes(id))
   );
 }
-export function nextFieldMission(s: Game, tracked?: string) {
+export function nextFieldMission(s: Game, tracked?: string): FieldMission | undefined {
+  const goal = fieldMissions.find((m) => m.id === tracked);
+  if (goal && !fieldProgress(s).completed.includes(goal.id)) {
+    const prerequisite = goal.requires.find((id) => !fieldProgress(s).completed.includes(id));
+    return prerequisite ? nextFieldMission(s, prerequisite) : goal;
+  }
   return (
-    fieldMissions.find((m) => m.id === tracked && missionAvailable(s, m)) ||
     fieldMissions.find((m) => missionAvailable(s, m))
   );
 }

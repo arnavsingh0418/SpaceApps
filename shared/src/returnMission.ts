@@ -286,19 +286,15 @@ export function shipTarget(s: Game, id: string, pinned: string) {
   if (pinned === "nemi" && !alienProgress(s).completed) return alienSite;
   const selected = nearby.find((site) => site.id === pinned);
   if (selected) return selected;
-  if (
-    partSlots.some(
-      (slot) =>
-        progress.recovered[slot] &&
-        progress.installed[slot] !== progress.recovered[slot],
-    )
-  )
-    return launchSite;
-  if (!progress.recovered.nav && !alienProgress(s).completed) return alienSite;
+  const missing = partSlots.filter(
+    (slot) => !progress.recovered[slot] && !progress.installed[slot],
+  );
+  if (missing.length === 0) return launchSite;
+  if (missing.includes("nav") && !alienProgress(s).completed) return alienSite;
   const player = s.players[id];
   return (
     nearby
-      .filter((site) => !progress.recovered[site.part])
+      .filter((site) => missing.includes(site.part))
       .sort(
         (a, b) =>
           Math.hypot(player.x - a.x, player.z - a.z) -

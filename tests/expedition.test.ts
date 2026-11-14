@@ -36,6 +36,12 @@ function observe(s: Game, mission: string, value: number) {
   return dispatch(s, "a", { type: "fieldObserve", mission, value });
 }
 describe("field expedition", () => {
+  it("follows a pinned locked investigation through its prerequisites", () => {
+    const s = setup();
+    expect(nextFieldMission(s, "relay-link")?.id).toBe("blackbox");
+    s.expedition!.completed.push("blackbox");
+    expect(nextFieldMission(s, "relay-link")?.id).toBe("solar-test");
+  });
   it("has twelve reachable-in-bounds missions at seven distinct sites", () => {
     expect(fieldMissions).toHaveLength(12);
     expect(sectors).toHaveLength(7);

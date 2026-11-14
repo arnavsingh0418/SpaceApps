@@ -13,7 +13,7 @@ import { returnAction, scoreLesson, updateFlight } from "./returnActions";
 import { type AlienProgress } from "../alien";
 import { alienAction } from "./alienActions";
 import { fieldPartRewards, recoverPart } from "../shipRewards";
-import { flightAction, tickDeckFlight } from "../flight";
+import { deckSpawn, flightAction, tickDeckFlight } from "../flight";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -265,8 +265,9 @@ export function addPlayer(s: Game, id: string, name = "Explorer") {
   s.players[id] = {
     id,
     name: name.replace(/[^a-zA-Z0-9 _-]/g, "").slice(0, 16) || "Explorer",
-    x: (1 + i * 1.2) * L,
-    z: 3 * L,
+    ...(s.phase === "flight" || s.returnMission?.flight?.deck
+      ? deckSpawn(i)
+      : { x: (1 + i * 1.2) * L, z: 3 * L }),
     color: [0xf97316, 0x3b82f6, 0x22c55e, 0xeab308][i],
     role: "Engineer",
     bag: {},

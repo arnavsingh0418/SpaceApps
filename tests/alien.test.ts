@@ -150,10 +150,15 @@ it("grants field hardware only after a validated investigation and never downgra
   expect(recoverPart(s, "booster", "Rare")).toBe(false);
   expect(returnProgress(s).recovered.booster).toBe("Prototype");
 });
-it("guides explorers to Nemi or their recovered hardware", () => {
+it("guides explorers to missing parts before returning to install them", () => {
   const s = setup();
   expect(shipTarget(s, "a", "")).toEqual(alienSite);
   recoverPart(s, "nav", "Prototype");
+  expect(shipTarget(s, "a", "")).not.toEqual(launchSite);
+  expect(shipTarget(s, "a", "return")).toEqual(launchSite);
+  recoverPart(s, "booster", "Standard");
+  recoverPart(s, "air", "Rare");
+  recoverPart(s, "hull", "Rare");
   expect(shipTarget(s, "a", "")).toEqual(launchSite);
 });
 it("shows broken components, flies replacements into slots and respects reduced motion", () => {

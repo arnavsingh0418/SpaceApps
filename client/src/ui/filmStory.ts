@@ -344,7 +344,7 @@ export const arrivalStory: ArrivalShot[] = [
       "Vega: Our landing did not go to plan. Our mission is not over.",
       "Vega: Open your map, explorer. Let us make a way home.",
     ],
-    fact: "Begin with the guided first steps. Then pin a field mission on the top-right map, travel to its terminal, measure, and explain.",
+    fact: "Your damaged lander brought you here. The separate return ship needs four repairs before it can take you home.",
   },
 ];
 export const arrivalDuration = arrivalStory.reduce(
