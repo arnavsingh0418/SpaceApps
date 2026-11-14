@@ -1,3 +1,4 @@
+import { createRover, roverState, roverSeat, roverAction, tickRover, leaveRover, type RoverState } from "../rover";
 import B from "../data/balance.json";
 import recipes from "../data/recipes.json";
 import facts from "../data/facts.json";
@@ -93,6 +94,8 @@ export type Allocation = {
   heat: number;
 };
 export type Game = {
+  /** Optional so older saves acquire the parked rover on first use. */
+  rover?: RoverState;
   seed: number;
   rng: number;
   sol: number;
@@ -188,6 +191,7 @@ function spawn(s: Game, kind: Item, count: number, x: number, z: number) {
 }
 export function createGame(seed = 42): Game {
   const s: Game = {
+    rover: createRover(),
     seed,
     rng: seed >>> 0,
     sol: 1,
@@ -277,6 +281,7 @@ export function addPlayer(s: Game, id: string, name = "Explorer") {
   return true;
 }
 export function removePlayer(s: Game, id: string) {
+  leaveRover(s, id);
   const p = s.players[id];
   if (!p) return;
   for (const [k, v] of Object.entries(p.bag))
@@ -325,6 +330,13 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   const p = s.players[id];
   if (!p) return "Join a crew first.";
   const fail = (text: string) => text;
+  const r = roverState(s);
+  const riding = s.phase === "day" && roverSeat(r, id) >= 0;
+  if (["boardRover", "exitRover", "takeRover", "driveRover"].includes(a.type))
+    return roverAction(s, id, a, WORLD);
+  if (riding && ["move", "pos", "jump"].includes(a.type)) return;
+  if (riding && !["chat", "role", "power", "next"].includes(a.type))
+    return "Park and exit the rover to work at a field site.";
   if (
     [
       "flightMove",
@@ -793,6 +805,7 @@ function storm(s: Game) {
 export function tick(s: Game, dt: number, advanceSurface = true) {
   if (!Number.isFinite(dt) || dt <= 0) return;
   s.elapsed += dt;
+  tickRover(s);
   for (const m of s.pending.filter((m) => m.at <= s.elapsed)) log(s, m.text);
   s.pending = s.pending.filter((m) => m.at > s.elapsed);
   if (s.phase === "flight") {
@@ -802,6 +815,7 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
   if (s.phase !== "day" || !advanceSurface) return;
   s.clock += dt;
   for (const p of Object.values(s.players)) {
+    if (s.rover && roverSeat(s.rover, p.id) >= 0) continue;
     // A client that is reporting its own position drives this player directly.
     if (p.posAt !== undefined && s.elapsed - p.posAt < 0.5) continue;
     const speed = gaitSpeed(p.gait, s.allocation.heat < 1);

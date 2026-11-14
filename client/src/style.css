@@ -359,3 +359,16 @@ to{opacity:0}
 .title-screen{text-shadow:0 2px 18px #1b120d}.title-screen .button{text-shadow:none}
 .return-crew{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.return-crew figure{margin:0;text-align:center}.return-crew figcaption{font-size:12px;max-width:88px;overflow-wrap:anywhere}.crew-portrait{width:80px;height:80px;object-fit:contain}
 @media(max-width:760px){.menu-model-art{object-position:60% center;filter:brightness(.35)}.recipe-tabs .model-icon{width:38px;height:38px}}
+/* Expedition rover */
+.rover-dashboard{width:480px;max-width:calc(100vw - 32px);padding:16px 20px;background:rgba(20,43,44,.94);border:1px solid #88b5a95c;border-radius:14px;box-shadow:0 6px 0 #0005;color:#edf4e9}
+.rover-dashboard header,.rover-dashboard footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rover-dashboard header{font-size:10px;letter-spacing:.1em;color:#9bd7c6}
+.rover-readout{display:flex;align-items:center;gap:24px;margin-top:10px}
+.rover-readout>strong{font:800 42px/1 'Barlow Condensed',sans-serif;min-width:95px;color:#ffc83d}
+.rover-readout small{font:700 12px 'Nunito Sans',sans-serif;margin-left:5px;color:#c9d9d1}
+.rover-readout div{display:grid;gap:6px;font-size:12px}.rover-readout span{color:#b7ccc1;font-size:10px}
+.rover-dashboard p{font-size:10px;max-width:none;margin:12px 0;color:#c9d9d1}.rover-dashboard kbd{font-size:10px;padding:3px 5px}
+.rover-dashboard button{background:#244f4b;color:#f4f4df;border:1px solid #7aaca0;border-radius:7px;font-size:12px;padding:8px 14px}.rover-dashboard footer{justify-content:flex-end}
+.rover-pin{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;width:22px;height:18px;background:#153e43;color:#ffe1a7;border:1px solid #a2e0ce;border-radius:5px;z-index:6;font-size:13px}
+@media(max-width:760px){.rover-dashboard{width:340px;padding:12px 14px}.rover-readout{gap:14px}.rover-readout>strong{font-size:34px;min-width:75px}.rover-dashboard p{font-size:9px}.rover-dashboard p kbd{display:none}#touch>.rover-brake{bottom:230px;font-size:12px;background:#ec9d55}.rover-dashboard footer{margin-top:6px}}
+.rover-touch-help{display:none}@media(max-width:760px){.rover-dashboard .rover-desktop-help{display:none}.rover-dashboard .rover-touch-help{display:block}}

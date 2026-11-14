@@ -1,3 +1,5 @@
+import { RoverController } from "./render/roverController";
+import { ROVER, roverState, roverSeat, roverExits, roverBlocks } from "../../shared/src/rover";
 import {
   flightHUD,
   helmPanel,
@@ -816,7 +818,11 @@ function nearest(): Nearby | null {
         }
       : null;
   }
+  const r = roverState(game);
+  if (roverSeat(r, id) >= 0) return { type: "rover", target: "rover", pos: r, text: Math.abs(r.speed) > .5 ? "Brake before exiting" : "Exit rover" };
   const all: Nearby[] = [];
+  if (distance(p, r) <= ROVER.boardRadius && Math.abs(r.speed) < .5)
+    all.push({ type: "rover", target: "rover", pos: r, text: r.driver ? "Ride rover" : "Drive rover" });
   all.push({
     type: "alien",
     target: "nemi",
@@ -867,7 +873,7 @@ function nearest(): Nearby | null {
     all.push({ type: "panel", target: p.id, pos: p, text: "Use solar panel" });
   return (
     all
-      .filter((n) => distance(p, n.pos) < B.interactRadius)
+      .filter((n) => distance(p, n.pos) < (n.type === "rover" ? ROVER.boardRadius : B.interactRadius))
       .sort((a, b) => distance(p, a.pos) - distance(p, b.pos))[0] || null
   );
 }
@@ -881,6 +887,22 @@ function interact() {
   const n = nearest();
   if (!n) {
     toast("Move closer to an object.");
+    return;
+  }
+  if (n.type === "rover") {
+    const r = roverState(game);
+    if (roverSeat(r, id) < 0) {
+      if (act({ type: "boardRover" })) { world.cameraFollow = null; hudSignature = ""; }
+    } else {
+      if (Math.abs(r.speed) > .5) { toast("Hold Space or Brake to stop before exiting."); return; }
+      const ground = world.terrain.heightAt(r.x, r.z);
+      const exit = roverExits(r).find((p) => {
+        const y = world.terrain.heightAt(p.x, p.z, ground);
+        return Math.abs(y-ground) < 1.4 && !world.terrain.collides(p.x,p.z,y) && !roverBlocks(r,p.x,p.z);
+      });
+      if (!exit) { toast("No safe exit here. Park in an open area."); return; }
+      if (act({ type: "exitRover", ...exit })) { world.cameraFollow = null; hudSignature = ""; }
+    }
     return;
   }
   if (n.type === "pick") {
@@ -978,6 +1000,7 @@ function draw() {
     Math.round(game.players[id].z),
     game.stock,
     game.players[id].bag,
+    game.rover && [game.rover.driver, game.rover.passengers, Math.round(game.rover.speed * 3.6), Math.round(game.rover.odometer)],
     game.messages,
     game.panels.map((p) => [p.covered, p.clean]),
     { ...model, mapImage: !!model.mapImage },
@@ -1428,6 +1451,12 @@ document.addEventListener("click", (e) => {
       reportBefore = { ...previous };
       act({ type: "next" });
       break;
+    case "takeRover":
+      act({ type: "takeRover" });
+      hudSignature = "";
+      break;
+    case "roverBrake":
+      break;
     case "interact":
       interact();
       break;
@@ -1557,6 +1586,7 @@ document.addEventListener("click", (e) => {
   } else toast("Match its color and shape.");
 });
 const keys = new Set<string>();
+let brakePointer: number | null = null;
 let joy = { x: 0, z: 0 },
   joyPointer: number | null = null,
   scrubbing = false;
@@ -1627,6 +1657,7 @@ addEventListener("keydown", (e) => {
     return;
   }
   if (modal) return;
+  if (roverSeat(roverState(game),id)>=0 && ["b","g"].includes(e.key.toLowerCase())) { toast("Exit the rover to use field equipment."); return; }
   if (e.key === "Tab") {
     goalsOpen = !goalsOpen;
     hudSignature = "";
@@ -1668,6 +1699,7 @@ addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
 function stopInput() {
   sfx.stopLoops();
   keys.clear();
+  roverBrake = false;
   joy = { x: 0, z: 0 };
   helmPad = { x: 0, y: 0 };
   if (started)
@@ -1693,7 +1725,12 @@ document.addEventListener("pointermove", (e) => {
   }
   if (e.pointerId === joyPointer) joystick(e);
 });
+document.addEventListener("pointerdown", (e) => {
+  if ((e.target as HTMLElement).closest('[data-do="roverBrake"]')) { roverBrake = true; brakePointer = e.pointerId; e.preventDefault(); }
+});
+document.addEventListener("pointercancel", () => { roverBrake = false; brakePointer = null; });
 document.addEventListener("pointerup", (e) => {
+  if (e.pointerId === brakePointer) { roverBrake = false; brakePointer = null; }
   scrubbing = false;
   if (e.pointerId === joyPointer) {
     joyPointer = null;
@@ -1718,6 +1755,8 @@ let last = performance.now(),
   jumpTipShown = false,
   lookTipShown = false;
 const controller = new LocalController();
+const roverController = new RoverController();
+let roverDriverKey = "", wasRiding = false, roverBrake = false;
 function updateTutorial() {
   if (tutorial >= 4) {
     const field = trackedMission && nextFieldMission(game, trackedMission);
@@ -1792,6 +1831,8 @@ function update(dt: number, render = true) {
         joy.z;
     // Minecraft-style movement runs locally every frame; the sim just receives positions.
     const me = game.players[id];
+    const rover = roverState(game);
+    const riding = roverSeat(rover, id) >= 0;
     const canMove = !modal && !document.hidden && game.phase === "day" && !!me;
     // Movement is relative to where the camera looks (W = away from the camera).
     const cy = Math.cos(world.yaw),
@@ -1807,7 +1848,28 @@ function update(dt: number, render = true) {
         }
       : { x: 0, z: 0, sprint: false, crouch: false, jump: false };
     if (modal) world.releaseMouse();
-    if (me) {
+    if (riding && !wasRiding) { world.yaw = rover.heading + .25; world.cameraFollow = null; }
+    if (me && riding) {
+      if (rover.driver === id) {
+        const canDrive = canMove && world.terrain.ready;
+        const key = `${game.seed}/${rover.driver}`;
+        if (roverDriverKey !== key || Math.hypot(roverController.x-rover.x,roverController.z-rover.z)>6) {
+          roverController.reset(rover, (x,z) => world.terrain.heightAt(x,z));
+          roverDriverKey = key;
+        }
+        if (!canDrive) roverController.speed = 0;
+        roverController.update(dt, { throttle: canDrive ? -z : 0, steer: canDrive ? x : 0, brake: !canDrive || keys.has(" ") || roverBrake },
+          (x,z,y) => world.terrain.heightAt(x,z,y),
+          (x,z,y) => world.terrain.collides(x,z,y,.6,ROVER.height,.65) || Object.values(game.players).some((p) => roverSeat(rover,p.id)<0 && Math.hypot(p.x-x,p.z-z)<1.7),
+        );
+        if (game.phase === "day" && (!connection || game.elapsed-inputAt>.05)) {
+          act({type:"driveRover",x:roverController.x,z:roverController.z,heading:roverController.heading,speed:roverController.speed});
+          inputAt = game.elapsed;
+        }
+      } else roverDriverKey = "";
+    } else if (me) {
+      if (wasRiding) controller.reset(me.x, me.z, world.terrain.heightAt(me.x,me.z));
+      roverDriverKey = "";
       const drift = Math.hypot(me.x - controller.x, me.z - controller.z);
       if (controllerSeed !== game.seed || drift > (connection ? 6 : 4)) {
         controller.reset(me.x, me.z, world.terrain.heightAt(me.x, me.z));
@@ -1818,7 +1880,7 @@ function update(dt: number, render = true) {
         input,
         game.allocation.heat < 1,
         (px, pz, py) => world.terrain.heightAt(px, pz, py),
-        (px, pz, py) => world.terrain.collides(px, pz, py),
+        (px, pz, py) => world.terrain.collides(px, pz, py) || roverBlocks(rover,px,pz),
       );
       if (jumped) {
         act({ type: "jump" });
@@ -1842,7 +1904,9 @@ function update(dt: number, render = true) {
         inputAt = game.elapsed;
       }
     }
-    world.local = started ? controller : null;
+    world.local = started && !riding ? controller : null;
+    world.localRover = riding && rover.driver === id ? roverController : null;
+    wasRiding = riding;
     world.lookAllowed = () =>
       started && !modal && !arrival && game.phase === "day";
     if (started && !modal && !lookTipShown && game.phase === "day") {
@@ -1910,8 +1974,14 @@ function update(dt: number, render = true) {
       cue("built");
     }
     redraw += dt;
-    if (render && redraw >= 0.2 && joyPointer === null) {
-      draw();
+    if (render && redraw >= 0.2) {
+      if (joyPointer === null && brakePointer === null) draw();
+      else {
+        const speed = ui.querySelector("[data-rover-speed]");
+        const travelled = ui.querySelector("[data-rover-distance]");
+        if (speed) speed.textContent = String(Math.round(Math.abs(roverState(game).speed)*3.6));
+        if (travelled) travelled.textContent = String(Math.round(roverState(game).odometer));
+      }
       redraw = 0;
     }
     if (!connection && game.elapsed - saveAt > 2 && game.phase !== "ended") {
@@ -1974,6 +2044,7 @@ window.render_game_to_text = () =>
     phase: game.phase,
     seconds: Math.round(game.clock),
     player: game.players[id],
+    rover: { ...roverState(game), seat: roverSeat(roverState(game),id), model: world.rover.status, local: world.localRover && { x: roverController.x, z: roverController.z, speed: roverController.speed } },
     nearby: game.items.filter((o) => distance(o, game.players[id]) < 6),
     resources: {
       power: game.power,
@@ -2136,6 +2207,18 @@ if (import.meta.env.DEV)
         };
       showHangar();
     }
+    if (name === "rover" || name === "rover-driving" || name === "rover-crew") {
+      const r = roverState(game);
+      Object.assign(game.players[id], { x: r.x + 3.8, z: r.z });
+      roverDriverKey = "";
+      world.yaw = .35; world.pitch = .38; world.zoom = 17;
+      if (name !== "rover") dispatch(game,id,{type:"boardRover"});
+      if (name === "rover-crew") for (const [n, role] of (["Scientist","Medic","Comms"] as const).entries()) {
+        const crewId = `rover-crew-${n}`; addPlayer(game,crewId,role); game.players[crewId].role = role;
+        Object.assign(game.players[crewId], { x:r.x+3.8,z:r.z }); dispatch(game,crewId,{type:"boardRover"});
+      }
+    }
+    if (name === "rover-crew") { wasRiding = true; world.yaw = 2.4; world.pitch = .32; world.zoom = 22; }
     if (name === "models") {
       game.built = ["radio", "greenhouse", "shelter"];
       game.learned = ["shield", "comms", "grow", "power", "oxygen"];
@@ -2220,6 +2303,9 @@ if (import.meta.env.DEV) {
       "flight-fault",
       "flight-arrival",
       "models",
+    "rover",
+    "rover-driving",
+    "rover-crew",
       "tasks",
       "workbench",
       "near-item",

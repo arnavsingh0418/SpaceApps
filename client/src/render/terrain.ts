@@ -171,9 +171,9 @@ export class Terrain {
    * Blocks on (1) walls whose height span reaches into the body, and (2) surfaces taller
    * than a step but below head height (rock tops, the dome, the rocket hull).
    */
-  collides(x: number, z: number, y: number, r = RADIUS) {
-    const lo = y + STEP_UP,
-      hi = y + BODY;
+  collides(x: number, z: number, y: number, r = RADIUS, height = BODY, step = STEP_UP) {
+    const lo = y + step,
+      hi = y + height;
     const i0 = Math.floor((x - r) / CELL),
       i1 = Math.floor((x + r) / CELL),
       j0 = Math.floor((z - r) / CELL),

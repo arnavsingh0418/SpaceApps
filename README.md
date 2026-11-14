@@ -38,6 +38,14 @@ Roles: Engineer builds twice as fast; Scientist gets a field-map tip; Medic sees
 
 ## Validation
 
+### Wayfarer rover
+
+The six-wheel rover parks southeast of the habitat and appears on the field map. Walk beside it and press **E** to board. The first explorer drives; three more can ride. Use **W/S** to accelerate/reverse, **A/D** to steer and **Space** to brake. On touch screens use the joystick and hold **STOP**. Stop before pressing **E** to exit. A seated passenger can take the wheel after the driver leaves. The camera follows the vehicle while retaining orbit and zoom.
+
+The rover carries the crew and their existing bags. Solar panels and cargo pods are visual equipment; driving does not consume a separate fuel resource or add inventory slots. Solo saves preserve its position and distance travelled. Co-op shares one vehicle, validates driver ownership and bounded movement, and parks it when the driver disconnects. Terrain collision and slope handling run in the driver's client, as with walking.
+
+The original Blender model and regeneration script are in `assets/blender/`; the game loads `client/public/mars/vehicles/Mars_Rover.glb` with a primitive fallback. Its wheel and steering pivots remain separate for animation. Run `TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/rover-multiplayer.ts` with the server running to check boarding races, rider sync, braking, disconnects and driver handoff.
+
 ```sh
 npm test          # deterministic simulation and gameplay rules
 npm run build    # TypeScript + production bundle + offline cache

@@ -30,6 +30,7 @@ jobs:
           npm run test:net
           TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/alien-multiplayer.ts
           TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/flight-multiplayer.ts
+          TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/rover-multiplayer.ts
       - uses: actions/upload-artifact@v4
         with:
           name: outpost-down-client

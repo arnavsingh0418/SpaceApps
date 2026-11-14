@@ -1,3 +1,6 @@
+import { RoverView } from "./rover";
+import type { RoverController } from "./roverController";
+import { roverState, roverSeat, angleDelta } from "../../../shared/src/rover";
 import { FlightCabin } from "./flightCabin";
 import { WorldMotion } from "./motion";
 import {
@@ -94,6 +97,9 @@ export class World {
   raycaster = new THREE.Raycaster();
   pointer = new THREE.Vector2();
   motion: WorldMotion;
+  rover: RoverView;
+  localRover: RoverController | null = null;
+  private previousRoverHeading: number | null = null;
   zoom = 9;
   stepRemainder = 0;
   predictMovement = true;
@@ -150,6 +156,8 @@ export class World {
     this.scene.fog = new THREE.Fog(0xd99a72, 110, 620);
     initBuilders(this.scene);
     this.motion = new WorldMotion(this.scene);
+    this.rover = new RoverView(this.scene);
+    this.addLabel("rover", this.rover.group, "Wayfarer rover", 6.1);
     this.fieldSites = new FieldSites(this.scene);
     this.nemi = new Nemi(this.scene);
     this.addLabel("nemi", this.nemi.group, "Nemi", 3.4);
@@ -401,6 +409,13 @@ export class World {
         this.panels.delete(k);
       }
     this.motion.update(s, id, this.actors, dt);
+    const rover = roverState(s);
+    this.rover.update(rover, this.terrain, dt, rover.driver === id ? this.localRover : null);
+    const aboard = roverSeat(rover, id) >= 0;
+    if (aboard) {
+      if (this.previousRoverHeading !== null) this.yaw += angleDelta(this.rover.group.rotation.y, this.previousRoverHeading);
+      this.previousRoverHeading = this.rover.group.rotation.y;
+    } else this.previousRoverHeading = null;
     for (const [key, obj] of this.actors)
       if (!s.players[key]) {
         this.remove(key, obj);
@@ -416,6 +431,20 @@ export class World {
       }
       const player = g!;
       updateRoleBadge(player, p.role);
+      const seat = roverSeat(rover, p.id);
+      if (seat >= 0) {
+        const at = new THREE.Vector3(seat % 2 === 0 ? -.86 : .86, 1.35, seat < 2 ? -1 : .9);
+        this.rover.group.localToWorld(at);
+        player.position.copy(at);
+        this.motion.actor(player, p, s, dt, { speed: 0, gait: "walk", grounded: true, vy: 0, landAgo: 99, landImpact: 0, heading: this.rover.group.rotation.y + Math.PI });
+        for (const name of ["legL", "legR"]) { const limb = player.getObjectByName(name); if (limb) limb.rotation.x = -1.35; }
+        for (const name of ["kneeL", "kneeR"]) { const limb = player.getObjectByName(name); if (limb) limb.rotation.x = 1.45; }
+        for (const name of ["armL", "armR"]) { const limb = player.getObjectByName(name); if (limb) limb.rotation.x = seat === 0 ? -.9 : -.3; }
+        const hips = player.getObjectByName("hips"); if (hips) hips.position.y = .5;
+        const carried = player.getObjectByName("carried"); if (carried) carried.visible = false;
+        player.rotation.x = this.rover.group.rotation.x; player.rotation.z = this.rover.group.rotation.z;
+        continue;
+      }
       const local = p.id === id ? this.local : null;
       if (local) {
         // Your own astronaut: drawn straight from the per-frame controller (no 10 Hz lag).
@@ -676,13 +705,17 @@ export class World {
       // Match the visible actor's interpolation instead of the 10 Hz simulation
       // position. Otherwise the view moves a frame ahead and makes the suit jitter.
       const actor = this.actors.get(id);
-      const target = actor
+      const target = aboard
+        ? this.rover.group.position.clone()
+        : actor
         ? actor.position.clone()
         : new THREE.Vector3(p.x, this.terrain.heightAt(p.x, p.z), p.z);
       // Third-person orbit camera behind the player, a little over the right shoulder.
       // Smooth only the followed point, so turning the mouse is instant (no swing).
       const follow = (this.cameraFollow ||= target.clone());
       follow.lerp(target, 1 - Math.exp(-18 * dt));
+      const orbitZoom = aboard ? Math.max(18, this.zoom) : this.zoom;
+      const focusHeight = aboard ? 2.7 : 2.3;
       const cp = Math.cos(this.pitch),
         sp = Math.sin(this.pitch);
       const right = new THREE.Vector3(
@@ -693,15 +726,15 @@ export class World {
       const shoulder = right.multiplyScalar(Math.min(1.1, this.zoom * 0.09));
       const focus = follow
         .clone()
-        .add(new THREE.Vector3(0, 2.3, 0))
+        .add(new THREE.Vector3(0, focusHeight, 0))
         .add(shoulder);
       const desired = focus
         .clone()
         .add(
           new THREE.Vector3(
-            Math.sin(this.yaw) * cp * this.zoom,
-            sp * this.zoom,
-            Math.cos(this.yaw) * cp * this.zoom,
+            Math.sin(this.yaw) * cp * orbitZoom,
+            sp * orbitZoom,
+            Math.cos(this.yaw) * cp * orbitZoom,
           ),
         );
       // Never let the camera dip into a hill.
@@ -711,7 +744,7 @@ export class World {
       );
       // Camera collision: cast from the astronaut's head toward the camera and stop in front
       // of the first wall, rock, hill or building. Snap in instantly, ease back out.
-      const head = follow.clone().add(new THREE.Vector3(0, 2.3, 0));
+      const head = follow.clone().add(new THREE.Vector3(0, focusHeight, 0));
       const toCam = desired.clone().sub(head);
       const full = toCam.length();
       toCam.divideScalar(full || 1);
@@ -766,9 +799,11 @@ export class World {
       this.hovered,
     );
     for (const [key, l] of this.labels) {
+      if (roverSeat(rover, key) >= 0 || (key === "rover" && aboard)) l.el.hidden = true;
       if (
         this.actors.has(key) ||
         key === "nemi" ||
+        key === "rover" ||
         key.startsWith("field-") ||
         key.startsWith("salvage-") ||
         key.startsWith("panel-") ||

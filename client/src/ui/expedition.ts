@@ -1,3 +1,4 @@
+import { roverState } from "../../../shared/src/rover";
 import {
   WORLD,
   distance,
@@ -54,6 +55,7 @@ function mapSurface(
     next = tracked && nextFieldMission(s, tracked),
     target = next ? missionSector(next) : shipTarget(s, id, trackedSalvage),
     dest = mapPoint(target.x, target.z);
+  const rover = roverState(s), roverPin = mapPoint(rover.x,rover.z);
   const base = mapPoint(0, -17);
   const launch = mapPoint(launchSite.x, launchSite.z);
   const nemi = mapPoint(alienSite.x, alienSite.z);
@@ -84,6 +86,7 @@ function mapSurface(
       .join("")}
     <span class="salvage-pin nemi-pin" style="left:${nemi.x}%;top:${nemi.y}%" title="Nemi · navigation core">${alienProgress(s).completed ? "✓" : "✧"}</span><span class="salvage-pin launch-pin" style="left:${launch.x}%;top:${launch.y}%" title="Return vehicle">↑</span>
     <span class="base-pin" style="left:${base.x}%;top:${base.y}%" title="Habitat / workbench">⌂</span>
+    <span class="rover-pin" style="left:${roverPin.x}%;top:${roverPin.y}%" title="Wayfarer rover" aria-label="Rover position">▰</span>
     <span class="crew-pin" style="left:${p.x}%;top:${p.y}%" aria-label="Your position">▲</span>
     <span class="map-scale" style="width:${(100 / (WORLD.r * 2)) * 100}%"><i></i>100 m</span><span class="map-caption">TRAINING REGION · NOT A REAL GALE SURVEY</span>
   </div>`;
@@ -135,7 +138,7 @@ export function expeditionMap(
   const progress = fieldProgress(s),
     done = progress.completed.includes(m.id),
     available = missionAvailable(s, m);
-  return `<div class="expedition-map"><div class="map-overview"><div class="map-kicker"><span>GALE / TRAINING REGION</span><b>${progress.completed.length}<small> / 12 FIELD MISSIONS</small></b></div>${mapSurface(s, id, image, tracked, false, trackedSalvage)}<div class="expedition-legend"><span><i class="gold"></i> Pinned mission</span><span><i class="cyan"></i> Available</span><span>✓ Complete</span><span>✦ Salvage · ↑ Return ship</span><span>▲ You · ⌂ Base</span></div><div class="salvage-roster"><b>SHIP REPAIRS</b><button data-do="trackSalvage" data-site="nemi"><span>✧ Nemi’s refuge</span><small>${alienProgress(s).completed ? "✓ Water loop repaired" : "Team delivery · Prototype navigation"}</small></button>${salvageSites.map((site) => `<button data-do="trackSalvage" data-site="${site.id}" ${returnProgress(s).caches[site.id]?.reward ? "disabled" : ""}><span>${e(site.name)}</span><small>${returnProgress(s).caches[site.id]?.reward ?? "✦"} · ${partNames[site.part]}</small></button>`).join("")}<button data-do="trackSalvage" data-site="return"><span>↑ Return vehicle</span><small>Return platform</small></button></div><p class="map-note">North-up · distances in game metres. Dotted line is a bearing, not a safe walking route. Go around cliffs and rocks. ${s.phase === "day" ? "Solo exploration pauses while this map is open." : "Plan your next excursion."}</p></div>
+  return `<div class="expedition-map"><div class="map-overview"><div class="map-kicker"><span>GALE / TRAINING REGION</span><b>${progress.completed.length}<small> / 12 FIELD MISSIONS</small></b></div>${mapSurface(s, id, image, tracked, false, trackedSalvage)}<div class="expedition-legend"><span><i class="gold"></i> Pinned mission</span><span><i class="cyan"></i> Available</span><span>✓ Complete</span><span>✦ Salvage · ↑ Return ship</span><span>▲ You · ⌂ Base · ▰ Rover</span></div><div class="salvage-roster"><b>SHIP REPAIRS</b><button data-do="trackSalvage" data-site="nemi"><span>✧ Nemi’s refuge</span><small>${alienProgress(s).completed ? "✓ Water loop repaired" : "Team delivery · Prototype navigation"}</small></button>${salvageSites.map((site) => `<button data-do="trackSalvage" data-site="${site.id}" ${returnProgress(s).caches[site.id]?.reward ? "disabled" : ""}><span>${e(site.name)}</span><small>${returnProgress(s).caches[site.id]?.reward ?? "✦"} · ${partNames[site.part]}</small></button>`).join("")}<button data-do="trackSalvage" data-site="return"><span>↑ Return vehicle</span><small>Return platform</small></button></div><p class="map-note">North-up · distances in game metres. Dotted line is a bearing, not a safe walking route. Go around cliffs and rocks. ${s.phase === "day" ? "Solo exploration pauses while this map is open." : "Plan your next excursion."}</p></div>
     <div class="mission-dossier"><small>ACT ${m.act} / ${actNames[m.act].toUpperCase()}</small><h3>${e(m.title)}</h3><div class="dossier-place">${e(missionSector(m).name)} · ${Math.round(distance(s.players[id], missionSector(m)))} m</div><p>${e(done ? m.debrief : m.brief)}</p>
     ${
       done
