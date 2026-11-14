@@ -169,6 +169,53 @@ nav button[aria-pressed="true"] {
 .station-quiz a {
   color: #add9cd;
 }
+#construction {
+  max-height: 32dvh;
+  overflow: auto;
+  margin-top: 12px;
+  font-size: 12px;
+}
+#construction-stock {
+  margin: 0 0 8px;
+  color: #add9cd;
+}
+.supply-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+#construction button {
+  padding: 7px;
+  border: 1px solid #ffffff30;
+  border-radius: 6px;
+  background: #314c4d;
+  color: inherit;
+  cursor: pointer;
+}
+#construction button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.recipe {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid #ffffff25;
+  border-radius: 8px;
+}
+.recipe b {
+  grid-column: 1 / -1;
+}
+.recipe [data-build-status] {
+  grid-column: 1 / -1;
+  color: #add9cd;
+}
+#construction-status:empty {
+  margin: 0;
+}
 #load-status {
   margin: 14px 0 0;
   font-size: 9px;

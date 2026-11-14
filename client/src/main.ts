@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { createTerrain } from "./render/terrain";
 import { createBase, stations } from "./render/base";
+import { createConstruction, recipeIds, recipes, type Structure } from "./construction";
 import "./style.css";
 
 declare global {
@@ -70,14 +71,64 @@ try {
   const description = document.querySelector<HTMLParagraphElement>(
     "#station-description",
   )!;
+  const construction = createConstruction();
+  const workbench = document.querySelector<HTMLElement>("#construction")!;
+  const stock = workbench.querySelector<HTMLElement>("#construction-stock")!;
+  const recipeList = workbench.querySelector<HTMLElement>("#construction-recipes")!;
+  const buildStatus = workbench.querySelector<HTMLElement>("#construction-status")!;
+  const cacheButtons = workbench.querySelectorAll<HTMLButtonElement>("[data-cache]");
+  recipeList.innerHTML = recipeIds.map((id) => {
+    const { name, cost } = recipes[id];
+    const supplies = Object.entries(cost).map(([item, amount]) => amount + " " + item).join(" · ");
+    return '<div class="recipe"><b>' + name + '</b><small>' + supplies +
+      '</small><button type="button" data-build="' + id + '">Build</button><small data-build-status></small></div>';
+  }).join("");
+  const buildButtons = recipeList.querySelectorAll<HTMLButtonElement>("[data-build]");
+  function refreshWorkbench() {
+    stock.textContent = Object.entries(construction.stock).map(([item, amount]) => amount + " " + item).join(" · ");
+    cacheButtons.forEach((button) => { button.disabled = construction.collected.has(button.dataset.cache!); });
+    buildButtons.forEach((button) => {
+      const id = button.dataset.build as Structure;
+      const reason = construction.problem(id);
+      button.disabled = !!reason || !base.constructionReady(id);
+      button.parentElement!.querySelector("[data-build-status]")!.textContent =
+        reason || (button.disabled ? "Waiting for the model" : "Ready to build");
+    });
+  }
+  cacheButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const cache = button.dataset.cache!;
+      if (!construction.collect(cache)) return;
+      base.hideCache(cache);
+      buildStatus.textContent = "Supplies stored.";
+      refreshWorkbench();
+      render();
+    });
+  });
+  buildButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.dataset.build as Structure;
+      if (!base.constructionReady(id) || !construction.build(id)) return;
+      base.showStructure(id);
+      buildStatus.textContent = recipes[id].name + " built.";
+      refreshWorkbench();
+      render();
+    });
+  });
+
   const quizzes = Array.from(document.querySelectorAll<HTMLDetailsElement>("[data-quiz]"), (quiz) => {
     const form = quiz.querySelector<HTMLFormElement>("form")!;
     const feedback = quiz.querySelector<HTMLElement>("[data-success]")!;
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      feedback.textContent = form.querySelector("[data-correct]:checked")
+      const correct = !!form.querySelector("[data-correct]:checked");
+      feedback.textContent = correct
         ? feedback.dataset.success!
         : "Try again. Choose another answer.";
+      if (correct) {
+        construction.learned.add(quiz.dataset.quiz!);
+        refreshWorkbench();
+      }
     });
     return { quiz, form, feedback };
   });
@@ -85,6 +136,8 @@ try {
   function focus(key: string) {
     const station = stations.find((s) => s.key === key);
     selected = station?.key || "overview";
+    workbench.hidden = selected !== "workbench";
+    if (!workbench.hidden) refreshWorkbench();
     for (const { quiz, form, feedback } of quizzes) {
       quiz.hidden = selected !== quiz.dataset.quiz;
       if (quiz.hidden) {
@@ -154,7 +207,7 @@ try {
     );
     raycaster.setFromCamera(pointer, camera);
     let object: THREE.Object3D | null =
-      raycaster.intersectObjects(base.root.children, true)[0]?.object || null;
+      raycaster.intersectObjects(base.root.children.filter((model) => model.visible), true)[0]?.object || null;
     while (object && !object.userData.station) object = object.parent;
     if (object) focus(object.userData.station);
   });
@@ -187,7 +240,10 @@ try {
         z: camera.position.z,
       },
     });
-  void base.ready.then(render);
+  void base.ready.then(() => {
+    refreshWorkbench();
+    render();
+  });
 } catch (error) {
   const message = document.querySelector<HTMLParagraphElement>("#error")!;
   message.hidden = false;
