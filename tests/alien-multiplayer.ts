@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { WebSocket } from "ws";
 import { alienSite } from "../shared/src/alien";
+import { movePastPlayers } from "../shared/src/playerCollision";
 import type { Game, Action } from "../shared/src/sim";
 const url = process.env.TEST_SERVER || "ws://127.0.0.1:2572";
 class Client {
@@ -46,9 +47,22 @@ class Client {
         dz = z - p.z,
         d = Math.hypot(dx, dz);
       if (d < 0.1) return;
-      const step = Math.min(2, d),
-        nx = p.x + (dx / d) * step,
-        nz = p.z + (dz / d) * step;
+      const step = Math.min(2, d);
+      const others = Object.values(this.state!.players).filter(
+        (other) => other.id !== this.id,
+      );
+      const heading = Math.atan2(dz, dx);
+      const next = [0, Math.PI / 4, -Math.PI / 4, Math.PI / 2, -Math.PI / 2]
+        .map((angle) => ({
+          x: p.x + Math.cos(heading + angle) * step,
+          z: p.z + Math.sin(heading + angle) * step,
+        }))
+        .find((target) => {
+          const reach = movePastPlayers(p, target, others);
+          return Math.hypot(reach.x - target.x, reach.z - target.z) < 0.01;
+        });
+      if (!next) throw Error("No clear path to the next test waypoint");
+      const { x: nx, z: nz } = next;
       this.action({ type: "pos", x: nx, z: nz, mx: 0, mz: 0, gait: "walk" });
       await this.until(
         () =>
@@ -83,17 +97,11 @@ try {
   a.action({ type: "power", value: { air: 4, light: 3, radio: 3, heat: 1 } });
   await a.until(() => a.state!.phase === "day", "day");
   await b.until(() => b.state!.phase === "day", "guest day");
-  await Promise.all([
-    (async () => {
-      await a.collect("scrap");
-      await a.collect("ice");
-      await a.walk(alienSite.x, alienSite.z);
-    })(),
-    (async () => {
-      await b.collect("glass");
-      await b.walk(alienSite.x, alienSite.z);
-    })(),
-  ]);
+  await a.collect("scrap");
+  await a.collect("ice");
+  await a.walk(alienSite.x - 1.5, alienSite.z);
+  await b.collect("glass");
+  await b.walk(alienSite.x + 1.5, alienSite.z);
   a.action({ type: "acceptAlien" });
   await b.until(() => !!b.state!.alienQuest?.accepted, "shared acceptance");
   a.action({ type: "donateAlien", kind: "ice" });

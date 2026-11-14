@@ -15,6 +15,8 @@ const v = new THREE.Vector3();
 const titles: Record<string, string> = {
   ...Object.fromEntries(sectors.map((s) => [`field-${s.id}`, s.name])),
   nemi: "Nemi · talk",
+  rover: "Wayfarer rover",
+  "hab-airlock": "Habitat airlock",
   workbench: "Workbench",
   shield: "Shielding",
   comms: "Radio",

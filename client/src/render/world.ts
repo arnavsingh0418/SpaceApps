@@ -1,5 +1,13 @@
+import { HAB_LAYOUT } from "../../../shared/src/hab";
+import { HabInterior } from "./habInterior";
+import { RoverView } from "./rover";
+import type { RoverController } from "./roverController";
+import { roverState, roverSeat, angleDelta } from "../../../shared/src/rover";
 import { FlightCabin } from "./flightCabin";
 import { WorldMotion } from "./motion";
+import { SANDSTORM_LAYER } from "./sandstorm";
+import { SurfaceTracks } from "./surfaceTracks";
+import { ScreenDust } from "./screenDust";
 import {
   replaceVisual,
   disposeModel,
@@ -65,6 +73,7 @@ function buildSpot(p: { x: number; z: number }, push = 7) {
 }
 export class World {
   cabin?: FlightCabin;
+  habInterior: HabInterior;
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 1600);
   terrain = new Terrain();
@@ -87,6 +96,8 @@ export class World {
     { obj: THREE.Object3D; el: HTMLElement; height: number }
   >();
   devil = new THREE.Group();
+  tracks = new SurfaceTracks(this.scene);
+  screenDust = new ScreenDust();
   objectiveTarget: { x: number; z: number } | null = null;
   objectiveMarker = new THREE.Group();
   hovered = "";
@@ -94,6 +105,9 @@ export class World {
   raycaster = new THREE.Raycaster();
   pointer = new THREE.Vector2();
   motion: WorldMotion;
+  rover: RoverView;
+  localRover: RoverController | null = null;
+  private previousRoverHeading: number | null = null;
   zoom = 9;
   stepRemainder = 0;
   predictMovement = true;
@@ -135,12 +149,14 @@ export class World {
     }),
   );
   constructor() {
+    this.camera.layers.enable(SANDSTORM_LAYER);
     this.renderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("#world")!,
       antialias: true,
     });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
     this.renderer.setSize(innerWidth, innerHeight);
+    this.habInterior = new HabInterior(this.renderer);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -150,6 +166,8 @@ export class World {
     this.scene.fog = new THREE.Fog(0xd99a72, 110, 620);
     initBuilders(this.scene);
     this.motion = new WorldMotion(this.scene);
+    this.rover = new RoverView(this.scene);
+    this.addLabel("rover", this.rover.group, "Wayfarer rover", 6.1);
     this.fieldSites = new FieldSites(this.scene);
     this.nemi = new Nemi(this.scene);
     this.addLabel("nemi", this.nemi.group, "Nemi", 3.4);
@@ -213,6 +231,10 @@ export class World {
     solid(wreck(WRECK.x, WRECK.z));
     const habitat = solid(hab(HAB.x, HAB.z, 6.2));
     this.buildings.set("hab", habitat);
+    const airlockMarker = new THREE.Group();
+    airlockMarker.position.set(HAB_LAYOUT.exterior.x,0,HAB_LAYOUT.exterior.z);
+    this.scene.add(airlockMarker);
+    this.addLabel("hab-airlock",airlockMarker,"Habitat airlock",3.5);
     solid(crate(-8, -8, 0x9b6e44, 1.5));
     solid(crate(-9.8, -9.6, 0xa37c50, 1.1));
     solid(crate(-8.4, -10.6, 0x8b6a45, 0.9));
@@ -377,6 +399,7 @@ export class World {
       (s.phase === "flight" || s.phase === "ended") &&
       s.returnMission?.flight?.deck
     ) {
+      this.screenDust.update(0, 0, this.motion.reduced);
       document.querySelector<HTMLElement>("#labels")!.hidden = true;
       (this.cabin ??= new FlightCabin(this.renderer)).update(
         s,
@@ -386,8 +409,17 @@ export class World {
       );
       return;
     }
+    if (s.players[id]?.hab && !this.menu && s.phase !== "flight" && s.phase !== "ended") {
+      this.screenDust.update(0, 0, this.motion.reduced);
+      this.tracks.forget(id);
+      document.querySelector<HTMLElement>("#labels")!.hidden = true;
+      this.habInterior.update(s,id,dt,this.local,this.yaw,this.pitch,this.zoom,this.motion);
+      this.frameMs = performance.now() - renderBegin;
+      return;
+    }
     document.querySelector<HTMLElement>("#labels")!.hidden = false;
     if (this.lastSeed !== s.seed) {
+      this.tracks.reset();
       for (const [k, o] of this.buildings)
         if (k !== "hab") {
           this.remove(k, o);
@@ -401,8 +433,19 @@ export class World {
         this.panels.delete(k);
       }
     this.motion.update(s, id, this.actors, dt);
+    const rover = roverState(s);
+    this.rover.update(rover, this.terrain, dt, rover.driver === id ? this.localRover : null);
+    const vehicle = this.rover.group;
+    this.tracks.trace("rover", vehicle.position.x, vehicle.position.y, vehicle.position.z,
+      vehicle.rotation.y, !this.menu && s.phase === "day" && !rover.gust, this.terrain, s.elapsed, true);
+    const aboard = roverSeat(rover, id) >= 0;
+    if (aboard) {
+      if (this.previousRoverHeading !== null) this.yaw += angleDelta(this.rover.group.rotation.y, this.previousRoverHeading);
+      this.previousRoverHeading = this.rover.group.rotation.y;
+    } else this.previousRoverHeading = null;
     for (const [key, obj] of this.actors)
       if (!s.players[key]) {
+        this.tracks.forget(key);
         this.remove(key, obj);
         this.actors.delete(key);
       }
@@ -415,11 +458,33 @@ export class World {
         g!.position.set(p.x, 0, p.z);
       }
       const player = g!;
+      player.visible = !p.hab;
+      if (p.hab) {
+        this.tracks.forget(p.id);
+        continue;
+      }
       updateRoleBadge(player, p.role);
+      const seat = roverSeat(rover, p.id);
+      if (seat >= 0) {
+        this.tracks.forget(p.id);
+        const at = new THREE.Vector3(seat % 2 === 0 ? -.86 : .86, 1.35, seat < 2 ? -1 : .9);
+        this.rover.group.localToWorld(at);
+        player.position.copy(at);
+        this.motion.actor(player, p, s, dt, { speed: 0, gait: "walk", grounded: true, vy: 0, landAgo: 99, landImpact: 0, heading: this.rover.group.rotation.y + Math.PI });
+        for (const name of ["legL", "legR"]) { const limb = player.getObjectByName(name); if (limb) limb.rotation.x = -1.35; }
+        for (const name of ["kneeL", "kneeR"]) { const limb = player.getObjectByName(name); if (limb) limb.rotation.x = 1.45; }
+        for (const name of ["armL", "armR"]) { const limb = player.getObjectByName(name); if (limb) limb.rotation.x = seat === 0 ? -.9 : -.3; }
+        const hips = player.getObjectByName("hips"); if (hips) hips.position.y = .5;
+        const carried = player.getObjectByName("carried"); if (carried) carried.visible = false;
+        player.rotation.x = this.rover.group.rotation.x; player.rotation.z = this.rover.group.rotation.z;
+        continue;
+      }
       const local = p.id === id ? this.local : null;
       if (local) {
         // Your own astronaut: drawn straight from the per-frame controller (no 10 Hz lag).
         player.position.set(local.x, local.y, local.z);
+        this.tracks.trace(p.id, local.x, local.y, local.z, local.heading,
+          !this.menu && s.phase === "day" && local.grounded, this.terrain, s.elapsed);
         this.motion.actor(player, p, s, dt, {
           speed: local.speed,
           gait: local.gait,
@@ -469,16 +534,22 @@ export class World {
       );
       const airtime = (2 * B.jumpSpeed) / B.marsGravity;
       const since = s.elapsed - (p.jumpAt ?? -99);
-      const lift = since < airtime ? jumpArc(since) : 0;
+      const lift = p.gust?.height ?? (since < airtime ? jumpArc(since) : 0);
       player.position.set(x, this.terrain.heightAt(x, z) + lift, z);
+      this.tracks.trace(p.id, x, player.position.y, z, player.rotation.y,
+        !this.menu && s.phase === "day" && lift <= 0 && !p.gust, this.terrain, s.elapsed);
       this.motion.actor(player, p, s, dt, {
         speed: Number(player.userData.seen),
         gait: p.gait || "walk",
         grounded: lift <= 0,
-        vy: B.jumpSpeed - B.marsGravity * since,
+        vy: p.gust?.vy ?? (B.jumpSpeed - B.marsGravity * since),
         landAgo: since >= airtime ? since - airtime : 99,
         landImpact: 0.4,
       });
+      if (p.gust && !this.motion.reduced) {
+        player.rotation.y = s.elapsed * 5;
+        player.rotation.z = Math.sin(s.elapsed * 6) * Math.min(0.85, lift * 0.3);
+      }
     }
     for (const [key, obj] of this.pickups)
       if (!s.items.some((i) => i.id === key)) {
@@ -676,13 +747,17 @@ export class World {
       // Match the visible actor's interpolation instead of the 10 Hz simulation
       // position. Otherwise the view moves a frame ahead and makes the suit jitter.
       const actor = this.actors.get(id);
-      const target = actor
+      const target = aboard
+        ? this.rover.group.position.clone()
+        : actor
         ? actor.position.clone()
         : new THREE.Vector3(p.x, this.terrain.heightAt(p.x, p.z), p.z);
       // Third-person orbit camera behind the player, a little over the right shoulder.
       // Smooth only the followed point, so turning the mouse is instant (no swing).
       const follow = (this.cameraFollow ||= target.clone());
       follow.lerp(target, 1 - Math.exp(-18 * dt));
+      const orbitZoom = aboard ? Math.max(18, this.zoom) : this.zoom;
+      const focusHeight = aboard ? 2.7 : 2.3;
       const cp = Math.cos(this.pitch),
         sp = Math.sin(this.pitch);
       const right = new THREE.Vector3(
@@ -693,15 +768,15 @@ export class World {
       const shoulder = right.multiplyScalar(Math.min(1.1, this.zoom * 0.09));
       const focus = follow
         .clone()
-        .add(new THREE.Vector3(0, 2.3, 0))
+        .add(new THREE.Vector3(0, focusHeight, 0))
         .add(shoulder);
       const desired = focus
         .clone()
         .add(
           new THREE.Vector3(
-            Math.sin(this.yaw) * cp * this.zoom,
-            sp * this.zoom,
-            Math.cos(this.yaw) * cp * this.zoom,
+            Math.sin(this.yaw) * cp * orbitZoom,
+            sp * orbitZoom,
+            Math.cos(this.yaw) * cp * orbitZoom,
           ),
         );
       // Never let the camera dip into a hill.
@@ -711,7 +786,7 @@ export class World {
       );
       // Camera collision: cast from the astronaut's head toward the camera and stop in front
       // of the first wall, rock, hill or building. Snap in instantly, ease back out.
-      const head = follow.clone().add(new THREE.Vector3(0, 2.3, 0));
+      const head = follow.clone().add(new THREE.Vector3(0, focusHeight, 0));
       const toCam = desired.clone().sub(head);
       const full = toCam.length();
       toCam.divideScalar(full || 1);
@@ -766,9 +841,11 @@ export class World {
       this.hovered,
     );
     for (const [key, l] of this.labels) {
+      if (s.players[key]?.hab || roverSeat(rover, key) >= 0 || (key === "rover" && aboard)) l.el.hidden = true;
       if (
         this.actors.has(key) ||
         key === "nemi" ||
+        key === "rover" ||
         key.startsWith("field-") ||
         key.startsWith("salvage-") ||
         key.startsWith("panel-") ||
@@ -810,6 +887,28 @@ export class World {
       this.objectiveMarker.children[0].position.y =
         3.3 + (this.motion.reduced ? 0 : Math.sin(this.motion.time * 4) * 0.12);
     }
+    const weather = this.menu ? 0 : this.motion.storm;
+    const impact = s.event?.kind === "storm" ? s.clock - s.event.at - B.stormWarningSeconds : -1;
+    const burst = !this.menu && s.phase === "day" && impact >= 0 && impact < 7
+      ? Math.min(1, (impact + 0.1) * 4, (7 - impact) / 2) : 0;
+    this.screenDust.update(s.clock, burst, this.motion.reduced);
+    this.tracks.update(s.elapsed);
+    // A shallow weather volume follows the local terrain height. It stays out of
+    // collision and shared simulation; the same storm event drives every client.
+    const weatherOrigin = this.actors.get(id)?.position || this.camera.position;
+    this.motion.sandstorm.update(
+      dt,
+      weather,
+      {
+        x: weatherOrigin.x,
+        y: this.terrain.heightAt(weatherOrigin.x, weatherOrigin.z),
+        z: weatherOrigin.z,
+      },
+      this.motion.reduced,
+    );
+    const fog = this.scene.fog as THREE.Fog;
+    fog.near = THREE.MathUtils.lerp(THREE.MathUtils.lerp(110, 18, weather), 7, burst);
+    fog.far = THREE.MathUtils.lerp(THREE.MathUtils.lerp(620, 145, weather), 32, burst);
     this.renderer.render(this.scene, this.camera);
     this.frameMs = performance.now() - renderBegin;
     this.fps = this.fps * 0.95 + 0.05 / Math.max(0.001, dt);

@@ -49,6 +49,7 @@ it("keeps a crew connection alive without animation frames and stops on close", 
 it("connection timeouts explain that solo mode is available", async () => {
   vi.useFakeTimers();
   vi.stubGlobal("WebSocket", Socket);
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(Error("offline")));
   const client = new CrewConnection("ws://localhost:2567");
   const joined = client.join("Explorer");
   const assertion = expect(joined).rejects.toThrow(

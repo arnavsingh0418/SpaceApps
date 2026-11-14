@@ -271,16 +271,7 @@ export function installAstronaut(target: T.Group, color: number) {
       const lamp = target.getObjectByName("packLight");
       if (carried) {
         carried.removeFromParent();
-        carried.name = "carry-fallback";
-        const holder = new T.Group();
-        holder.name = "carried";
-        holder.position.copy(carried.position);
-        holder.visible = carried.visible;
-        carried.position.set(0, 0, 0);
-        carried.visible = true;
-        holder.add(carried);
-        upper.add(holder);
-        void replaceVisual(holder, "Supply_Crate", { width: 0.6, batch: true });
+        upper.add(carried);
       }
       if (tool) {
         tool.removeFromParent();

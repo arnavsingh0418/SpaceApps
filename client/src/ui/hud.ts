@@ -1,3 +1,6 @@
+import { habMap } from "./hab";
+import { roverDashboard } from "./rover";
+import { roverState, roverSeat } from "../../../shared/src/rover";
 import { resourceArt } from "./modelArt";
 import { B, budget, stations, type Game } from "../../../shared/src/sim";
 import { Gauge, KeyChip, Panel, Button, escape } from "./components";
@@ -37,6 +40,8 @@ export function objective(s: Game, v: HudView) {
 export function hud(s: Game, id: string, v: HudView) {
   const p = s.players[id],
     power = s.phase === "power" ? budget(s) : s.power;
+  const roverSeatIndex = roverSeat(roverState(s),id);
+  const riding = roverSeatIndex>=0;
   const step = tutorialSteps[v.tutorial];
   const ship = returnProgress(s);
   const shipGoals = partSlots.map((slot) =>
@@ -64,5 +69,5 @@ export function hud(s: Game, id: string, v: HudView) {
           "chat-drawer",
         )
       : ""
-  }</section>${miniMap(s, id, v.mapImage, v.trackedMission, v.trackedSalvage)}${guide || (v.guide ? missionTracker(s, id, v.trackedMission, v.trackedSalvage) : "")}<section class="hotbar-group" data-hud="hotbar">${v.prompt ? `<button class="interaction" data-do="interact">${KeyChip("E")} ${escape(v.prompt)}</button>` : ""}${hotbar(s, id, v.selected, v.bounce, v.pickupProgress)}${v.tutorial < 4 ? `<div class="tutorial-hint">${KeyChip(v.tutorial === 0 ? "WASD" : "E")} ${tutorialHints[v.tutorial]}</div>` : v.controls ? `<div class="controls-hint">${KeyChip("WASD")} Walk ${KeyChip("E")} Use ${KeyChip("Q")} Map ${KeyChip("Shift")} Sprint</div>` : ""}</section><div id="touch"><div id="joystick"><i></i></div><button data-do="interact" aria-label="Interact">E</button></div>${eventBanner(s)}`;
+  }</section>${p.hab ? habMap(s,id) : miniMap(s, id, v.mapImage, v.trackedMission, v.trackedSalvage)}${p.hab ? "" : guide || (v.guide ? missionTracker(s, id, v.trackedMission, v.trackedSalvage) : "")}<section class="hotbar-group" data-hud="hotbar">${!riding && v.prompt ? `<button class="interaction" data-do="interact">${KeyChip("E")} ${escape(v.prompt)}</button>` : ""}${riding ? roverDashboard(s,id) : hotbar(s, id, v.selected, v.bounce, v.pickupProgress)}${!p.hab && !riding && v.tutorial < 4 ? `<div class="tutorial-hint">${KeyChip(v.tutorial === 0 ? "WASD" : "E")} ${tutorialHints[v.tutorial]}</div>` : !riding && v.controls ? `<div class="controls-hint">${KeyChip("WASD")} Walk ${KeyChip("E")} Use ${KeyChip("Q")} ${p.hab ? "Floor plan" : "Map"} ${p.hab ? "" : `${KeyChip("Shift")} Sprint`}</div>` : ""}</section><div id="touch"><div id="joystick"><i></i></div><button data-do="interact" aria-label="Interact">E</button>${roverSeatIndex === 0 ? '<button class="rover-brake" data-do="roverBrake" aria-label="Brake rover">STOP</button>' : ""}</div>${eventBanner(s)}`;
 }

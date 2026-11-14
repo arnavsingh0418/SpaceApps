@@ -38,6 +38,14 @@ Roles: Engineer builds twice as fast; Scientist gets a field-map tip; Medic sees
 
 ## Validation
 
+### Wayfarer rover
+
+The six-wheel rover parks southeast of the habitat and appears on the field map. Walk beside it and press **E** to board. The first explorer drives; three more can ride. Use **W/S** to accelerate/reverse, **A/D** to steer and **Space** to brake. On touch screens use the joystick and hold **STOP**. Stop before pressing **E** to exit. A seated passenger can take the wheel after the driver leaves. The camera follows the vehicle while retaining orbit and zoom.
+
+The rover carries the crew and their existing bags. Solar panels and cargo pods are visual equipment; driving does not consume a separate fuel resource or add inventory slots. Solo saves preserve its position and distance travelled. Co-op shares one vehicle, validates driver ownership and bounded movement, and parks it when the driver disconnects. Terrain collision and slope handling run in the driver's client, as with walking.
+
+The original Blender model and regeneration script are in `assets/blender/`; the game loads `client/public/mars/vehicles/Mars_Rover.glb` with a primitive fallback. Its wheel and steering pivots remain separate for animation. Run `TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/rover-multiplayer.ts` with the server running to check boarding races, rider sync, braking, disconnects and driver handoff.
+
 ```sh
 npm test          # deterministic simulation and gameplay rules
 npm run build    # TypeScript + production bundle + offline cache
@@ -159,3 +167,12 @@ The game loads the matching Mars asset pack from `client/public/mars/`: 49 self-
 
 Run `npm test` for the actual-GLB rig, solar-state isolation, asset integrity and existing gameplay checks; `npm run build` validates TypeScript and produces the offline client. For a visual fixture, open `http://localhost:5173/?qaScene=models` in development. Additional fixture URLs include `?qaScene=workbench`, `?qaScene=tasks`, `?qaScene=ship` and `?qaScene=ended`. These fixtures are development-only.
 
+### Blender sandstorm effect
+
+Dust-storm events now play the Blender-authored [sandstorm VFX](client/public/mars/vfx/README.md): soft billows, ground drift and windblown grains, with a seamless 12-second loop. The runtime GLB is loaded on demand and uses embedded alpha textures. It follows local terrain height, fades with storm intensity and preserves the existing particle fallback. Reduced-motion users see lighter, static dust without moving grains. Source `.blend` and a reproducible generator are in `assets/blender/`. Use `/?qaScene=storm` in development to preview it.
+
+### Walkable Blender habitat interior
+
+Approach the habitat's south airlock beside the workbench and press **E** to enter. The [furnished interior](client/public/mars/interiors/README.md) has four individually assigned crew quarters, environmental control/life-support equipment, galley, hygiene area, command/comms, medical bay and airlock suit preparation. Walk and orbit the camera normally; **E** inspects nearby equipment and **Q** opens the floor plan. Return to the airlock and choose **Cycle airlock · Go outside** to leave.
+
+The expanded interior deck uses its own cutaway scene, with shared collision footprints, bounded server movement, crew synchronization and solo-save compatibility. Equipment displays existing mission readings; furniture does not introduce new resource, healing or inventory rules. Original `.blend`, review render and reproducible generator are under `assets/blender/`. `npm test` includes full-crew occupancy, room connectivity, movement/exit validation and actual-GLB checks. With the server running, `TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/hab-multiplayer.ts` verifies real-client interior synchronization and berth reuse; CI runs this alongside the existing network checks.

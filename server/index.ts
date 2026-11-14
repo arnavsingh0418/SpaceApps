@@ -1,114 +1,51 @@
 import { createServer } from "node:http";
-import { randomUUID, randomInt } from "node:crypto";
 import { WebSocketServer, WebSocket } from "ws";
 import { serveGame } from "./http";
-import {
-  createGame,
-  addPlayer,
-  removePlayer,
-  dispatch,
-  tick,
-  type Game,
-} from "../shared/src/sim";
-const rooms = new Map<string, Game>();
-const clients = new Map<
-  WebSocket,
-  { id: string; room: string; count: number; window: number; last: number }
->();
+import { CrewRooms, type CrewClient } from "./rooms";
+import { crewHTTP } from "./crewHttp";
+const hub = new CrewRooms(),
+  http = crewHTTP(hub),
+  clients = new Map<WebSocket, CrewClient>();
 const server = createServer((req, res) => {
-  void serveGame(req, res, rooms.size);
+  void http
+    .handle(req, res)
+    .then((handled) => {
+      if (!handled) return serveGame(req, res, hub.rooms.size);
+    })
+    .catch(() => {
+      if (!res.headersSent) res.writeHead(500);
+      res.end();
+    });
 });
 const wss = new WebSocketServer({ server, maxPayload: 4096 });
-const send = (ws: WebSocket, m: object) => {
+const send = (ws: WebSocket, value: object) => {
   if (ws.readyState === WebSocket.OPEN && ws.bufferedAmount < 1e6)
-    ws.send(JSON.stringify(m));
+    ws.send(JSON.stringify(value));
 };
 wss.on("connection", (ws) => {
-  const info = {
-    id: randomUUID(),
-    room: "",
-    count: 0,
-    window: Date.now(),
-    last: Date.now(),
-  };
-  clients.set(ws, info);
-  ws.on("message", (buf) => {
+  const c = hub.client();
+  clients.set(ws, c);
+  ws.on("message", (raw) => {
     try {
-      if (Date.now() - info.window > 1000) {
-        info.window = Date.now();
-        info.count = 0;
-      }
-      if (++info.count > 40) return;
-      info.last = Date.now();
-      const m = JSON.parse(buf.toString());
-      if (m.type === "create" || m.type === "join") {
-        if (info.room) return;
-        if (rooms.size >= 100 && m.type === "create") {
-          send(ws, {
-            type: "error",
-            message: "The server is full. Please try solo play.",
-          });
-          return;
-        }
-        let code = String(m.code || "").trim();
-        let game: Game | undefined;
-        if (m.type === "create") {
-          do {
-            code = String(randomInt(10000, 100000));
-          } while (rooms.has(code));
-          game = createGame(
-            Number.isFinite(m.seed) ? m.seed : randomInt(1000000),
-          );
-          rooms.set(code, game);
-        } else game = rooms.get(code);
-        if (!game) {
-          send(ws, {
-            type: "error",
-            message:
-              "Crew not found. Check the five-digit code with your friend.",
-          });
-          return;
-        }
-        if (!addPlayer(game, info.id, String(m.name || "Explorer"))) {
-          send(ws, {
-            type: "error",
-            message: "This crew already has four explorers.",
-          });
-          return;
-        }
-        info.room = code;
-        send(ws, { type: "welcome", id: info.id, room: code });
-        send(ws, { type: "state", state: game });
-        return;
-      }
-      if (m.type === "action" && info.room) {
-        const game = rooms.get(info.room);
-        if (game && m.action && typeof m.action === "object") {
-          const error = dispatch(game, info.id, m.action);
-          if (error) send(ws, { type: "error", message: error });
-        }
-      }
+      for (const m of hub.receive(c, JSON.parse(raw.toString()))) send(ws, m);
     } catch {
       send(ws, { type: "error", message: "That action could not be read." });
     }
   });
   ws.on("close", () => {
-    const game = rooms.get(info.room);
-    if (game) {
-      removePlayer(game, info.id);
-      if (!Object.keys(game.players).length) rooms.delete(info.room);
-    }
+    hub.remove(c);
     clients.delete(ws);
   });
 });
 const interval = setInterval(() => {
-  for (const game of rooms.values()) tick(game, 0.1);
+  hub.tick();
+  http.cleanup();
   for (const [ws, c] of clients) {
     if (Date.now() - c.last > 90000) {
       ws.close(1001, "Idle connection");
       continue;
     }
-    const state = rooms.get(c.room);
+    const state = hub.state(c);
     if (state) send(ws, { type: "state", state });
   }
 }, 100);

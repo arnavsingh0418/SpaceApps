@@ -1,3 +1,5 @@
+import { habAction, type HabPosition } from "../hab";
+import { createRover, roverState, roverSeat, roverAction, tickRover, leaveRover, type RoverState } from "../rover";
 import B from "../data/balance.json";
 import recipes from "../data/recipes.json";
 import facts from "../data/facts.json";
@@ -14,6 +16,8 @@ import { type AlienProgress } from "../alien";
 import { alienAction } from "./alienActions";
 import { fieldPartRewards, recoverPart } from "../shipRewards";
 import { deckSpawn, flightAction, tickDeckFlight } from "../flight";
+import { movePastPlayers } from "../playerCollision";
+import { blowDustDevil, type Gust } from "../dustDevil";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -52,10 +56,15 @@ export type Bag = Partial<Record<Item, number>>;
 export type Point = { x: number; z: number };
 export type Player = Point & {
   id: string;
+  /** Separate interior coordinates; surface position stays at the hab. */
+  hab?: HabPosition;
+  habBerth?: number;
   name: string;
   color: number;
   role: Role;
   bag: Bag;
+  selectedSlot?: number;
+  gust?: Gust;
   task?: { kind: string; target: string; at: number };
   move: Point;
   joined: number;
@@ -93,6 +102,8 @@ export type Allocation = {
   heat: number;
 };
 export type Game = {
+  /** Optional so older saves acquire the parked rover on first use. */
+  rover?: RoverState;
   seed: number;
   rng: number;
   sol: number;
@@ -188,6 +199,7 @@ function spawn(s: Game, kind: Item, count: number, x: number, z: number) {
 }
 export function createGame(seed = 42): Game {
   const s: Game = {
+    rover: createRover(),
     seed,
     rng: seed >>> 0,
     sol: 1,
@@ -278,6 +290,7 @@ export function addPlayer(s: Game, id: string, name = "Explorer") {
   return true;
 }
 export function removePlayer(s: Game, id: string) {
+  leaveRover(s, id);
   const p = s.players[id];
   if (!p) return;
   for (const [k, v] of Object.entries(p.bag))
@@ -326,6 +339,28 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   const p = s.players[id];
   if (!p) return "Join a crew first.";
   const fail = (text: string) => text;
+  if (["enterHab", "exitHab", "habPos"].includes(a.type)) return habAction(s,p,a);
+  if (p.hab && a.type === "move" && Number(a.x) === 0 && Number(a.z) === 0) return;
+  if (p.hab && s.phase !== "flight" && s.phase !== "ended" && !["chat","role","selectSlot","power","next","choice"].includes(a.type))
+    return "Leave the habitat through its airlock to use outdoor equipment.";
+  if (a.type === "selectSlot") {
+    if (
+      !Number.isInteger(a.slot) ||
+      Number(a.slot) < 0 ||
+      Number(a.slot) >= B.maxSlots
+    )
+      return fail("Choose an inventory slot from 1 to 5.");
+    p.selectedSlot = Number(a.slot);
+    return;
+  }
+  const r = roverState(s);
+  const riding = s.phase === "day" && roverSeat(r, id) >= 0;
+  if (["boardRover", "exitRover", "takeRover", "driveRover"].includes(a.type))
+    return roverAction(s, id, a, WORLD);
+  if (riding && ["move", "pos", "jump"].includes(a.type)) return;
+  if (p.gust && ["move", "pos", "jump"].includes(a.type)) return;
+  if (riding && !["chat", "role", "power", "next"].includes(a.type))
+    return "Park and exit the rover to work at a field site.";
   if (
     [
       "flightMove",
@@ -386,8 +421,14 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       dx *= maxStep / d;
       dz *= maxStep / d;
     }
-    p.x += dx;
-    p.z += dz;
+    Object.assign(
+      p,
+      movePastPlayers(
+        p,
+        { x: p.x + dx, z: p.z + dz },
+        Object.values(s.players).filter((other) => other.id !== id && !other.hab),
+      ),
+    );
     clampToWorld(p);
     const mx = Number(a.mx),
       mz = Number(a.mz);
@@ -794,6 +835,8 @@ function storm(s: Game) {
 export function tick(s: Game, dt: number, advanceSurface = true) {
   if (!Number.isFinite(dt) || dt <= 0) return;
   s.elapsed += dt;
+  tickRover(s);
+  if (s.phase === "flight" || s.phase === "ended") for (const p of Object.values(s.players)) delete p.hab;
   for (const m of s.pending.filter((m) => m.at <= s.elapsed)) log(s, m.text);
   s.pending = s.pending.filter((m) => m.at > s.elapsed);
   if (s.phase === "flight") {
@@ -802,18 +845,48 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
   }
   if (s.phase !== "day" || !advanceSurface) return;
   s.clock += dt;
-  for (const p of Object.values(s.players)) {
-    // A client that is reporting its own position drives this player directly.
-    if (p.posAt !== undefined && s.elapsed - p.posAt < 0.5) continue;
-    const speed = gaitSpeed(p.gait, s.allocation.heat < 1);
-    p.x += p.move.x * speed * dt;
-    p.z += p.move.z * speed * dt;
-    clampToWorld(p);
-  }
   s.devil = {
     x: 18 * L * Math.cos(s.elapsed * 0.045),
     z: 16 * L * Math.sin(s.elapsed * 0.045),
   };
+  const rover = s.rover;
+  if (rover) {
+    blowDustDevil(rover, s.devil, s.elapsed, dt, true);
+    if (rover.gust) {
+      const edge = { ...WORLD, r: WORLD.r - 5 };
+      const dx = rover.x - edge.x, dz = rover.z - edge.z;
+      const distance = Math.hypot(dx, dz);
+      if (distance > edge.r) {
+        rover.x = edge.x + dx / distance * edge.r;
+        rover.z = edge.z + dz / distance * edge.r;
+      }
+      rover.heading += dt * Math.min(2.6, Math.hypot(rover.gust.vx, rover.gust.vz) * 0.18);
+      rover.speed = 0;
+      tickRover(s);
+    }
+  }
+  for (const p of Object.values(s.players)) {
+    if (p.hab || (s.rover && roverSeat(s.rover, p.id) >= 0)) continue;
+    const wasBlown = !!p.gust;
+    blowDustDevil(p, s.devil, s.elapsed, dt);
+    if (p.gust || wasBlown) {
+      p.move = { x: 0, z: 0 };
+      clampToWorld(p);
+      continue;
+    }
+    // A client that is reporting its own position drives this player directly.
+    if (p.posAt !== undefined && s.elapsed - p.posAt < 0.5) continue;
+    const speed = gaitSpeed(p.gait, s.allocation.heat < 1);
+    Object.assign(
+      p,
+      movePastPlayers(
+        p,
+        { x: p.x + p.move.x * speed * dt, z: p.z + p.move.z * speed * dt },
+        Object.values(s.players).filter((other) => other.id !== p.id && !other.hab),
+      ),
+    );
+    clampToWorld(p);
+  }
   if (s.elapsed >= s.devilDropAt) {
     s.devilDropAt = s.elapsed + 3;
     for (const it of s.items) {
