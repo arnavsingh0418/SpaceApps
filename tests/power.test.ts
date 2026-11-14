@@ -21,6 +21,28 @@ it("uses air and food during shortages and stops after supplies run out", () => 
 
 it("finishes on Sol 15", () => {
   const state = createOutpost();
-  for (let i = 0; i < 15; i++) expect(runSol(state, initialAllocation, powerBudget(false))).toBe(true);
+  for (let i = 0; i < 15; i++) {
+    const response = state.sol % 3 === 0 ? "shelter" : undefined;
+    expect(runSol(state, initialAllocation, powerBudget(false), response, { ice: 0, shelter: true })).toBe(true);
+  }
   expect(state).toMatchObject({ sol: 15, signal: 10, complete: true });
+});
+
+it("requires an available flare response and spends ice only on a valid plan", () => {
+  const state = { ...createOutpost(), sol: 3 };
+  const supplies = { ice: 2, shelter: false };
+  const budget = powerBudget(false);
+  expect(runSol(state, initialAllocation, budget)).toBe(false);
+  expect(runSol(state, initialAllocation, budget, "shelter", supplies)).toBe(false);
+  expect(runSol(state, { ...initialAllocation, heat: 6 }, budget, "ice", supplies)).toBe(false);
+  expect(supplies.ice).toBe(2);
+  expect(runSol(state, initialAllocation, budget, "ice", supplies)).toBe(true);
+  expect(supplies.ice).toBe(0);
+  expect(state).toMatchObject({ sol: 4, shield: 1, dose: 19 });
+});
+
+it("charges food for shelter and limits flare exposure", () => {
+  const state = { ...createOutpost(), sol: 3 };
+  expect(runSol(state, initialAllocation, powerBudget(false), "shelter", { ice: 0, shelter: true })).toBe(true);
+  expect(state).toMatchObject({ food: 87, dose: 5 });
 });
