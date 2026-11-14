@@ -222,3 +222,11 @@ it("loads the actual self-contained Blender GLB with every room and cutaway grou
   expect(triangles).toBeLessThan(120000);
   expect(json.meshes.length).toBeLessThan(160);
 });
+
+it("chooses an unobstructed airlock exit when the rover is parked beside the hatch", () => {
+  const s = mission();
+  enter(s);
+  Object.assign(s.rover!, { x: 0, z: -8.5 });
+  expect(dispatch(s, "0", { type: "exitHab" })).toBeUndefined();
+  expect(Math.abs(s.players["0"].x)).toBeGreaterThan(3);
+});

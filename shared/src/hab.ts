@@ -1,6 +1,6 @@
 import layout from "./data/hab-layout.json";
 import type { Action, Game, Player, Point } from "./sim";
-import { roverSeat } from "./rover";
+import { roverSeat, roverBlocks } from "./rover";
 export const HAB_LAYOUT = layout;
 export const habSpeed = 5;
 export type HabPosition = Point & { at: number; credit: number };
@@ -112,8 +112,12 @@ export function habAction(s: Game, p: Player, a: Action): string | undefined {
       { x: 2.9, z: -8.3 },
       { x: -2.9, z: -8.3 },
       { x: 4.2, z: -8.3 },
-    ].find((q) => others.every((o) => Math.hypot(q.x - o.x, q.z - o.z) >= 1.2));
-    if (!exit) return "Wait for the crew to clear the exterior hatch.";
+    ].find(
+      (q) =>
+        (!s.rover || !roverBlocks(s.rover, q.x, q.z)) &&
+        others.every((o) => Math.hypot(q.x - o.x, q.z - o.z) >= 1.2),
+    );
+    if (!exit) return "Clear the exterior hatch before cycling outside.";
     Object.assign(p, exit);
     delete p.hab;
     p.move = { x: 0, z: 0 };
