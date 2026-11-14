@@ -3,6 +3,8 @@ import recipes from "../data/recipes.json";
 import facts from "../data/facts.json";
 import flares from "../data/donki_flares.json";
 import { fieldMissions, missionAvailable, missionSector, type FieldProgress } from "../expedition";
+import { type ReturnProgress } from "../returnMission";
+import { returnAction, scoreLesson, updateFlight } from "./returnActions";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -80,7 +82,7 @@ export type Game = {
   sol: number;
   clock: number;
   elapsed: number;
-  phase: "power" | "day" | "summary" | "ended";
+  phase: "power" | "day" | "summary" | "flight" | "ended";
   air: number;
   food: number;
   dose: number;
@@ -114,6 +116,7 @@ export type Game = {
   history: string[];
   /** Optional for compatibility with pre-expedition saves and older crew rooms. */
   expedition?: FieldProgress;
+  returnMission?: ReturnProgress;
 };
 export type Action = { type: string; [key: string]: unknown };
 /** The base layout is spread out by this factor so buildings can be life-sized. */
@@ -197,7 +200,7 @@ export function createGame(seed = 42): Game {
     event: null,
     summary: [],
     messages: [
-      "MISSION CONTROL: Our next Earth launch is too far away. Fix your radio and prepare the return vehicle already on Mars.",
+      "MISSION CONTROL: Recover scattered ship parts, rebuild the return vehicle, and fly home.",
     ],
     pending: [],
     result: "",
@@ -262,6 +265,10 @@ export function removePlayer(s: Game, id: string) {
   for (const [k, v] of Object.entries(p.bag))
     if (v) spawn(s, k as Item, v, p.x, p.z);
   delete s.players[id];
+  if (s.returnMission) {
+    for (const key of Object.keys(s.returnMission.lessonTimers))
+      if (key.startsWith(`${id}/`)) delete s.returnMission.lessonTimers[key];
+  }
   if (s.host === id) s.host = Object.keys(s.players)[0] || "";
 }
 export function budget(s: Game) {
@@ -301,6 +308,8 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
   const p = s.players[id];
   if (!p) return "Join a crew first.";
   const fail = (text: string) => text;
+  if (["startLessonQuiz", "startSalvage", "salvageAnswer", "installPart", "launchShip", "flightTask"].includes(a.type))
+    return returnAction(s, id, a);
   if (a.type === "move") {
     if (s.phase !== "day") return;
     const x = Number(a.x),
@@ -455,6 +464,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (!f.surveyed.includes(m.id)) return fail("Collect the instrument readings before making a conclusion.");
     if (a.answer !== m.correct) return fail("Recheck the evidence. " + m.explanation);
     f.completed.push(m.id);
+    scoreLesson(s, id, "field", m.id);
     for (const [kind, count] of Object.entries(m.reward))
       spawn(s, kind as Item, count, missionSector(m).x + 3, missionSector(m).z + 2);
     log(s, `FIELD JOURNAL: ${m.title}. ${m.debrief}`);
@@ -513,6 +523,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       return fail("Try again—read the field note for a clue.");
     if (!s.learned.includes(f.id)) {
       s.learned.push(f.id);
+      scoreLesson(s, id, "beacon", f.id);
       log(
         s,
         `Science learned: ${f.title}. Recipe unlocked for the whole crew!`,
@@ -704,12 +715,16 @@ function storm(s: Game) {
     "Dust storm: exposed panels lost sunlight. Loose supplies were damaged or lost; stored supplies stayed safe.",
   );
 }
-export function tick(s: Game, dt: number) {
+export function tick(s: Game, dt: number, advanceSurface = true) {
   if (!Number.isFinite(dt) || dt <= 0) return;
   s.elapsed += dt;
   for (const m of s.pending.filter((m) => m.at <= s.elapsed)) log(s, m.text);
   s.pending = s.pending.filter((m) => m.at > s.elapsed);
-  if (s.phase !== "day") return;
+  if (s.phase === "flight") {
+    updateFlight(s);
+    return;
+  }
+  if (s.phase !== "day" || !advanceSurface) return;
   s.clock += dt;
   for (const p of Object.values(s.players)) {
     // A client that is reporting its own position drives this player directly.
@@ -797,14 +812,7 @@ export function tick(s: Game, dt: number) {
     endCheck(s);
     if (s.phase === "summary" && s.sol >= B.missionSols) {
       s.phase = "ended";
-      const win =
-        ["shelter", "greenhouse", "radio"].every((k) => s.built.includes(k)) &&
-        s.radio >= B.radioTarget &&
-        s.aligned &&
-        s.power >= B.airMinimum + 1;
-      s.result = win
-        ? "Mission complete! Your crew is safe, the radio is connected, and the return vehicle is ready."
-        : "The return window arrived. Next time, finish all three buildings, align the radio, and keep at least 4 power blocks.";
+      s.result = "The return window closed. Recover and install all four ship systems, then launch before the end of Sol 15.";
     }
   }
   endCheck(s);

@@ -35,7 +35,7 @@ export function placeLabels(
   let nearest = "",
     best = 4;
   for (const [key, l] of labels) {
-    if (s.players[key] || key.startsWith("panel-")) continue;
+    if (!l.obj.visible || s.players[key] || key.startsWith("panel-")) continue;
     const d = distance(player, { x: l.obj.position.x, z: l.obj.position.z });
     if (d < best) {
       nearest = key;
@@ -50,7 +50,7 @@ export function placeLabels(
   }[] = [];
   for (const [key, l] of labels) {
     l.el.hidden = true;
-    if (menu || key.startsWith("panel-")) continue;
+    if (menu || !l.obj.visible || key.startsWith("panel-")) continue;
     const actor = s.players[key];
     if (actor && !multiplayer) continue;
     const dist = distance(player, { x: l.obj.position.x, z: l.obj.position.z });
@@ -69,7 +69,7 @@ export function placeLabels(
     } else if (key === nearest || key === hovered) {
       l.el.textContent = item
         ? `${({ scrap: "Scrap", ice: "Ice", soil: "Soil", glass: "Clear panels", seeds: "Seeds", antenna: "Antenna", battery: "Battery", circuit: "Circuit", food: "Food" } as const)[item.kind]} ×${item.count}`
-        : titles[key] || "Use";
+        : titles[key] || (key === "salvage-return" ? "Return ship" : key.startsWith("salvage-") ? "Salvage cache" : "Use");
     } else {
       l.el.textContent = item ? icons[item.kind] : "🔹";
       l.el.classList.add("icon-chip");

@@ -2,12 +2,12 @@ import { Button, KeyChip } from "./components";
 
 export function missionBriefing() {
   return `<div class="mission-brief"><section class="mission-brief-card" role="dialog" aria-modal="true" aria-labelledby="brief-title" tabindex="-1">
-    <small>SUIT SEALED · CREW SAFE · SOL 01</small><h2 id="brief-title">You made it. Now make a home.</h2>
-    <p>Vega's crew survived the landing, but the radio and cargo are scattered. Follow a three-act expedition across seven field sites: recover the flight log, investigate how to live on Mars, and reconnect with Earth. Your pre-delivered habitat is home base.</p>
+    <small>SUIT SEALED · CREW SAFE · SOL 01</small><h2 id="brief-title">Rebuild the ship. Get home.</h2>
+    <p>Vega's crew survived the landing. Ship parts are scattered across seven field sites. Recover them, rebuild the return vehicle, and launch for Earth before the end of Sol 15.</p>
     <div class="brief-cards"><article><span>01 ↗</span><h3>Recover & learn</h3><p>Follow the gold marker to supplies. Cyan beacons teach the science that unlocks building recipes.</p></article><article><span>02 ⌂</span><h3>Build your base</h3><p>Bring supplies to the habitat's workbench. Make a greenhouse, radiation shelter, and radio.</p></article><article><span>03 ☀</span><h3>Keep everyone safe</h3><p>Share electricity between air, plants, heat, and radio. Protect the crew when storms and flares arrive.</p></article></div>
     <div class="brief-keyline"><span>${KeyChip("WASD")} / arrows: walk</span><span>${KeyChip("E")} use nearby objects</span><span>${KeyChip("Q")} map</span><span>${KeyChip("Esc")} pause & guide</span><span>Touch: joystick + E button</span></div>
-    <p>Open the top-right map (Q) to pin a mission. Visit its field terminal, press E, operate the instrument, then explain the evidence. Twelve investigations unlock supply caches and a science journal. The map and lessons pause solo time.</p>
-    <p>Keep the outpost alive too: survive 15 sols, build all three systems, and reach radio progress 10. Today's power is already set; your first power plan is on Sol 2.</p>
+    <p>Open the map (Q) and pin a salvage cache. Press E at the cache and beat its quiz timers to earn parts and points. Faster answers earn rarer parts and improve your odds of getting home.</p>
+    <p>Keep the outpost alive while you explore. Its systems help your return odds, and twelve field investigations unlock useful supplies. Your first power plan is on Sol 2.</p>
     <div class="brief-actions"><small>Mission paused until you're ready. A sol is one Mars day.</small>${Button("LET'S EXPLORE ↗", "beginExplore")}</div>
   </section></div>`;
 }
@@ -22,7 +22,7 @@ export function fieldManual() {
     <article><h3>Use the habitat's workbench</h3><p>Press E at the workbench in front of the dome. Store your cargo to free bag space. Choose a recipe tab, check its ingredients, then build. Start with a greenhouse for food.</p></article>
     <article><h3>Every block of power has a job</h3><p>From Sol 2, split solar power each morning. Air needs at least 3 blocks; plants need light after you build a greenhouse. Heat keeps you warm. A working radio needs power to make progress.</p></article>
     <article><h3>Watch the sky</h3><p>Store supplies and cover panels before dust storms; covered panels make no power. Read solar-flare alerts and choose protection. Build shielding, clean panels, and water your greenhouse using ice.</p></article>
-    <article><h3>Get ready to return</h3><p>By Sol 15, build the greenhouse, shelter, and radio; align the dish, reach radio progress 10, and keep at least 4 power blocks. The return vehicle is already on Mars. This deadline is fictional.</p></article>
+    <article><h3>Rebuild and fly home</h3><p>Pin a salvage cache on the map and complete two timed questions. Correct answers earn points. Fast answers improve the rarity of your parts. Install all four systems at the return platform and launch before the end of Sol 15. Flight tasks and installed parts affect the final success roll.</p></article>
     <article><h3>Your field controls</h3><p>E: interact · B: nearby workbench · Q: map · 1–5: bag slots · G: drop selected stack · Tab: goals · T: chat · Esc: pause. Solo missions save automatically.</p></article>
     <article><h3>Real science, a fictional adventure</h3><p>Our crew, crash, and emergency are invented. NASA's robotic landers inspire the entry sequence; crewed Mars landing systems are still being developed. Numbers in the game are simplified teaching tools.</p><div class="manual-links"><a href="https://science.nasa.gov/planetary-science/programs/mars-exploration/mission-timeline/how-we-land-on-mars/" target="_blank" rel="noopener noreferrer">NASA: landing on Mars ↗</a><a href="https://www.jpl.nasa.gov/news/press_kits/mars_2020/landing/mission/" target="_blank" rel="noopener noreferrer">NASA: journey & communication ↗</a></div></article>
     </div>${Button("GOT IT", "close")}`;

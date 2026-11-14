@@ -205,6 +205,8 @@ export class World {
     solid(bench.group);
     this.addLabel("workbench", bench.top, "🔧 WORKBENCH", 1.4);
     for (const site of sectors) this.addLabel(`field-${site.id}`, this.fieldSites.groups.get(site.id)!, site.name, 2.2);
+    for (const [id, group] of this.fieldSites.salvage)
+      this.addLabel(`salvage-${id}`, group, id === "return" ? "Return ship" : "Salvage cache", 1.8);
     for (const [key, pos] of Object.entries(stations)) {
       if (key === "workbench") continue;
       const g = solid(beacon(pos.x, pos.z));

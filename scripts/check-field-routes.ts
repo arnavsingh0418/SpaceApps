@@ -5,6 +5,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { Terrain, SPAWN_BLENDER } from "../client/src/render/terrain";
 import { sectors } from "../shared/src/expedition";
+import { launchSite, salvageSites } from "../shared/src/returnMission";
 const loader = new GLTFLoader();
 loader.setMeshoptDecoder(MeshoptDecoder);
 const data = readFileSync("client/public/models/mars_map.glb");
@@ -74,7 +75,11 @@ for (let i = 0; i < queue.length; i++) {
   }
 }
 let failed = false;
-for (const s of sectors) {
+for (const s of [
+  ...sectors,
+  ...salvageSites.map((site) => ({ ...site, name: `${site.name} salvage` })),
+  { ...launchSite, name: "Return vehicle" },
+]) {
   const nearest = queue.reduce(
     (best, [x, z]) => Math.min(best, Math.hypot(x - s.x, z - s.z)),
     Infinity,

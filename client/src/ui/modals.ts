@@ -11,6 +11,8 @@ import {
 import sources from "../../../shared/src/data/sources.json";
 import { Button, Panel, KeyChip, escape } from "./components";
 import { expeditionMap } from "./expedition";
+import { quizQuestion } from "./quiz";
+import { returnReport } from "./returnMission";
 export function titleScreen(hasSave: boolean) {
   return `<div class="menu-top"><b>◈ MARS EXPLORATION PROGRAM</b><span>MISSION 001 / GALE CRATER</span></div><section class="title-screen"><div class="eyebrow">A LITTLE CREW. A BIG PLANET.</div><h1>OUTPOST<br><span>DOWN</span><i>↘</i></h1><div class="menu-actions">${Button("START MISSION ↗", "solo")}${hasSave ? Button("CONTINUE", "resume", "", true) : ""}${Button("PLAY WITH FRIENDS", "crew", "", true)}</div><div class="menu-links">${Button("HOW TO PLAY", "help", "", true)}${Button("NASA DATA", "sources", "", true)}</div></section><div class="mission-stamp"><span>5.4° S / 137.8° E</span><b>GALE CRATER</b></div><footer class="menu-footer">15 SOLS / UP TO 4 CREW</footer>`;
 }
@@ -43,20 +45,10 @@ export function scienceLesson(s: Game, key: string) {
     plants:
       "Radiation changed plant repair instructions in OSD-658. These tests help scientists study crops.",
   };
-  return `<p class="science-copy" data-copy="fact">${short[key]}</p><h3>${escape(f.question)}</h3><div class="answers">${f.answers
-    .map((a, i) => ({ a, i }))
-    .sort((a, b) => ((a.i + s.seed) % 3) - ((b.i + s.seed) % 3))
-    .map(({ a, i }) =>
-      Button(
-        escape(a),
-        "answer",
-        `data-fact="${key}" data-answer="${i}"`,
-        true,
-      ),
-    )
-    .join(
-      "",
-    )}</div>${key === "comms" && s.built.includes("radio") ? Button("ALIGN DISH", "task", 'data-kind="align"') : ""}${key === "grow" && s.built.includes("greenhouse") ? Button("WATER PLANTS −1 ❄️", "task", 'data-kind="water"') : ""}${key === "oxygen" ? Button("PATCH PIPES", "task", 'data-kind="patch"') : ""}<a class="citation" href="${f.url}" target="_blank" rel="noopener noreferrer">${escape(f.source)} ↗</a>`;
+  const answers = f.answers
+    .map((text, index) => ({ text, index }))
+    .sort((a, b) => ((a.index + s.seed) % 3) - ((b.index + s.seed) % 3));
+  return `<p class="science-copy" data-copy="fact">${short[key]}</p>${quizQuestion(f.question, answers, { fact: key })}${key === "comms" && s.built.includes("radio") ? Button("ALIGN DISH", "task", 'data-kind="align"') : ""}${key === "grow" && s.built.includes("greenhouse") ? Button("WATER PLANTS −1 ❄️", "task", 'data-kind="water"') : ""}${key === "oxygen" ? Button("PATCH PIPES", "task", 'data-kind="patch"') : ""}<a class="citation" href="${f.url}" target="_blank" rel="noopener noreferrer">${escape(f.source)} ↗</a>`;
 }
 export function workbench(s: Game, id: string, index: number) {
   const r = recipes[index],
@@ -120,7 +112,7 @@ export function dataSources(index: number) {
   const source = sources[index];
   return `<div class="source-progress">${index + 1}/${sources.length}</div><h3>${escape(source.title)}</h3><p class="source-copy">${escape(shortUses[index]).replace("mSv/day", '<abbr title="A unit of radiation received each day.">mSv/day</abbr>')}</p><a href="${source.url}" target="_blank" rel="noopener noreferrer">NASA source ↗</a><div class="menu-grid">${Button("PREVIOUS", "sourcePage", `data-index="${(index + sources.length - 1) % sources.length}"`, true)}${Button("NEXT", "sourcePage", `data-index="${(index + 1) % sources.length}"`)}</div>`;
 }
-export function endScreen(s: Game) {
+export function endScreen(s: Game, id: string) {
   const win = s.result.startsWith("Mission complete");
   return `<div class="end-screen"><h1>${win ? "MISSION COMPLETE" : "MISSION REPORT"}</h1><div class="portraits">${Object.values(
     s.players,
@@ -128,7 +120,7 @@ export function endScreen(s: Game) {
     .map((p) => `<div><span>🧑‍🚀</span><b>${escape(p.name)}</b></div>`)
     .join(
       "",
-    )}</div><div class="end-stats"><span><b>${s.sol}</b>SOLS</span><span><b>${Math.round(s.dose)}</b>DOSE</span><span><b>${s.radio}/10</b>SIGNAL</span></div><p>${win ? "Your outpost is ready for the return window." : s.air <= 0 ? "Give the air machine more power." : s.food <= 0 ? "Build a greenhouse and keep it lit." : s.dose >= 100 ? "Build shielding and take shelter during flares." : "Finish the buildings and align the radio."}</p><p class="science-copy">Real astronauts plan backup power and radiation shelter. They check supplies before leaving base.</p><div class="menu-grid">${Button("TRY AGAIN", "retry")}${Button("MAIN MENU", "menu", "", true)}</div></div>`;
+    )}</div><div class="end-stats"><span><b>${s.sol}</b>SOLS</span><span><b>${Math.round(s.dose)}</b>DOSE</span><span><b>${s.radio}/10</b>SIGNAL</span></div>${returnReport(s, id)}<div class="menu-grid">${Button("TRY AGAIN", "retry")}${Button("MAIN MENU", "menu", "", true)}</div></div>`;
 }
 export function fieldMap(s: Game, id: string) {
   return expeditionMap(s, id, "", "");

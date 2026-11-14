@@ -9,6 +9,7 @@ import { Arrival } from "./render/arrival";
 import { missionBriefing, fieldManual } from "./ui/briefing";
 import { expeditionMap, fieldStation, fieldDebrief } from "./ui/expedition";
 import { fieldMissions, fieldProgress, missionAvailable, missionSector, nextFieldMission, sectors } from "../../shared/src/expedition";
+import { flightTasks, launchSite, lessonTimerKey, returnProgress, salvageSites, shipTarget } from "../../shared/src/returnMission";
 import { CrewConnection } from "./net/crew";
 import {
   createGame,
@@ -34,6 +35,8 @@ import { powerPlan, powerKeys } from "./ui/powerPlan";
 import { flareCard, report } from "./ui/events";
 import { toast, tickToast } from "./ui/toasts";
 import * as screens from "./ui/modals";
+import { salvageScreen, hangar, flightScreen } from "./ui/returnMission";
+import "./ui/quiz.css";
 const $ = (q: string) => document.querySelector<HTMLElement>(q)!;
 const ui = $("#ui"),
   root = $("#modal-root");
@@ -50,6 +53,8 @@ let game = createGame(42),
   draft: Allocation = { air: 3, light: 3, radio: 3, heat: 2 };
 let arrival: Arrival | null = null;
 let trackedMission = "", selectedMission = "";
+let activeCache = "", activeLesson = "", missionPanelState = "";
+let trackedSalvage = "";
 let gaugeFrom = { power: 11, air: 85, food: 95, dose: 0 },
   gaugeUntil = 0;
 let tutorial = 4,
@@ -74,7 +79,7 @@ try {
   if (
     v?.version === 1 &&
     v.game?.players?.solo &&
-    ["power", "day", "summary"].includes(v.game.phase)
+    ["power", "day", "summary", "flight"].includes(v.game.phase)
   ) {
     saved = v.game;
     placeBatteryByAntenna(v.game);
@@ -115,6 +120,7 @@ document.addEventListener("input", (event) => {
     document.querySelector("#field-signal")!.textContent = `${signal}%`;
     (document.querySelector("#field-meter") as HTMLElement).style.width = `${signal}%`;
   }
+  if (el.id === "flight-trim") $("#flight-trim-value").textContent = `${el.value}%`;
   if (el.id === "master-volume") {
     volume = Number(el.value);
     sfx.volume = volume / 100;
@@ -137,14 +143,14 @@ function act(a: Action) {
   }
   return true;
 }
-function open(kind: string, title: string, body: string, closable = true) {
+function open(kind: string, title: string, body: string, closable = true, cls = "") {
   const alreadyOpen = modal === kind;
   modal = kind;
   stopInput();
   world.releaseMouse();
   ui.inert = true;
   act({ type: "move", x: 0, z: 0 });
-  root.innerHTML = Modal(title, body, closable);
+  root.innerHTML = Modal(title, body, closable, cls);
   if (alreadyOpen) {
     const panel = root.querySelector<HTMLElement>(".modal");
     if (panel) panel.style.animation = "none";
@@ -158,6 +164,7 @@ function close() {
   stopInput();
   ui.inert = false;
   modal = "";
+  missionPanelState = "";
   root.innerHTML = "";
   hudSignature = "";
 }
@@ -217,7 +224,7 @@ function start(resume = false) {
   unread = lastMessages = 0;
   lastEvent = "";
   selected = 0;
-  trackedMission = selectedMission = "";
+  trackedMission = selectedMission = trackedSalvage = "";
   started = true;
   world.menu = false;
   phase = "";
@@ -262,7 +269,8 @@ function bench() {
   open("bench", "WORKBENCH", screens.workbench(game, id, recipeIndex));
 }
 function showLesson(key: string) {
-  const f = facts.find((f) => f.id === key)!;
+  activeLesson = key;
+  act({ type: "startLessonQuiz", kind: "beacon", quiz: key });
   open(
     "learn",
     (
@@ -276,6 +284,8 @@ function showLesson(key: string) {
       } as Record<string, string>
     )[key],
     screens.scienceLesson(game, key),
+    true,
+    "quiz-modal",
   );
 }
 function learn(key: string) {
@@ -289,35 +299,112 @@ function flare() {
   root.querySelector("h2")?.remove();
 }
 function mapScreen() {
-  open("map", "Expedition atlas", expeditionMap(game, id, world.mapImage, trackedMission, selectedMission));
+  open("map", "Expedition atlas", expeditionMap(game, id, world.mapImage, trackedMission, selectedMission, trackedSalvage));
   root.querySelector(".modal")?.classList.add("expedition-modal");
 }
 function openFieldMission(mission: string) {
   selectedMission = mission;
   const m = fieldMissions.find((m) => m.id === mission);
   if (!m) return;
-  open("field", m.title, fieldStation(game, m));
-  root.querySelector(".modal")?.classList.add("field-modal");
+  const surveyed = fieldProgress(game).surveyed.includes(m.id);
+  if (surveyed) act({ type: "startLessonQuiz", kind: "field", quiz: m.id });
+  open("field", m.title, fieldStation(game, m), true, surveyed ? "field-modal quiz-modal" : "field-modal");
 }
+
+function saveSolo() {
+  if (connection || game.phase === "ended") return;
+  try {
+    saved = structuredClone(game);
+    localStorage.setItem("outpost-save-v1", JSON.stringify({ version: 1, game }));
+  } catch {}
+}
+
+function showSalvage(site: string) {
+  activeCache = site;
+  missionPanelState = "";
+  modal = "salvage";
+  syncMissionPanel();
+}
+
+function showHangar() {
+  missionPanelState = "";
+  modal = "hangar";
+  syncMissionPanel();
+}
+
+function syncMissionPanel() {
+  const progress = returnProgress(game);
+  let deadline: number | undefined;
+  let lesson = false;
+  if (modal === "salvage") {
+    const run = progress.caches[activeCache];
+    const expired = !!run && !run.reward && game.elapsed >= run.deadline;
+    const signature = JSON.stringify([activeCache, run?.step, run?.deadline, run?.reward, expired]);
+    if (missionPanelState !== signature) {
+      open("salvage", "Salvage cache", salvageScreen(game, activeCache), true, "quiz-modal return-modal");
+      missionPanelState = signature;
+    }
+    if (run && !run.reward && !expired) {
+      deadline = run.deadline;
+      const feedback = root.querySelector(".quiz-feedback");
+      if (feedback && feedback.textContent !== (run.feedback ?? "")) feedback.textContent = run.feedback ?? "";
+    }
+  } else if (modal === "hangar") {
+    const signature = JSON.stringify([progress.installed, progress.recovered, game.built, game.radio, game.aligned, game.host]);
+    if (missionPanelState !== signature) {
+      open("hangar", "Return vehicle", hangar(game, id), true, "quiz-modal return-modal");
+      missionPanelState = signature;
+    }
+  } else if (game.phase === "flight" && progress.flight) {
+    const flight = progress.flight;
+    const signature = `flight-${flight.stage}`;
+    if (missionPanelState !== signature) {
+      open("flight", flightTasks[flight.stage].name, flightScreen(game), false, "quiz-modal return-modal flight-modal");
+      missionPanelState = signature;
+    }
+    deadline = flight.deadline;
+  } else if (modal === "learn" || modal === "field") {
+    lesson = true;
+    deadline = progress.lessonTimers[modal === "learn"
+      ? lessonTimerKey(id, "beacon", activeLesson)
+      : lessonTimerKey(id, "field", selectedMission)];
+  }
+  const clock = root.querySelector<HTMLElement>("[data-quiz-clock]");
+  const bar = root.querySelector("progress");
+  if (!clock || !bar || deadline === undefined) return;
+  const remaining = Math.max(0, deadline - game.elapsed);
+  const label = remaining > 0 ? `${Math.ceil(remaining)}s left` : lesson ? "Bonus time ended · answer for 100 points" : "Time expired";
+  if (clock.textContent !== label) clock.textContent = label;
+  bar.hidden = false;
+  bar.value = remaining;
+}
+
+function dispatchMission(a: Action) {
+  if (connection) { connection.send(a); return; }
+  const error = dispatch(game, id, a);
+  if (error) { fieldFeedback(error); return; }
+  saveSolo();
+  draw();
+}
+function fieldFeedback(error: string) {
+  const feedback = root.querySelector(".quiz-feedback, .field-feedback");
+  if (feedback) feedback.textContent = error;
+  else toast(error);
+}
+
 function fieldAction(action: Action, mission: string) {
   // Crew servers validate the same action; their authoritative state drives the next redraw.
   if (connection) { connection.send(action); return; }
   const error = dispatch(game, id, action);
   if (error) {
-    const feedback = root.querySelector(".field-feedback");
-    if (feedback) feedback.textContent = error;
-    else toast(error);
+    fieldFeedback(error);
     return;
   }
   const m = fieldMissions.find((m) => m.id === mission)!;
-  try {
-    saved = structuredClone(game);
-    localStorage.setItem("outpost-save-v1", JSON.stringify({ version: 1, game }));
-  } catch {}
+  saveSolo();
   if (action.type === "fieldAnswer") {
     cue("success");
-    open("fieldDebrief", "Investigation complete", fieldDebrief(game, m));
-    root.querySelector(".modal")?.classList.add("field-modal");
+    open("fieldDebrief", "Investigation complete", fieldDebrief(game, m), true, "field-modal quiz-modal");
     hudSignature = "";
   } else openFieldMission(mission);
 }
@@ -358,6 +445,11 @@ function nearest(): Nearby | null {
     const m = fieldMissions.find((m) => m.sector === site.id && missionAvailable(game, m));
     all.push({ type: m ? "field" : "fieldInfo", target: m?.id || site.id, pos: site, text: m ? `Investigate: ${m.title}` : `Inspect ${site.name}` });
   }
+  for (const site of salvageSites) {
+    if (!returnProgress(game).caches[site.id]?.reward)
+      all.push({ type: "salvage", target: site.id, pos: site, text: "Open salvage cache" });
+  }
+  all.push({ type: "hangar", target: "return", pos: launchSite, text: "Rebuild return ship" });
   for (const i of game.items)
     all.push({
       type: "pick",
@@ -396,6 +488,8 @@ function interact() {
   }
   if (n.type === "bench") bench();
   if (n.type === "field") openFieldMission(n.target);
+  if (n.type === "salvage") showSalvage(n.target);
+  if (n.type === "hangar") showHangar();
   if (n.type === "fieldInfo") {
     selectedMission = fieldMissions.find((m) => m.sector === n.target && !fieldProgress(game).completed.includes(m.id))?.id || fieldMissions.find((m) => m.sector === n.target)!.id;
     mapScreen();
@@ -438,6 +532,7 @@ function draw() {
     guide: !modal,
     mapImage: world.mapImage,
     trackedMission,
+    trackedSalvage,
     hint: "",
     prompt: !modal && game.phase === "day" ? n?.text || "" : "",
     controls: game.clock < controlsUntil,
@@ -458,6 +553,9 @@ function draw() {
     game.aligned,
     game.built,
     game.expedition,
+    game.returnMission?.points,
+    game.returnMission?.installed,
+    game.returnMission?.recovered,
     Math.round(game.players[id].x), Math.round(game.players[id].z),
     game.stock,
     game.players[id].bag,
@@ -488,7 +586,7 @@ function draw() {
     if (phase === "summary")
       open("summary", "SOL COMPLETE", report(game, reportBefore, id), false);
     if (phase === "ended") {
-      open("ended", "", screens.endScreen(game), false);
+      open("ended", "", screens.endScreen(game, id), false);
       root.querySelector("h2")?.remove();
       root.querySelector(".modal")?.classList.add("fullscreen");
       try {
@@ -497,6 +595,7 @@ function draw() {
       } catch {}
     }
   }
+  syncMissionPanel();
   if (modal === "flare") {
     const bar = root.querySelector<HTMLElement>(".countdown");
     if (bar && game.event)
@@ -602,15 +701,20 @@ async function connect(join: boolean) {
   try {
     if (!/^wss?:\/\//.test(url)) throw Error("Use a ws:// or wss:// address.");
     const conn = new CrewConnection(url);
-    conn.onError = toast;
+    conn.onError = (error) => ["field", "learn", "salvage", "hangar", "flight"].includes(modal) ? fieldFeedback(error) : toast(error);
     conn.onState = (s) => {
       const old = JSON.stringify(game.expedition);
+      const oldLearned = game.learned.includes(activeLesson);
       game = s;
+      if (modal === "learn" && !oldLearned && s.learned.includes(activeLesson)) {
+        cue("success");
+        close();
+        toast("Science learned by the crew.");
+      }
       if (modal === "field" && selectedMission && old !== JSON.stringify(s.expedition)) {
         const m = fieldMissions.find((m) => m.id === selectedMission)!;
         if (fieldProgress(s).completed.includes(m.id)) {
-          open("fieldDebrief", "Investigation complete", fieldDebrief(s, m));
-          root.querySelector(".modal")?.classList.add("field-modal");
+          open("fieldDebrief", "Investigation complete", fieldDebrief(s, m), true, "field-modal quiz-modal");
         } else openFieldMission(m.id);
       }
     };
@@ -709,6 +813,24 @@ document.addEventListener("click", (e) => {
       goalsOpen = !goalsOpen;
       hudSignature = "";
       break;
+    case "startSalvage":
+      dispatchMission({ type: "startSalvage", site: d.site });
+      break;
+    case "salvageAnswer":
+      dispatchMission({ type: "salvageAnswer", site: d.site, step: Number(d.step), answer: Number(d.answer) });
+      break;
+    case "leaveSalvage":
+      close();
+      break;
+    case "installPart":
+      dispatchMission({ type: "installPart", part: d.part });
+      break;
+    case "launchShip":
+      dispatchMission({ type: "launchShip" });
+      break;
+    case "flightTask":
+      dispatchMission({ type: "flightTask", step: Number(d.step), value: Number(d.answer ?? root.querySelector<HTMLInputElement>("#flight-trim")?.value) });
+      break;
     case "chat":
       chatOpen = !chatOpen;
       unread = 0;
@@ -726,7 +848,14 @@ document.addEventListener("click", (e) => {
       mapScreen(); break;
     }
     case "selectMission": selectedMission = d.mission!; mapScreen(); break;
-    case "trackMission": trackedMission = d.mission!; tutorial = 4; close(); draw(); break;
+    case "trackMission": trackedMission = d.mission!; trackedSalvage = ""; tutorial = 4; close(); draw(); break;
+    case "trackSalvage":
+      trackedSalvage = d.site!;
+      trackedMission = "";
+      tutorial = 4;
+      close();
+      draw();
+      break;
     case "fieldObserve":
     case "fieldReset":
     case "fieldAnswer":
@@ -776,12 +905,15 @@ document.addEventListener("click", (e) => {
       break;
     case "answer": {
       const f = facts.find((f) => f.id === d.fact)!;
-      if (
-        Number(d.answer) === f.correct &&
-        act({ type: "learn", fact: d.fact, answer: Number(d.answer) })
-      ) {
+      const answer = Number(d.answer);
+      if (answer !== f.correct) {
+        root.querySelector(".quiz-feedback")!.textContent = "Try again. Check the science note.";
+        break;
+      }
+      if (act({ type: "learn", fact: d.fact, answer })) {
         cue("success");
         close();
+        saveSolo();
         toast(
           (
             {
@@ -801,7 +933,7 @@ document.addEventListener("click", (e) => {
           true,
           game.sol,
         );
-      } else toast("Try again. Check the science note.");
+      }
       break;
     }
     case "recipe":
@@ -895,6 +1027,7 @@ addEventListener("keydown", (e) => {
     return;
   }
   if ((e.target as HTMLElement).matches("input,select,textarea")) return;
+  if (e.code === "Space" && (e.target as HTMLElement).closest(".quiz-modal button")) return;
   if (
     ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key) ||
     (e.key === "Tab" && !modal && started)
@@ -907,7 +1040,7 @@ addEventListener("keydown", (e) => {
   }
   if (e.repeat) return;
   if (e.key === "Escape") {
-    if (modal && !["power", "summary", "ended", "building", "briefing"].includes(modal))
+    if (modal && !["power", "summary", "flight", "ended", "building", "briefing"].includes(modal))
       close();
     else if (!modal && started) pause();
   }
@@ -1010,22 +1143,8 @@ let last = performance.now(),
 const controller = new LocalController();
 function updateTutorial() {
   if (tutorial >= 4) {
-    const field = nextFieldMission(game, trackedMission);
-    world.objectiveTarget = field ? missionSector(field) : !game.learned.includes("grow")
-      ? stations.grow
-      : !game.built.includes("greenhouse")
-        ? stations.workbench
-        : !game.built.includes("shelter")
-          ? game.learned.includes("shield")
-            ? stations.workbench
-            : stations.shield
-          : !game.built.includes("radio")
-            ? game.learned.includes("comms")
-              ? stations.workbench
-              : stations.comms
-            : !game.aligned
-              ? stations.comms
-              : null;
+    const field = trackedMission && nextFieldMission(game, trackedMission);
+    world.objectiveTarget = field ? missionSector(field) : shipTarget(game, id, trackedSalvage);
     return;
   }
   const p = game.players[id],
@@ -1136,7 +1255,9 @@ function update(dt: number, render = true) {
     }
     fixed += dt;
     while (fixed >= 0.1) {
-      if (!connection && !["pause", "briefing", "help", "sources", "map", "field", "fieldDebrief", "learn"].includes(modal) && !document.hidden) {
+      if (!connection && !document.hidden) {
+        const paused = ["pause", "briefing", "help", "sources", "map", "fieldDebrief", "hangar"].includes(modal);
+        const quiz = ["learn", "salvage"].includes(modal) || (modal === "field" && fieldProgress(game).surveyed.includes(selectedMission));
         if (game.phase === "day" && game.clock + 0.1 >= B.solSeconds)
           reportBefore = {
             power: game.power,
@@ -1144,7 +1265,7 @@ function update(dt: number, render = true) {
             food: game.food,
             dose: game.dose,
           };
-        tick(game, 0.1);
+        if (!paused && (modal !== "field" || quiz)) tick(game, 0.1, !quiz);
       }
       fixed -= 0.1;
     }
@@ -1182,13 +1303,7 @@ function update(dt: number, render = true) {
       redraw = 0;
     }
     if (!connection && game.elapsed - saveAt > 2 && game.phase !== "ended") {
-      try {
-        saved = structuredClone(game);
-        localStorage.setItem(
-          "outpost-save-v1",
-          JSON.stringify({ version: 1, game }),
-        );
-      } catch {}
+      saveSolo();
       saveAt = game.elapsed;
     }
   } else game.elapsed += dt;
@@ -1253,6 +1368,7 @@ window.render_game_to_text = () =>
     },
     learned: game.learned,
     expedition: fieldProgress(game),
+    returnMission: returnProgress(game),
     trackedMission: nextFieldMission(game, trackedMission)?.id,
     built: game.built,
     event: game.event,

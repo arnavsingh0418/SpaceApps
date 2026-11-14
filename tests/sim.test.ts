@@ -324,7 +324,7 @@ describe("shared deterministic simulation", () => {
     expect(s.phase).toBe("ended");
     expect(s.result).toContain("Try giving");
   });
-  it("win requires a stable, fully built and aligned outpost at sol 15", () => {
+  it("a fully built outpost still misses the return window without a launch", () => {
     const s = setup();
     day(s);
     s.sol = 15;
@@ -333,7 +333,7 @@ describe("shared deterministic simulation", () => {
     s.aligned = true;
     s.event = null;
     run(s, 211);
-    expect(s.result).toContain("Mission complete");
+    expect(s.result).toContain("return window closed");
   });
   it("unbuilt outposts cannot win just by waiting", () => {
     const s = setup();
@@ -342,7 +342,7 @@ describe("shared deterministic simulation", () => {
     s.event = null;
     run(s, 211);
     expect(s.result).not.toContain("Mission complete");
-    expect(s.result).toContain("finish");
+    expect(s.result).toContain("install all four");
   });
   it("four players maximum and only a leader or Comms can allocate", () => {
     const s = setup();

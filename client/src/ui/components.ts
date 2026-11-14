@@ -1,4 +1,3 @@
-import type { Game } from "../../../shared/src/sim";
 export const escape = (v: unknown) =>
   String(v).replace(
     /[&<>"']/g,
@@ -58,8 +57,3 @@ export function validateCopy(parent:ParentNode){
  for(const[selector,words,width]of rules)for(const el of parent.querySelectorAll<HTMLElement>(selector)){if(el.hidden||!el.getClientRects().length)continue;const text=el.textContent!.trim();const key=selector+text;if(!warned.has(key)&&(text.split(/\s+/).length>words||el.getBoundingClientRect().width>width+1)){warned.add(key);console.warn(`UI copy limit: ${selector}: ${text}`);}}
  for(const el of parent.querySelectorAll<HTMLElement>('.modal p')){if(!el.getClientRects().length)continue;const line=parseFloat(getComputedStyle(el).lineHeight);const key='lines:'+el.textContent;if(el.getBoundingClientRect().height>line*3+1&&!warned.has(key)){warned.add(key);console.warn(`UI body limit: ${el.textContent}`);}}
 }
-export const goalCount = (s: Game) =>
-  ["shelter", "radio", "greenhouse"].filter(
-    (k) =>
-      s.built.includes(k) && (k !== "radio" || (s.aligned && s.radio >= 10)),
-  ).length;

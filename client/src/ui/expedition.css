@@ -507,8 +507,7 @@
   display: grid;
   gap: 8px;
 }
-.sample-grid button,
-.lab-answers button {
+.sample-grid button {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -522,8 +521,7 @@
   font-size: 13px;
   line-height: 1.4;
 }
-.sample-grid button > b,
-.lab-answers b {
+.sample-grid button > b {
   display: grid;
   place-items: center;
   flex: none;
@@ -571,15 +569,6 @@
   max-width: none;
   color: #d5ded1;
 }
-.lab-question {
-  font-size: 18px;
-  line-height: 1.3;
-}
-.lab-answers {
-  display: grid;
-  gap: 8px;
-}
-.lab-answers button:hover,
 .sample-grid button:hover:not(:disabled) {
   background: #304d50;
   border-color: #b5d6c8;
