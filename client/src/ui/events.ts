@@ -1,0 +1,101 @@
+import { B, type Game } from "../../../shared/src/sim";
+import { Banner, ChoiceCard, Button, escape } from "./components";
+export function eventBanner(s: Game) {
+  const e = s.event;
+  if (!e || e.resolved || s.clock < e.at) return "";
+  if (e.kind === "storm") {
+    const left = Math.max(0, Math.ceil(e.at + B.stormWarningSeconds - s.clock));
+    return Banner(
+      "DUST STORM",
+      "Bring items and cover panels.",
+      left,
+      B.stormWarningSeconds,
+      "storm",
+    );
+  }
+  if (e.kind === "flare")
+    return Banner(
+      "SOLAR FLARE",
+      "Choose shelter, ice, or extra dose.",
+      Math.max(0, e.at + 45 - s.clock),
+      45,
+      "flare",
+    );
+  if (e.kind === "leak")
+    return Banner(
+      "AIR LEAK",
+      "Patch the oxygen pipes.",
+      Math.max(0, e.at + 30 - s.clock),
+      30,
+      "leak",
+    );
+  return "";
+}
+export function flareCard(s: Game) {
+  const e = s.event;
+  if (!e?.flare) return "";
+  const f = e.flare,
+    dose = Math.max(
+      5,
+      B.flareDose[f.classType[0] as keyof typeof B.flareDose] - s.shield * 3,
+    );
+  const date = new Date(f.beginTime).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  return ChoiceCard(
+    "SOLAR FLARE",
+    `${f.classType} · ${date} · NASA DONKI`,
+    `${Button(`🛡️ Take shelter <span class="cost">−10 🥔</span>`, "choice", `data-choice="shelter" ${s.built.includes("shelter") ? "" : "disabled"}`)}${Button(`🔧 Keep working <span class="cost danger">+${dose} ☢️</span>`, "choice", 'data-choice="work"')}${Button('🧊 Add ice walls <span class="cost">−2 ❄️</span>', "choice", 'data-choice="ice"')}<a href="${f.url}" target="_blank" rel="noopener noreferrer">Archived data ↗</a>`,
+    Math.max(0, e.at + 45 - s.clock),
+    45,
+  );
+}
+export function report(
+  s: Game,
+  previous?: { air: number; food: number; dose: number; power: number },
+  id = s.host,
+) {
+  const before = previous || {
+    air: s.air - (s.allocation.air >= 4 ? 5 : s.allocation.air < 3 ? -8 : 0),
+    food:
+      s.food +
+      10 -
+      (s.built.includes("greenhouse") ? s.allocation.light * 4 : 0),
+    dose: s.dose - 2,
+    power: s.power,
+  };
+  return `<div class="report">${(
+    [
+      ["⚡", "Power", before.power, s.power, "Clean panels make more power."],
+      [
+        "💨",
+        "Air",
+        before.air,
+        s.air,
+        s.allocation.air >= 3
+          ? "Air machine had enough power."
+          : "Air machine needed more power.",
+      ],
+      [
+        "🥔",
+        "Food",
+        before.food,
+        s.food,
+        s.built.includes("greenhouse")
+          ? "Plants grew; the crew ate."
+          : "No greenhouse; the crew ate.",
+      ],
+      ["☢️", "Dose", before.dose, s.dose, "Background radiation adds up."],
+    ] as const
+  )
+    .map(
+      ([icon, name, a, b, reason], i) =>
+        `<div class="report-row" style="--i:${i}"><b>${icon} ${name}</b><strong>${Math.round(a)} → ${Math.round(b)}</strong><span>${reason}</span></div>`,
+    )
+    .join(
+      "",
+    )}</div>${Button("NEXT SOL", "next", id === s.host ? "" : "disabled")}`;
+}

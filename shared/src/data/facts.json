@@ -1,0 +1,78 @@
+[
+  {
+    "id": "shield",
+    "title": "A wall of water",
+    "text": "Radiation is energy that can harm living things. Water, ice, and Mars soil can help shield a crew, but cannot stop every particle.",
+    "question": "What helps shield the crew?",
+    "answers": ["Water and soil", "A bigger window", "A louder radio"],
+    "correct": 0,
+    "source": "NASA \u00b7 Radiation shielding",
+    "url": "https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf"
+  },
+  {
+    "id": "comms",
+    "title": "Hello, Earth\u2026 are you there?",
+    "text": "Radio waves take about 3\u201322 minutes to get from Earth to Mars. Point the dish toward Earth or a relay satellite.",
+    "question": "Why does Earth answer late?",
+    "answers": [
+      "Radio waves need time to travel",
+      "Mars has no clocks",
+      "Earth is asleep"
+    ],
+    "correct": 0,
+    "source": "NASA \u00b7 Perseverance communications",
+    "url": "https://science.nasa.gov/blog/speaking-percys-language-how-to-talk-so-perseverance-will-listen/"
+  },
+  {
+    "id": "grow",
+    "title": "A tiny garden, a big job",
+    "text": "Plants need light, water, and warmth. Mars soil has harmful salts called perchlorates; our game simplifies soil treatment to washing it.",
+    "question": "Can we plant straight into untreated Mars soil?",
+    "answers": [
+      "No, harmful salts need removing",
+      "Yes, it is just like Earth",
+      "Only at night"
+    ],
+    "correct": 0,
+    "source": "NASA \u00b7 Martian regolith research",
+    "url": "https://science.nasa.gov/biological-physical/investigations/efri-elis-kpmsg/"
+  },
+  {
+    "id": "power",
+    "title": "A dusty blanket",
+    "text": "Dust blocks sunlight from solar panels. On Mars, wind sometimes cleared dust from rover panels and helped their power recover.",
+    "question": "What helps a dusty panel make more power?",
+    "answers": ["Clean off its dust", "Add more dust", "Put it in the dark"],
+    "correct": 0,
+    "source": "NASA \u00b7 Opportunity and dust",
+    "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/"
+  },
+  {
+    "id": "oxygen",
+    "title": "Air from another world",
+    "text": "Ice melts into water. NASA\u2019s MOXIE made oxygen from Mars\u2019s carbon dioxide air; our combined machine needs electricity for both jobs.",
+    "question": "What did MOXIE make oxygen from?",
+    "answers": [
+      "Carbon dioxide in Mars air",
+      "Rocks from Earth",
+      "Sunlight alone"
+    ],
+    "correct": 0,
+    "source": "NASA \u00b7 MOXIE experiment",
+    "url": "https://www.nasa.gov/solar-system/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/"
+  },
+  {
+    "id": "plants",
+    "title": "Space changes plants, too",
+    "text": "In OSD-658, radiation made seedlings turn on repair instructions in their cells. Scientists study these tiny plants to learn how space affects future crops.",
+    "question": "Why study plants and radiation?",
+    "answers": [
+      "To learn how space affects crops",
+      "To make plants glow",
+      "To replace all sunlight"
+    ],
+    "correct": 0,
+    "source": "NASA OSDR \u00b7 OSD-658 \u00b7 laboratory study, not Mars-grown plants",
+    "url": "https://osdr.nasa.gov/bio/repo/data/studies/OSD-658"
+  }
+]

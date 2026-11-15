@@ -1,0 +1,47 @@
+{
+  "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "started": true,
+  "modal": "",
+  "tutorial": 4,
+  "sol": 2,
+  "phase": "day",
+  "seconds": 0,
+  "player": {
+    "id": "solo",
+    "name": "Explorer",
+    "x": 0,
+    "z": -2,
+    "color": 16347926,
+    "role": "Engineer",
+    "bag": {
+      "scrap": 0
+    },
+    "move": {
+      "x": 0,
+      "z": 0
+    },
+    "joined": 0
+  },
+  "nearby": [],
+  "resources": {
+    "power": 11,
+    "air": 90,
+    "food": 85,
+    "dose": 2
+  },
+  "learned": [
+    "power"
+  ],
+  "built": [],
+  "event": {
+    "kind": "storm",
+    "at": 65,
+    "resolved": false
+  },
+  "hudGroups": 3,
+  "render": {
+    "drawCalls": 142,
+    "triangles": 32208,
+    "fps": 12
+  }
+}

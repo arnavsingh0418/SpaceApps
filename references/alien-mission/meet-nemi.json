@@ -1,0 +1,178 @@
+{
+  "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "cabin": null,
+  "started": true,
+  "arrival": null,
+  "modal": "alien",
+  "tutorial": 4,
+  "sol": 1,
+  "phase": "day",
+  "seconds": 9,
+  "player": {
+    "id": "solo",
+    "name": "Explorer",
+    "x": -31.90000002544745,
+    "z": -6.2527594621409595,
+    "color": 16347926,
+    "role": "Engineer",
+    "bag": {},
+    "move": {
+      "x": 0,
+      "z": 0
+    },
+    "joined": 0,
+    "gait": "walk",
+    "posAt": 8.899999999999984
+  },
+  "nearby": [],
+  "resources": {
+    "power": 11,
+    "air": 85,
+    "food": 95,
+    "dose": 0
+  },
+  "learned": [],
+  "expedition": {
+    "completed": [],
+    "surveyed": [],
+    "observations": {}
+  },
+  "alienQuest": {
+    "accepted": false,
+    "delivered": {},
+    "contributions": {},
+    "brushed": false,
+    "completed": false
+  },
+  "alienVoice": {
+    "speaking": false,
+    "mode": "subtitles"
+  },
+  "nemi": {
+    "speaking": false,
+    "mouth": 0.8434965782674025,
+    "water": 0.15
+  },
+  "shipAssembly": {
+    "installing": "",
+    "slots": [
+      {
+        "part": "booster",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "hull",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "nav",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "air",
+        "broken": true,
+        "installed": false,
+        "display": false
+      }
+    ]
+  },
+  "returnMission": {
+    "points": 0,
+    "crewPoints": {},
+    "lessonTimers": {},
+    "caches": {},
+    "recovered": {},
+    "installed": {}
+  },
+  "trackedMission": "blackbox",
+  "built": [],
+  "event": {
+    "kind": "supply",
+    "at": 65,
+    "resolved": false
+  },
+  "hudGroups": 4,
+  "nearest": {
+    "type": "alien",
+    "target": "nemi",
+    "pos": {
+      "id": "nemi",
+      "name": "Nemi's refuge",
+      "x": -34,
+      "z": -8
+    },
+    "text": "Talk to Nemi"
+  },
+  "stock": {},
+  "panels": [
+    {
+      "id": "panel-0",
+      "x": -17.6,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-1",
+      "x": -11,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-2",
+      "x": -4.4,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    }
+  ],
+  "radio": 0,
+  "aligned": false,
+  "watering": false,
+  "leakFixed": false,
+  "audio": {
+    "muted": false,
+    "volume": 35,
+    "ready": 9,
+    "loops": []
+  },
+  "motion": {
+    "storm": 0,
+    "structures": [
+      {
+        "key": "hab",
+        "scale": 1
+      }
+    ],
+    "particles": 47,
+    "reduced": false,
+    "scans": 0,
+    "flights": 0,
+    "actors": [
+      {
+        "id": "solo",
+        "x": -31.90000002544745,
+        "y": -0.020211375630727613,
+        "z": -6.2527594621409595,
+        "scaleY": 1.35,
+        "arm": 0.04375215016505093,
+        "leg": 2.342893029744256e-27,
+        "heading": -3.141592527925139,
+        "carrying": false
+      }
+    ]
+  },
+  "render": {
+    "drawCalls": 373,
+    "triangles": 382332,
+    "stepFps": 10,
+    "frameMs": 16.6
+  }
+}

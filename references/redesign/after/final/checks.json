@@ -1,0 +1,4896 @@
+{
+  "results": [
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "title",
+      "hudGroups": 0,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": null,
+      "slots": 0,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": false,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "power",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 0,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 11,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.358550993068052,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 139,
+          "triangles": 33620,
+          "stepFps": 74,
+          "frameMs": 18
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "intro",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 0,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3405813468266392,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 141,
+          "triangles": 33854,
+          "stepFps": 71,
+          "frameMs": 8.6
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "power",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "power",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "power",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 2,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3275068714902727,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 141,
+          "triangles": 33854,
+          "stepFps": 68,
+          "frameMs": 10.5
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "explore",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 9,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3231152730190772,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 141,
+          "triangles": 33854,
+          "stepFps": 64,
+          "frameMs": 10.2
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "near-item",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -3,
+          "z": 4,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "pick",
+          "target": "item-1",
+          "pos": {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          },
+          "text": "Pick up scrap"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3306356356245865,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 125,
+          "triangles": 33246,
+          "stepFps": 62,
+          "frameMs": 6.1
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "workbench",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Workbench",
+          "x": 796.2578125,
+          "y": 440.765625,
+          "w": 92.734375,
+          "h": 27.5
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "bench",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 0,
+          "z": -2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "bench",
+          "target": "workbench",
+          "pos": {
+            "x": 0,
+            "z": -2
+          },
+          "text": "Use workbench"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 2,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3467358716607893,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 135,
+          "triangles": 33602,
+          "stepFps": 59,
+          "frameMs": 10.4
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "scan",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Shielding",
+          "x": 804.9921875,
+          "y": 443.5,
+          "w": 79.203125,
+          "h": 27.5
+        },
+        {
+          "text": "🟤",
+          "x": 735.484375,
+          "y": 471.9375,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "scanning",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -10,
+          "z": 2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-3",
+            "kind": "soil",
+            "count": 4,
+            "x": -12,
+            "z": 3,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 9,
+          "reduced": false,
+          "scans": 1,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3642823626563094,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 106,
+          "triangles": 32132,
+          "stepFps": 57,
+          "frameMs": 12.3
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "quiz",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Shielding",
+          "x": 820.2734375,
+          "y": 442.609375,
+          "w": 79.203125,
+          "h": 27.5
+        },
+        {
+          "text": "🟤",
+          "x": 743.78125,
+          "y": 476.28125,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "learn",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 1,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -10,
+          "z": 2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-3",
+            "kind": "soil",
+            "count": 4,
+            "x": -12,
+            "z": 3,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 21,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.334584419152974,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 102,
+          "triangles": 31604,
+          "stepFps": 55,
+          "frameMs": 7.9
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "storm",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 743.78125,
+          "y": 476.28125,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 15,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "storm",
+          "at": 0,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 1,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 90,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3652166358766789,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 139,
+          "triangles": 33674,
+          "stepFps": 53,
+          "frameMs": 11.1
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "summary",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 743.78125,
+          "y": 476.28125,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "summary",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "summary",
+        "seconds": 210,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 85,
+          "dose": 2
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 9,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3478457522215619,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 119,
+          "triangles": 33314,
+          "stepFps": 51,
+          "frameMs": 7.3
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "flare",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 743.78125,
+          "y": 476.28125,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "flare",
+        "tutorial": 4,
+        "sol": 3,
+        "phase": "day",
+        "seconds": 65,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "flare",
+          "at": 65,
+          "resolved": false,
+          "flare": {
+            "classType": "X3.9",
+            "beginTime": "2024-05-10T06:27Z",
+            "peakTime": "2024-05-10T06:54Z",
+            "sourceLocation": "S18W37",
+            "source": "NASA DONKI archived alert 30944/1",
+            "url": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/Alert/30944/1"
+          }
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.331429362755824,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 139,
+          "triangles": 33674,
+          "stepFps": 50,
+          "frameMs": 12.6
+        }
+      }
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scene": "ended",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 743.78125,
+          "y": 476.28125,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "ended",
+        "tutorial": 4,
+        "sol": 15,
+        "phase": "ended",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 32
+        },
+        "learned": [],
+        "built": [
+          "radio",
+          "shelter",
+          "greenhouse"
+        ],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 10,
+        "aligned": true,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            },
+            {
+              "key": "radio",
+              "scale": 0.9191224032772071
+            },
+            {
+              "key": "shelter",
+              "scale": 0.9191224032772071
+            },
+            {
+              "key": "greenhouse",
+              "scale": 0.9191224032772071
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3232411657571035,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 172,
+          "triangles": 35442,
+          "stepFps": 48,
+          "frameMs": 15.1
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "title",
+      "hudGroups": 0,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": null,
+      "slots": 0,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": false,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "power",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 0,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 11,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.358616617568834,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 139,
+          "triangles": 33620,
+          "stepFps": 74,
+          "frameMs": 11.8
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "intro",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 0,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.340646245335285,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 141,
+          "triangles": 33854,
+          "stepFps": 71,
+          "frameMs": 12.1
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "power",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "power",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "power",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 2,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3275452322458454,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 141,
+          "triangles": 33854,
+          "stepFps": 68,
+          "frameMs": 17.4
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "explore",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 9,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.323108972309521,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 141,
+          "triangles": 33854,
+          "stepFps": 64,
+          "frameMs": 12.7
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "near-item",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -3,
+          "z": 4,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "pick",
+          "target": "item-1",
+          "pos": {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          },
+          "text": "Pick up scrap"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.330587465139289,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 125,
+          "triangles": 33246,
+          "stepFps": 62,
+          "frameMs": 7
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "workbench",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Workbench",
+          "x": 627.7421875,
+          "y": 347.109375,
+          "w": 92.734375,
+          "h": 27.5
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "bench",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 0,
+          "z": -2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "bench",
+          "target": "workbench",
+          "pos": {
+            "x": 0,
+            "z": -2
+          },
+          "text": "Use workbench"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 2,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3466671745566405,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 135,
+          "triangles": 33602,
+          "stepFps": 59,
+          "frameMs": 11.6
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "scan",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Shielding",
+          "x": 636.0703125,
+          "y": 349.296875,
+          "w": 79.203125,
+          "h": 27.5
+        },
+        {
+          "text": "🟤",
+          "x": 585.984375,
+          "y": 372.75,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "scanning",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -10,
+          "z": 2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-3",
+            "kind": "soil",
+            "count": 4,
+            "x": -12,
+            "z": 3,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 9,
+          "reduced": false,
+          "scans": 1,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3642235769299937,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 106,
+          "triangles": 32132,
+          "stepFps": 57,
+          "frameMs": 10
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "quiz",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Shielding",
+          "x": 648.2890625,
+          "y": 348.578125,
+          "w": 79.203125,
+          "h": 27.5
+        },
+        {
+          "text": "🟤",
+          "x": 592.625,
+          "y": 376.234375,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "learn",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 1,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -10,
+          "z": 2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-3",
+            "kind": "soil",
+            "count": 4,
+            "x": -12,
+            "z": 3,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 21,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3346412947998363,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 102,
+          "triangles": 31604,
+          "stepFps": 55,
+          "frameMs": 17.3
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "storm",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 592.625,
+          "y": 376.234375,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 15,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "storm",
+          "at": 0,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 1,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 90,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3652737621722777,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 139,
+          "triangles": 33674,
+          "stepFps": 53,
+          "frameMs": 12.4
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "summary",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 592.625,
+          "y": 376.234375,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "summary",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "summary",
+        "seconds": 210,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 85,
+          "dose": 2
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 9,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3479147541299483,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 119,
+          "triangles": 33314,
+          "stepFps": 51,
+          "frameMs": 9.1
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "flare",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 592.625,
+          "y": 376.234375,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "flare",
+        "tutorial": 4,
+        "sol": 3,
+        "phase": "day",
+        "seconds": 65,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "flare",
+          "at": 65,
+          "resolved": false,
+          "flare": {
+            "classType": "X3.9",
+            "beginTime": "2024-05-10T06:27Z",
+            "peakTime": "2024-05-10T06:54Z",
+            "sourceLocation": "S18W37",
+            "source": "NASA DONKI archived alert 30944/1",
+            "url": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/Alert/30944/1"
+          }
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3314796672290552,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 139,
+          "triangles": 33674,
+          "stepFps": 50,
+          "frameMs": 9.9
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scene": "ended",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 592.625,
+          "y": 376.234375,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 300,
+        "h": 64
+      },
+      "slots": 5,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "ended",
+        "tutorial": 4,
+        "sol": 15,
+        "phase": "ended",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 32
+        },
+        "learned": [],
+        "built": [
+          "radio",
+          "shelter",
+          "greenhouse"
+        ],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 10,
+        "aligned": true,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            },
+            {
+              "key": "radio",
+              "scale": 0.9191224032772071
+            },
+            {
+              "key": "shelter",
+              "scale": 0.9191224032772071
+            },
+            {
+              "key": "greenhouse",
+              "scale": 0.9191224032772071
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3232504841207382,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 172,
+          "triangles": 35442,
+          "stepFps": 48,
+          "frameMs": 13.7
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "title",
+      "hudGroups": 0,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": null,
+      "slots": 0,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": false,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "power",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 0,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 11,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3713732212011087,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 94,
+          "triangles": 31016,
+          "stepFps": 74,
+          "frameMs": 8
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "intro",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 0,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3562825680384702,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 92,
+          "triangles": 30874,
+          "stepFps": 71,
+          "frameMs": 8.2
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "power",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "power",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "power",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 2,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3396481156382722,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 86,
+          "triangles": 30180,
+          "stepFps": 68,
+          "frameMs": 6.9
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "explore",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3262889036085055,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 86,
+          "triangles": 30180,
+          "stepFps": 64,
+          "frameMs": 5.6
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "near-item",
+      "hudGroups": 3,
+      "labels": [],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -3,
+          "z": 4,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "pick",
+          "target": "item-1",
+          "pos": {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          },
+          "text": "Pick up scrap"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 9,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3234354950225267,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 94,
+          "triangles": 30224,
+          "stepFps": 62,
+          "frameMs": 6.6
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "workbench",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Workbench",
+          "x": 188.6171875,
+          "y": 411.625,
+          "w": 92.734375,
+          "h": 27.5
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "bench",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 0,
+          "z": -2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "bench",
+          "target": "workbench",
+          "pos": {
+            "x": 0,
+            "z": -2
+          },
+          "text": "Use workbench"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 2,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3323521650219896,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 76,
+          "triangles": 29422,
+          "stepFps": 59,
+          "frameMs": 6.7
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "scan",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Shielding",
+          "x": 197.2109375,
+          "y": 414.203125,
+          "w": 79.203125,
+          "h": 27.5
+        },
+        {
+          "text": "🟤",
+          "x": 133.765625,
+          "y": 441.078125,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "scanning",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -10,
+          "z": 2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-3",
+            "kind": "soil",
+            "count": 4,
+            "x": -12,
+            "z": 3,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 1,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3490881565081594,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 89,
+          "triangles": 30850,
+          "stepFps": 57,
+          "frameMs": 11.8
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "quiz",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "Shielding",
+          "x": 211.5390625,
+          "y": 413.359375,
+          "w": 79.203125,
+          "h": 27.5
+        },
+        {
+          "text": "🟤",
+          "x": 141.53125,
+          "y": 445.15625,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "learn",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 1,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": -10,
+          "z": 2,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-3",
+            "kind": "soil",
+            "count": 4,
+            "x": -12,
+            "z": 3,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": {
+          "type": "learn",
+          "target": "shield",
+          "pos": {
+            "x": -10,
+            "z": 2
+          },
+          "text": "Scan beacon"
+        },
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 27,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3495548690546961,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 85,
+          "triangles": 30482,
+          "stepFps": 55,
+          "frameMs": 10.9
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "storm",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 141.53125,
+          "y": 445.15625,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "day",
+        "seconds": 15,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "storm",
+          "at": 0,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 1,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 97,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.375064802934766,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 76,
+          "triangles": 29274,
+          "stepFps": 53,
+          "frameMs": 6.2
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "summary",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 141.53125,
+          "y": 445.15625,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "summary",
+        "tutorial": 4,
+        "sol": 1,
+        "phase": "summary",
+        "seconds": 210,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 85,
+          "dose": 2
+        },
+        "learned": [],
+        "built": [],
+        "event": null,
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 2,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3632114193325866,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 77,
+          "triangles": 29306,
+          "stepFps": 51,
+          "frameMs": 6.8
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "flare",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 141.53125,
+          "y": 445.15625,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "flare",
+        "tutorial": 4,
+        "sol": 3,
+        "phase": "day",
+        "seconds": 65,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 0
+        },
+        "learned": [],
+        "built": [],
+        "event": {
+          "kind": "flare",
+          "at": 65,
+          "resolved": false,
+          "flare": {
+            "classType": "X3.9",
+            "beginTime": "2024-05-10T06:27Z",
+            "peakTime": "2024-05-10T06:54Z",
+            "sourceLocation": "S18W37",
+            "source": "NASA DONKI archived alert 30944/1",
+            "url": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/Alert/30944/1"
+          }
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 0,
+        "aligned": false,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            }
+          ],
+          "particles": 9,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3455043808664586,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 77,
+          "triangles": 29306,
+          "stepFps": 50,
+          "frameMs": 7
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scene": "ended",
+      "hudGroups": 3,
+      "labels": [
+        {
+          "text": "🟤 Soil bags ×4",
+          "x": 141.53125,
+          "y": 445.15625,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "overlaps": [],
+      "small": [],
+      "outside": [],
+      "vitals": {
+        "w": 228,
+        "h": 56
+      },
+      "slots": 4,
+      "state": {
+        "coordinates": "meters; +x right, +z toward camera; origin at hab",
+        "started": true,
+        "modal": "ended",
+        "tutorial": 4,
+        "sol": 15,
+        "phase": "ended",
+        "seconds": 0,
+        "player": {
+          "id": "solo",
+          "name": "Explorer",
+          "x": 1,
+          "z": 3,
+          "color": 16347926,
+          "role": "Engineer",
+          "bag": {},
+          "move": {
+            "x": 0,
+            "z": 0
+          },
+          "joined": 0
+        },
+        "nearby": [
+          {
+            "id": "item-1",
+            "kind": "scrap",
+            "count": 6,
+            "x": -3,
+            "z": 4,
+            "damaged": false
+          }
+        ],
+        "resources": {
+          "power": 11,
+          "air": 85,
+          "food": 95,
+          "dose": 32
+        },
+        "learned": [],
+        "built": [
+          "radio",
+          "shelter",
+          "greenhouse"
+        ],
+        "event": {
+          "kind": "supply",
+          "at": 65,
+          "resolved": false
+        },
+        "hudGroups": 3,
+        "nearest": null,
+        "stock": {},
+        "panels": [
+          {
+            "id": "panel-0",
+            "x": -8,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-1",
+            "x": -5,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          },
+          {
+            "id": "panel-2",
+            "x": -2,
+            "z": 7,
+            "clean": 1,
+            "covered": false
+          }
+        ],
+        "radio": 10,
+        "aligned": true,
+        "watering": false,
+        "leakFixed": false,
+        "audio": {
+          "muted": true,
+          "volume": 35,
+          "ready": 0,
+          "loops": []
+        },
+        "motion": {
+          "storm": 0,
+          "structures": [
+            {
+              "key": "hab",
+              "scale": 1
+            },
+            {
+              "key": "radio",
+              "scale": 0.9191224032772071
+            },
+            {
+              "key": "shelter",
+              "scale": 0.9191224032772071
+            },
+            {
+              "key": "greenhouse",
+              "scale": 0.9191224032772071
+            }
+          ],
+          "particles": 3,
+          "reduced": false,
+          "scans": 0,
+          "flights": 0,
+          "actors": [
+            {
+              "id": "solo",
+              "y": 0,
+              "scaleY": 1.3297892406320828,
+              "arm": 0,
+              "leg": 0,
+              "heading": 0,
+              "carrying": false
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 89,
+          "triangles": 30150,
+          "stepFps": 48,
+          "frameMs": 27.1
+        }
+      }
+    }
+  ],
+  "warnings": [],
+  "errors": []
+}

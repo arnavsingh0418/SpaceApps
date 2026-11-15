@@ -1,0 +1,263 @@
+{
+  "coordinates": "ship deck meters; +x right, +z aft; helm at (0,-8)",
+  "cabin": {
+    "earthScale": 20,
+    "progress": 1,
+    "arrival": 1,
+    "starsMoving": true,
+    "actors": [
+      {
+        "id": "solo",
+        "x": -8.550000000000002,
+        "z": -0.39999999999999925
+      }
+    ]
+  },
+  "started": true,
+  "arrival": null,
+  "modal": "ended",
+  "tutorial": 4,
+  "sol": 1,
+  "phase": "ended",
+  "seconds": 0,
+  "player": {
+    "id": "solo",
+    "name": "Explorer",
+    "x": -8.550000000000002,
+    "z": -0.39999999999999925,
+    "color": 16347926,
+    "role": "Engineer",
+    "bag": {},
+    "move": {
+      "x": 0,
+      "z": 0
+    },
+    "joined": 0
+  },
+  "nearby": [],
+  "resources": {
+    "power": 11,
+    "air": 85,
+    "food": 95,
+    "dose": 0
+  },
+  "learned": [],
+  "expedition": {
+    "completed": [],
+    "surveyed": [],
+    "observations": {}
+  },
+  "alienQuest": {
+    "accepted": false,
+    "delivered": {},
+    "contributions": {},
+    "brushed": false,
+    "completed": false
+  },
+  "alienVoice": {
+    "speaking": false,
+    "mode": "subtitles"
+  },
+  "nemi": {
+    "speaking": false,
+    "mouth": 0.22,
+    "water": 0.15
+  },
+  "shipAssembly": {
+    "installing": "",
+    "slots": [
+      {
+        "part": "booster",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "hull",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "nav",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "air",
+        "broken": true,
+        "installed": false,
+        "display": false
+      }
+    ]
+  },
+  "returnMission": {
+    "points": 750,
+    "crewPoints": {
+      "solo": 750
+    },
+    "lessonTimers": {},
+    "caches": {},
+    "recovered": {},
+    "installed": {
+      "booster": "Rare",
+      "hull": "Rare",
+      "nav": "Prototype",
+      "air": "Rare"
+    },
+    "flight": {
+      "stage": 2,
+      "deadline": 180,
+      "passed": [
+        true,
+        true,
+        true
+      ],
+      "baseChance": 68,
+      "deck": {
+        "time": 192.19999999999337,
+        "hull": 91.65000000000032,
+        "oxygen": 100,
+        "power": 100,
+        "heat": 25,
+        "course": {
+          "x": 0.11072130599847375,
+          "y": -0.09005173713847811
+        },
+        "steer": {
+          "x": 0,
+          "y": 0
+        },
+        "pilot": "",
+        "pilotAt": 128.59999999999698,
+        "autopilot": 0,
+        "guidance": [
+          true,
+          true
+        ],
+        "incidents": [
+          {
+            "at": 18,
+            "kind": "power",
+            "title": "Power relay shorted",
+            "id": "fault-1",
+            "deadline": 54,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          },
+          {
+            "at": 47,
+            "kind": "air",
+            "title": "Oxygen valve stuck",
+            "id": "fault-2",
+            "deadline": 83,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          },
+          {
+            "at": 79,
+            "kind": "hull",
+            "title": "Cabin seal leaking",
+            "id": "fault-3",
+            "deadline": 115,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          },
+          {
+            "at": 112,
+            "kind": "engine",
+            "title": "Coolant pump overheated",
+            "id": "fault-4",
+            "deadline": 148,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          },
+          {
+            "at": 145,
+            "kind": "power",
+            "title": "Backup circuit tripped",
+            "id": "fault-5",
+            "deadline": 181,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          }
+        ],
+        "nextEvent": 5,
+        "repaired": 5,
+        "missed": 0,
+        "outcome": "home",
+        "arrivalAt": 180.09999999999405,
+        "arrived": true
+      }
+    }
+  },
+  "trackedMission": "blackbox",
+  "built": [],
+  "event": {
+    "kind": "supply",
+    "at": 65,
+    "resolved": false
+  },
+  "hudGroups": 2,
+  "nearest": null,
+  "stock": {},
+  "panels": [
+    {
+      "id": "panel-0",
+      "x": -17.6,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-1",
+      "x": -11,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-2",
+      "x": -4.4,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    }
+  ],
+  "radio": 0,
+  "aligned": false,
+  "watering": false,
+  "leakFixed": false,
+  "audio": {
+    "muted": false,
+    "volume": 35,
+    "ready": 9,
+    "loops": []
+  },
+  "motion": {
+    "storm": 0,
+    "structures": [
+      {
+        "key": "hab",
+        "scale": 1
+      }
+    ],
+    "particles": 0,
+    "reduced": false,
+    "scans": 0,
+    "flights": 0,
+    "actors": []
+  },
+  "render": {
+    "drawCalls": 5,
+    "triangles": 5976,
+    "stepFps": 60,
+    "frameMs": 0
+  }
+}

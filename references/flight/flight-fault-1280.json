@@ -1,0 +1,213 @@
+{
+  "coordinates": "ship deck meters; +x right, +z aft; helm at (0,-8)",
+  "cabin": {
+    "earthScale": 2.0696962962962964,
+    "progress": 0.1077777777777778,
+    "arrival": 0,
+    "starsMoving": true,
+    "actors": [
+      {
+        "id": "solo",
+        "x": -1.35,
+        "z": 2
+      }
+    ]
+  },
+  "started": true,
+  "arrival": null,
+  "modal": "",
+  "tutorial": 4,
+  "sol": 1,
+  "phase": "flight",
+  "seconds": 0,
+  "player": {
+    "id": "solo",
+    "name": "Explorer",
+    "x": -1.35,
+    "z": 2,
+    "color": 16347926,
+    "role": "Engineer",
+    "bag": {},
+    "move": {
+      "x": 0,
+      "z": 0
+    },
+    "joined": 0
+  },
+  "nearby": [],
+  "resources": {
+    "power": 11,
+    "air": 85,
+    "food": 95,
+    "dose": 0
+  },
+  "learned": [],
+  "expedition": {
+    "completed": [],
+    "surveyed": [],
+    "observations": {}
+  },
+  "alienQuest": {
+    "accepted": false,
+    "delivered": {},
+    "contributions": {},
+    "brushed": false,
+    "completed": false
+  },
+  "alienVoice": {
+    "speaking": false,
+    "mode": "subtitles"
+  },
+  "nemi": {
+    "speaking": false,
+    "mouth": 0.22,
+    "water": 0.15
+  },
+  "shipAssembly": {
+    "installing": "",
+    "slots": [
+      {
+        "part": "booster",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "hull",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "nav",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "air",
+        "broken": true,
+        "installed": false,
+        "display": false
+      }
+    ]
+  },
+  "returnMission": {
+    "points": 0,
+    "crewPoints": {},
+    "lessonTimers": {},
+    "caches": {},
+    "recovered": {},
+    "installed": {
+      "booster": "Rare",
+      "hull": "Rare",
+      "nav": "Prototype",
+      "air": "Rare"
+    },
+    "flight": {
+      "stage": 0,
+      "deadline": 180,
+      "passed": [],
+      "baseChance": 68,
+      "deck": {
+        "time": 19.400000000000006,
+        "hull": 85.2,
+        "oxygen": 100,
+        "power": 99.0200000000001,
+        "heat": 25,
+        "course": {
+          "x": 0.4362048985263498,
+          "y": -0.10834226195702376
+        },
+        "steer": {
+          "x": 0,
+          "y": 0
+        },
+        "pilot": "",
+        "pilotAt": 0,
+        "autopilot": 0,
+        "guidance": [
+          false,
+          false
+        ],
+        "incidents": [
+          {
+            "at": 18,
+            "kind": "power",
+            "title": "Power relay shorted",
+            "id": "fault-1",
+            "deadline": 54,
+            "fixed": false,
+            "late": false
+          }
+        ],
+        "nextEvent": 1,
+        "repaired": 0,
+        "missed": 0
+      }
+    }
+  },
+  "trackedMission": "blackbox",
+  "built": [],
+  "event": {
+    "kind": "supply",
+    "at": 65,
+    "resolved": false
+  },
+  "hudGroups": 3,
+  "nearest": null,
+  "stock": {},
+  "panels": [
+    {
+      "id": "panel-0",
+      "x": -17.6,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-1",
+      "x": -11,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-2",
+      "x": -4.4,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    }
+  ],
+  "radio": 0,
+  "aligned": false,
+  "watering": false,
+  "leakFixed": false,
+  "audio": {
+    "muted": false,
+    "volume": 35,
+    "ready": 9,
+    "loops": []
+  },
+  "motion": {
+    "storm": 0,
+    "structures": [
+      {
+        "key": "hab",
+        "scale": 1
+      }
+    ],
+    "particles": 0,
+    "reduced": false,
+    "scans": 0,
+    "flights": 0,
+    "actors": []
+  },
+  "render": {
+    "drawCalls": 161,
+    "triangles": 19592,
+    "stepFps": 60,
+    "frameMs": 0
+  }
+}
