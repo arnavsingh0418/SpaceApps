@@ -993,9 +993,8 @@ export class Arrival {
         shot.lines[caption];
       this.captionIndex = caption;
       this.voice.pause();
-      this.voice.src = `${import.meta.env.BASE_URL}film/${shot.key}-${caption}.wav`;
-      this.voice.muted = this.filmMuted;
-      if (running) void this.voice.play().catch(() => {});
+      // This short story uses concise on-screen text and its ambient score.
+      // The old narration describes the removed five-minute chapter sequence.
     }
     const remaining = Math.max(0, Math.ceil(arrivalDuration - this.elapsed));
     this.element.querySelector("[data-time]")!.textContent =
@@ -1071,7 +1070,7 @@ export class Arrival {
       };
     }
     if (render)
-      this.render(shot.view, this.reduced ? 0.55 : u, local, shot.key);
+      this.render(shot.view, u, local, shot.key);
   }
   private render(key: string, u: number, time: number, shot: string) {
     this.pad.visible = ["boarding", "launch", "padwide"].includes(key);
@@ -1128,12 +1127,14 @@ export class Arrival {
         ? null
         : new T.Fog(this.pad.visible ? 0x6e9da8 : 0xc89471, 45, 140);
     this.lamp.intensity = this.cabin.visible ? 1.4 : 3.2;
-    const cinematicTime = this.reduced ? 0 : time;
+    // Gentle motion fixes the camera and removes shake, while the story's
+    // actors and physical actions continue playing.
+    const cinematicTime = time;
     const camera = (a: number[], b: number[], target: number[]) => {
       this.camera.position.lerpVectors(
         new T.Vector3(...(a as [number, number, number])),
         new T.Vector3(...(b as [number, number, number])),
-        smooth(u),
+        this.reduced ? 0.55 : smooth(u),
       );
       this.camera.lookAt(
         new T.Vector3(...(target as [number, number, number])),
@@ -1447,6 +1448,7 @@ export class Arrival {
       elapsed: this.elapsed,
       paused: this.paused,
       reduced: this.reduced,
+      crewArm: this.prepCrew[0]?.getObjectByName("armR")?.rotation.x,
       camera: this.camera.position.toArray(),
       spacecraft: this.ship.position.toArray(),
     };
