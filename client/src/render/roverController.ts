@@ -79,7 +79,16 @@ export class RoverController {
     for (const dz of [-3.15, 0, 3.15])
       for (const dx of [-2.0, 0, 2.0]) {
         const p = roverPoint({ x, z, heading }, dx, dz);
-        if (blocked(p.x, p.z, this.y)) return false;
+        // Uphill wheels need their own ground clearance, not the center height.
+        const contactY = ground(p.x, p.z, this.y);
+        const previous = roverPoint(this, dx, dz);
+        if (
+          checkRise &&
+          contactY - ground(previous.x, previous.z, this.y) >
+            0.55 + Math.hypot(p.x - previous.x, p.z - previous.z) * 0.7
+        )
+          return false;
+        if (blocked(p.x, p.z, Math.max(this.y, contactY))) return false;
       }
     return true;
   }

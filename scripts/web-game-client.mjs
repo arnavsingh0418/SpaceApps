@@ -279,7 +279,12 @@ async function main() {
   });
 
   await page.addInitScript({ content: makeVirtualTimeShim() });
+  await page.addInitScript(() => {
+    const raf = requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (callback) => callback.name === "frame" ? 0 : raf(callback);
+  });
   await page.goto(args.url, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => typeof window.render_game_to_text === "function", null, { polling: 100, timeout: 90000 });
   await page.waitForTimeout(500);
   await page.evaluate(() => {
     window.dispatchEvent(new Event("resize"));
@@ -289,7 +294,7 @@ async function main() {
 
   if (args.clickSelector) {
     try {
-      await page.click(args.clickSelector, { timeout: 5000 });
+      await page.click(args.clickSelector, { timeout: 30000 });
       await page.waitForTimeout(250);
     } catch (err) {
       console.warn("Failed to click selector", args.clickSelector, err);

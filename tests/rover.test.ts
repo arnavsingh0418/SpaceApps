@@ -284,6 +284,27 @@ describe("rover terrain controller", () => {
     expect(terrain.collides(0, 0, 0)).toBe(false);
     expect(terrain.collides(0, 0, 0, 0.6, ROVER.height, 0.65)).toBe(true);
   });
+  it("crosses uneven hills outside the landing pad without treating the uphill tires as obstacles", () => {
+    const c = controller();
+    const slope = (x: number, z: number) =>
+      (ROVER.spawn.z - z) * 0.43 + (x - ROVER.spawn.x) * 0.17 + Math.sin(z) * 0.12;
+    c.reset(createRover(), slope);
+    // A collision query starting below the local hillside would detect the hillside itself.
+    drive(c, 4, undefined, slope, (x, z, clearanceFloor) => slope(x, z) - clearanceFloor > 0.65);
+    expect(ROVER.spawn.z - c.z).toBeGreaterThan(35);
+    expect(c.pitch).toBeGreaterThan(0.34);
+    expect(Math.abs(c.roll)).toBeGreaterThan(0.13);
+  });
+  it("lets the rover reverse away from an abrupt ledge", () => {
+    const c = controller();
+    const ledge = (_x: number, z: number) => z < ROVER.spawn.z - 9 ? 3 : 0;
+    drive(c, 3, undefined, ledge);
+    const stopped = c.z;
+    expect(stopped).toBeGreaterThan(ROVER.spawn.z - 7);
+    expect(c.speed).toBe(0);
+    drive(c, 2, { throttle: -1, steer: 0, brake: false }, ledge);
+    expect(c.z - stopped).toBeGreaterThan(4);
+  });
   it("accounts for rotated hulls and provides exits outside the walking collision box", () => {
     const r = createRover();
     r.heading = Math.PI / 2;

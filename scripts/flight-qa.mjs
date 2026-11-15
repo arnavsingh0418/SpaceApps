@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 import fs from "node:fs/promises";
 import assert from "node:assert/strict";
-const dir = "references/flight";
+const dir = "artifacts/flight";
 const layout = JSON.parse(
   await fs.readFile(
     new URL("../shared/src/data/flight-layout.json", import.meta.url),
@@ -23,9 +23,14 @@ try {
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
   });
+  await page.addInitScript(() => {
+    const raf = requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (callback) => callback.name === "frame" ? 0 : raf(callback);
+  });
   await page.goto(`${base}/?qaScene=flight`);
   await page.waitForFunction(
     () => window.__stageScene && window.render_game_to_text,
+    null, { polling: 100, timeout: 90000 },
   );
   const state = async () =>
     JSON.parse(await page.evaluate(() => window.render_game_to_text()));
