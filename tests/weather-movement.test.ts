@@ -4,6 +4,20 @@ import { createGame, addPlayer, dispatch, tick, B } from "../shared/src/sim";
 import { roverState } from "../shared/src/rover";
 import { LocalController } from "../client/src/render/controller";
 
+it("starts the dust devil on its orbit without a first-tick teleport", () => {
+  const game = createGame(42);
+  addPlayer(game, "a");
+  dispatch(game, "a", {
+    type: "power",
+    value: { air: 4, light: 3, radio: 0, heat: 1 },
+  });
+  const before = { ...game.devil };
+  tick(game, 0.1);
+  expect(
+    Math.hypot(game.devil.x - before.x, game.devil.z - before.z),
+  ).toBeLessThan(1);
+});
+
 it("accelerates and lifts both bodies continuously, with stronger wind in the core", () => {
   const center = { x: 0, z: 0 };
   for (const rover of [false, true]) {

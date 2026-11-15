@@ -1906,7 +1906,7 @@ function update(dt: number, render = true) {
     return;
   }
   if (arrival) {
-    arrival.update(dt);
+    arrival.update(dt, render);
     return;
   }
   if (started) {
@@ -1986,7 +1986,10 @@ function update(dt: number, render = true) {
       } else roverDriverKey = "";
     } else if (me && !me.gust) {
       if (wasInHab) {controller.reset(me.x,me.z,world.terrain.heightAt(me.x,me.z));world.cameraFollow=null;world.pitch=.36;world.zoom=9;}
-      if (wasRiding || wasBlown) controller.reset(me.x, me.z, world.terrain.heightAt(me.x,me.z));
+      if (wasRiding || wasBlown) {
+        controller.reset(me.x, me.z, world.terrain.heightAt(me.x,me.z));
+        if (wasBlown) controller.heading = world.actors.get(id)?.rotation.y ?? controller.heading;
+      }
       roverDriverKey = "";
       const drift = Math.hypot(me.x - controller.x, me.z - controller.z);
       if (controllerSeed !== game.seed || drift > (connection ? 6 : 4)) {

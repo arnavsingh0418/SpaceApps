@@ -231,7 +231,7 @@ export function createGame(seed = 42): Game {
     result: "",
     serial: 0,
     host: "",
-    devil: { x: 19 * L, z: -10 * L },
+    devil: { x: 18 * L, z: 0 },
     devilDropAt: 0,
     leakFixed: false,
     watering: false,

@@ -27,6 +27,7 @@
   color: #9ebdbb;
 }
 .arrival-location {
+  opacity: var(--title-opacity, 1);
   top: 121px;
   left: 28px;
 }

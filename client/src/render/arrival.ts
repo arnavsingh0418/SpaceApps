@@ -162,6 +162,7 @@ export class Arrival {
   private explorer: T.Group;
   private dust: T.Mesh<T.BufferGeometry, T.MeshStandardMaterial>[] = [];
   private smoke: T.Mesh<T.BufferGeometry, T.MeshStandardMaterial>[] = [];
+  private airStreaks: T.Mesh[] = [];
   private alarm: T.PointLight;
   private lamp: T.DirectionalLight;
   private soundGain: GainNode | null = null;
@@ -387,6 +388,23 @@ export class Arrival {
 
     this.lander = this.capsule();
     this.descent.add(this.lander);
+    const streakGeometry = new T.BoxGeometry(0.025, 1, 0.025);
+    const streakMaterial = new T.MeshBasicMaterial({
+      color: 0xffd6a2,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+    });
+    for (let i = 0; i < 60; i++) {
+      const streak = new T.Mesh(streakGeometry, streakMaterial);
+      streak.position.set(
+        Math.cos(i * 2.4) * (4 + (i % 9)),
+        0,
+        Math.sin(i * 2.4) * (4 + (i % 9)),
+      );
+      this.descent.add(streak);
+      this.airStreaks.push(streak);
+    }
     this.shield = mesh(
       this.descent,
       new T.CylinderGeometry(1.9, 1.5, 0.24, 24),
@@ -932,7 +950,7 @@ export class Arrival {
     noise.start();
     this.soundSources.push(noise);
   }
-  update(dt: number) {
+  update(dt: number, render = true) {
     if (this.done) return;
     const running = !this.paused && !document.hidden;
     if (running) this.elapsed += dt;
@@ -984,14 +1002,24 @@ export class Arrival {
       `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")} LEFT`;
     this.element.style.setProperty(
       "--cut",
-      String(this.reduced || this.paused ? 0 : Math.max(0, 1 - local / 0.55)),
+      String(
+        this.reduced
+          ? 0
+          : Math.max(0, 1 - local / 0.4, 1 - (shot.duration - local) / 0.35),
+      ),
+    );
+    this.element.style.setProperty(
+      "--title-opacity",
+      String(this.reduced ? 1 : 1 - smooth((local - 3) / 1.5) * 0.75),
     );
     this.element.dataset.view = shot.view;
     const telemetry =
       this.element.querySelector<HTMLElement>("[data-telemetry]")!;
     telemetry.textContent =
       shot.view === "countdown"
-        ? u < 0.5 ? "ALL SYSTEMS\nGO" : `T − ${Math.max(0, Math.ceil((1 - u) * 10))}`
+        ? u < 0.5
+          ? "ALL SYSTEMS\nGO"
+          : `T − ${Math.max(0, Math.ceil((1 - u) * 10))}`
         : ["entry", "parachute", "braking"].includes(shot.view)
           ? `${shot.view === "entry" ? "THERMAL SHIELD" : shot.view === "parachute" ? "DESCENT SYSTEM" : "BACKUP THRUST"}\n${shot.view === "braking" ? "FAULT DETECTED" : "TRACKING"}`
           : "";
@@ -1042,7 +1070,8 @@ export class Arrival {
         gain.disconnect();
       };
     }
-    this.render(shot.view, this.reduced ? 0.55 : u, local, shot.key);
+    if (render)
+      this.render(shot.view, this.reduced ? 0.55 : u, local, shot.key);
   }
   private render(key: string, u: number, time: number, shot: string) {
     this.pad.visible = ["boarding", "launch", "padwide"].includes(key);
@@ -1118,11 +1147,18 @@ export class Arrival {
         a.getObjectByName("head")!.rotation.y =
           Math.sin(cinematicTime * 0.5 + i) * 0.16;
       });
-      if (u < 0.5) camera([5.5, 3.2, 8], [4, 2.8, 6], [0, 1.4, 0]);
-      else camera([-3.8, 2.3, 4.6], [-2.8, 2.2, 3.2], [-2, 1.5, 0.3]);
+      camera([5.5, 3.2, 8], [-3.8, 2.4, 5.5], [0, 1.4, 0]);
     }
     if (this.control.visible) {
       this.controlGlobe.rotation.y = cinematicTime * 0.15;
+      this.controllers.forEach((actor, i) => {
+        actor.getObjectByName("head")!.rotation.y =
+          Math.sin(cinematicTime * 0.65 + i) * 0.28;
+        actor.getObjectByName("armR")!.rotation.x =
+          -0.8 + Math.sin(cinematicTime * 2.4 + i) * 0.14;
+        actor.getObjectByName("armL")!.rotation.x =
+          -0.8 + Math.sin(cinematicTime * 1.8 + i) * 0.1;
+      });
       camera(
         key === "countdown" ? [5, 5, 5] : [11, 6, 12],
         [3, 4, 6],
@@ -1136,8 +1172,7 @@ export class Arrival {
         t.rotation.z = cinematicTime * 0.15 + i;
         t.position.y = 2.8 + Math.sin(cinematicTime + i) * 0.12;
       });
-      if (u < 0.5) camera([6, 4, 7], [4, 3.2, 5], [0, 1.8, 0]);
-      else camera([-3.8, 2.6, 4.4], [-3, 2.4, 3.5], [-1.5, 1.8, 0.2]);
+      camera([6, 4, 7], [-3.8, 2.6, 5.4], [0, 1.8, 0]);
     }
     if (key === "padwide") {
       this.rocket.position.set(0, 0, 0);
@@ -1163,7 +1198,10 @@ export class Arrival {
     }
     if (this.cabin.visible) {
       this.hatch.rotation.y = key === "cabin" ? mix(-1.6, 0, smooth(u * 3)) : 0;
-      this.harness.visible = key !== "cabin" || u > 0.25;
+      this.harness.visible = true;
+      this.harness.scale.y = key === "cabin" ? 0.1 + 0.9 * smooth(u * 3) : 1;
+      this.seated.getObjectByName("head")!.rotation.y =
+        Math.sin(cinematicTime * 0.65) * 0.16;
       this.alarm.intensity = key === "rattle" ? 2.5 : 0;
       for (const name of ["armL", "armR"])
         this.seated.getObjectByName(name)!.rotation.x = -0.9;
@@ -1208,7 +1246,10 @@ export class Arrival {
     this.ship.visible = key !== "orbit" || shot === "orbit";
     if (["cruise", "orbit", "mars"].includes(key)) {
       this.ship.position.set(mix(-3, 3, u), 0.4, 0);
-      this.ship.rotation.x = 0.2;
+      this.ship.rotation.x = 0.2 + Math.sin(cinematicTime * 0.5) * 0.06;
+      this.ship.rotation.z =
+        -Math.PI / 2 + Math.sin(cinematicTime * 0.4) * 0.08;
+      this.ship.position.y += Math.sin(cinematicTime * 0.65) * 0.18;
       this.earth.rotation.y = -0.8 + u * 0.2;
       this.mars.rotation.y = u * 0.1;
       camera([9, 8, 27], [6, 5, 24], [0, 1, -5]);
@@ -1231,7 +1272,7 @@ export class Arrival {
     }
     this.jets.forEach((j) => {
       j.visible = key === "braking";
-      j.scale.y = 1;
+      j.scale.y = 1 + Math.sin(cinematicTime * 24) * 0.15;
     });
     this.chute.visible = key === "parachute";
     this.shield.visible = key === "entry" || key === "parachute";
@@ -1240,17 +1281,31 @@ export class Arrival {
     gear.scale.setScalar(key === "parachute" ? smooth((u - 0.7) / 0.25) : 1);
     if (key === "entry" && !this.cabin.visible) {
       this.lander.position.set(0, 0, 0);
-      this.lander.rotation.z = 0.32;
-      this.shield.position.set(0.2, -0.7, 0);
-      this.shield.material.emissiveIntensity = 1.5;
+      this.lander.rotation.z = 0.32 + Math.sin(cinematicTime * 2.1) * 0.035;
+      this.lander.position.y = -u * 2;
+      this.lander.position.x = u * 3;
+      this.shield.position.set(
+        this.lander.position.x + 0.2,
+        this.lander.position.y - 0.7,
+        0,
+      );
+      this.shield.material.emissiveIntensity =
+        1.7 + Math.sin(cinematicTime * 9) * 0.3;
       camera([8, 3, 16], [6, 2, 12], [0, 0.5, 0]);
       if (!this.reduced) this.camera.rotateZ(Math.sin(time * 19) * 0.006);
     }
     if (key === "parachute") {
       this.lander.position.set(0, 0, 0);
-      this.lander.rotation.z = 0;
+      this.lander.rotation.z = Math.sin(cinematicTime * 1.4) * 0.075;
+      this.lander.position.y = -u * 3;
+      this.chute.rotation.z = Math.sin(cinematicTime * 1.4 - 0.3) * 0.035;
+      this.chute.position.copy(this.lander.position);
       this.chute.scale.setScalar(0.15 + 0.85 * smooth(u * 4));
-      this.shield.position.set(u * 3, -0.7 - smooth((u - 0.35) / 0.65) * 14, 0);
+      this.shield.position.set(
+        u * 3,
+        this.lander.position.y - 0.7 - smooth((u - 0.35) / 0.65) * 14,
+        0,
+      );
       this.shield.material.emissiveIntensity = 0;
       camera([18, 10, 32], [17, 10, 30], [0, 5, 0]);
     }
@@ -1258,7 +1313,7 @@ export class Arrival {
       this.lander.position.set(mix(-4, 0, u), mix(11, 2, u), 0);
       this.lander.rotation.z = -smooth((u - 0.35) / 0.65) * 0.45;
       this.jets[0].visible = u < 0.4;
-      this.jets[1].scale.y = 1.2;
+      this.jets[1].scale.y = 1.2 + Math.sin(cinematicTime * 22) * 0.2;
       camera([15, 10, 23], [10, 6, 18], [0, 4, -1]);
     }
     if (key === "touchdown") {
@@ -1300,6 +1355,14 @@ export class Arrival {
       this.explorer.position.set(2.2, 0, key === "steps" ? 3.8 + u * 5 : 8.5);
       this.explorer.rotation.y = key === "steps" ? 0 : Math.PI * 0.6;
       walk(this.explorer, cinematicTime, key === "steps");
+      this.explorer.getObjectByName("head")!.rotation.y =
+        key === "steps" ? 0 : Math.sin(cinematicTime * 0.65) * 0.25;
+      this.crewOutside.forEach((actor, i) => {
+        actor.getObjectByName("head")!.rotation.y =
+          Math.sin(cinematicTime * 0.55 + i) * 0.22;
+        actor.getObjectByName("armR")!.rotation.x =
+          -0.3 + Math.sin(cinematicTime * 1.2 + i) * 0.2;
+      });
       if (key === "aftermath") camera([16, 4, 21], [10, 3, 15], [1, 1.5, 0]);
       else if (key === "steps")
         camera([6, 1.8, 12], [8, 2.5, 15], [2, 1, 5 + u * 2]);
@@ -1311,6 +1374,13 @@ export class Arrival {
         camera([x + 40, h + 45, z + 70], [x + 25, h + 55, z + 50], [x, h, z]);
       }
     }
+    this.airStreaks.forEach((streak, i) => {
+      streak.visible =
+        !this.reduced && ["entry", "parachute", "braking"].includes(key);
+      const speed = key === "entry" ? 18 : 5;
+      streak.position.y = ((i * 1.73 + cinematicTime * speed) % 24) - 8;
+      streak.scale.y = key === "entry" ? 2.2 : 0.65;
+    });
     this.dust.forEach((p, i) => {
       p.visible = key === "touchdown" || key === "braking";
       const a = i * 2.4,
@@ -1373,9 +1443,12 @@ export class Arrival {
     return {
       chapter: this.chapter,
       shot: arrivalStory[Math.max(0, this.chapter)].key,
+      duration: arrivalStory[Math.max(0, this.chapter)].duration,
       elapsed: this.elapsed,
       paused: this.paused,
       reduced: this.reduced,
+      camera: this.camera.position.toArray(),
+      spacecraft: this.ship.position.toArray(),
     };
   }
 }
