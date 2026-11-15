@@ -114,6 +114,9 @@ try {
       assert.equal((await state()).modal, "flightRepair");
       if (fault.kind === "power" || fault.kind === "air") {
         const answer = fault.kind === "power" ? 1 : 2;
+        assert.equal(await page.locator(".quiz-answer[data-do=answerFlightQuiz]").count(), 4);
+        await page.click('.quiz-answer[data-answer="0"]');
+        assert.match(await page.locator(".quiz-feedback").innerText(), /try again/i);
         await page.click(`[data-do="answerFlightQuiz"][data-answer="${answer}"]`);
         await step(160);
         assert.ok((await state()).returnMission.flight.deck.incidents.find(

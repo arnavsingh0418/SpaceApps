@@ -31,7 +31,7 @@ Choose **Play with friends → Create crew**. Send the five-digit code shown on 
 - Build the greenhouse early. Food is eaten every sol. Watering costs one ice and adds food at night.
 - Before a dust storm, store loose supplies and cover panels. Covering sacrifices their electricity and takes blocks away from radio, plants, heaters, then air. Clean dirty panels after the storm. Covers come off the next morning.
 - Solar flares draw from real, archived NASA DONKI records. Shelter costs food; ice walls cost ice; continuing work adds a larger radiation dose. Ignored flares resolve as continued work after 45 seconds.
-- Rebuild the four damaged ship systems and launch before Sol 15 ends. Field investigations, salvage quizzes and Nemi’s shared repair award replacement parts; install them at the return platform. Better parts and base upgrades strengthen the hull at launch. Steering and repairs determine how the flight ends.
+- Rebuild the four damaged ship systems and launch before Sol 15 ends. Field investigations, salvage quizzes and Nemi’s shared repair award replacement parts; install them on the crashed ship at base. Better parts and base upgrades strengthen the hull at launch. Flight readiness and landing odds determine whether the crew lands or enters recovery orbit.
 - Solo play pauses when its browser tab is hidden or the pause menu is open. Multiplayer keeps running for the crew.
 
 Roles: Engineer builds twice as fast; Scientist gets a field-map tip; Medic sees the shared crew dose; Comms gets 10 more seconds before an event and can lock power. Anyone can gather, learn, build, and complete tasks. The leader can also lock power. All players currently share air, food, and dose.
@@ -140,13 +140,13 @@ Before/after screenshots and state snapshots are under `references/redesign/`; `
 
 ## Nemi: shared repairs and ship hardware
 
-Nemi is a fictional alien with a broken water loop near base at (-34, -8). Meet Nemi with E, accept the repair, and bring **3 ice, 2 clear panels and 2 scrap in your bag**. Crew members can split the deliveries. Brush at least six collector patches over two seconds, then explain why melted ice must be treated and tested. The crew receives one **Prototype navigation core**, with contribution credit for helpers. Solo players can complete every step. Progress saves with the mission and syncs through the crew server.
+Nemi is a fictional alien with a broken water loop near base at (-52, 12). Meet Nemi with E, accept the repair, and bring **3 ice, 2 clear panels and 2 scrap in your bag**. Crew members can split the deliveries. Brush at least six collector patches over two seconds, then explain why melted ice must be treated and tested. The crew unlocks Nemi’s Wayfarer rover and receives a **Prototype navigation core**, with contribution credit for helpers. Solo players can complete every step. Progress saves with the mission and syncs through the crew server.
 
 NASA’s SWIM ice mapping and InSight’s dust/power observations ground the lesson. Local deposits, Nemi and alien biology are invented. The dialogue links directly to the NASA sources and separates observations from the fictional repair.
 
 Four field milestones also grant ship hardware: flight recorder → Standard booster; water-loop procedure → Rare life support; shielding test → Rare heat shield; relay alignment → Rare navigation core. Supply rewards remain. Salvage is an alternate part/upgrade route. Rewards never downgrade higher-rarity hardware or duplicate a completed task.
 
-The return platform shows damaged components, replacement plinths and installation arcs with sparks. The repair screen lists each fault, where to find its replacement and which systems are online. Nemi idles, blinks, gestures and animates during dialogue; the collector changes color and the water tank fills on repair. Reduced motion removes large movements.
+The crashed ship at base shows damaged components, replacement plinths and installation arcs with sparks. The repair screen lists each fault, where to find its replacement and which systems are online. Nemi idles, blinks, gestures and animates during dialogue; the collector changes color and the water tank fills on repair. Reduced motion removes large movements.
 
 **No ElevenLabs key is configured and no voice-generation API is called.** Subtitles always work. A device speech voice is used when available; otherwise the dialogue remains text with a brief gesture. Add original pre-generated voice clips later using `client/public/alien/voice.json`; see that folder’s README. Never include a key in the browser build.
 

@@ -1,10 +1,11 @@
 import { chromium } from "playwright";
 import fs from "node:fs/promises";
 import assert from "node:assert/strict";
-const dir = "references/alien-mission";
+const dir = process.argv[2] || "artifacts/alien";
 await fs.mkdir(dir, { recursive: true });
 const browser = await chromium.launch({
   headless: true,
+  executablePath: process.env.QA_CHROME,
   args: ["--enable-unsafe-swiftshader"],
 });
 try {
@@ -16,7 +17,7 @@ try {
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
   });
-  await page.goto("http://127.0.0.1:5173");
+  await page.goto(process.env.QA_BASE_URL || "http://127.0.0.1:5173");
   await page.waitForFunction(() => !!window.__stageScene);
   await page.waitForFunction(() => window.__world.terrain.ready);
   const state = async () =>
@@ -45,24 +46,21 @@ try {
   await page.keyboard.press("Escape");
   await page.click("[data-do=skip]");
   await step(100);
-  for (let i = 0; i < 90; i++) {
-    const p = (await state()).player;
-    if (p.x < -31) break;
-    await page.keyboard.down("ArrowLeft");
-    await step(100);
-    await page.keyboard.up("ArrowLeft");
+  async function walkAxis(axis, target, reach) {
+    for (let i = 0; i < 180; i++) {
+      const position = (await state()).player[axis];
+      if (Math.abs(position - target) <= reach) return;
+      const key = axis === "x"
+        ? position < target ? "ArrowRight" : "ArrowLeft"
+        : position < target ? "ArrowDown" : "ArrowUp";
+      await page.keyboard.down(key);
+      await step(100);
+      await page.keyboard.up(key);
+    }
+    throw new Error(`Could not reach Nemi route waypoint ${axis}=${target}`);
   }
-  for (let i = 0; i < 40; i++) {
-    const p = (await state()).player;
-    if (p.z < -5.2) break;
-    await page.keyboard.down("ArrowUp");
-    await step(100);
-    await page.keyboard.up("ArrowUp");
-  }
-  assert.ok(
-    (await state()).player.x < -30,
-    "can reach Nemi on the actual base terrain",
-  );
+  await walkAxis("z", 12, 0.5);
+  await walkAxis("x", -52, 1.5);
   await page.keyboard.press("e");
   await step(1000);
   assert.equal((await state()).modal, "alien");
@@ -111,8 +109,11 @@ try {
   await step(1700);
   assert.ok((await state()).shipAssembly.slots.every((x) => x.broken));
   await capture("broken-ship");
-  await page.evaluate(() => window.__stageScene("ship-ready"));
+  await page.evaluate(() => window.__stageScene("crash-repairs"));
   await step(1800);
+  await page.keyboard.press("e");
+  await step(100);
+  assert.equal((await state()).modal, "hangar");
   await capture("parts-ready");
   for (const part of ["booster", "hull", "nav", "air"]) {
     await page.click(`[data-do=installPart][data-part=${part}]`);
