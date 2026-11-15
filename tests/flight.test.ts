@@ -7,7 +7,9 @@ import {
   flightDuration,
   startingFlightPower,
   landingChance,
+  cartridgeCabinet,
 } from "../shared/src/flight";
+import { flightResearch } from "../shared/src/flightResearch";
 import { partSlots } from "../shared/src/returnMission";
 import { flyHome, runFlight, lockGuidance } from "./flight-helpers";
 function setup() {
@@ -134,6 +136,30 @@ it("validates repair position, duration, puzzle and shared exactly-once credit",
     }),
   ).toContain("already");
   expect(s.returnMission!.points).toBe(200);
+});
+it("requires a diagnostic, a cabinet visit and the carrier to replace the scrubber", () => {
+  const s = setup();
+  runFlight(s, 83.1);
+  const fault = s.returnMission!.flight!.deck!.incidents.find((event) => event.kind === "air")!;
+  const step = (id: string, step: string) =>
+    dispatch(s, id, { type: "scrubberCartridge", fault: fault.id, step });
+  Object.assign(s.players.a, flightStations.air);
+  Object.assign(s.players.b, cartridgeCabinet);
+  dispatch(s, "a", { type: "beginFlightRepair", fault: fault.id });
+  expect(step("b", "take")).toContain("spent cartridge");
+  expect(step("a", "remove")).toContain("quiz");
+  dispatch(s, "a", { type: "answerFlightQuiz", fault: fault.id, answer: flightResearch.air.quiz!.correct });
+  expect(step("a", "remove")).toBeUndefined();
+  expect(step("a", "take")).toContain("supplies cabinet");
+  expect(step("b", "take")).toBeUndefined();
+  expect(step("b", "take")).toContain("already");
+  expect(step("a", "fit")).toContain("Bring the spare");
+  expect(step("b", "fit")).toContain("Life support");
+  Object.assign(s.players.b, flightStations.air);
+  dispatch(s, "b", { type: "beginFlightRepair", fault: fault.id });
+  expect(step("b", "fit")).toBeUndefined();
+  expect(fault).toMatchObject({ fixed: true, repairedBy: "b" });
+  expect(s.returnMission!.crewPoints).toEqual({ a: 50, b: 150 });
 });
 it("runs four incidents and rolls for landing after both guidance locks", () => {
   const s = setup();

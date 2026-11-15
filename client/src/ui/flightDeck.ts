@@ -5,6 +5,8 @@ import {
   flightEvents,
   landingChance,
   nearestFlightStation,
+  nearCartridgeCabinet,
+  scrubberFault,
   type DeckFlight,
   type FailureKind,
   type FlightIncident,
@@ -26,6 +28,17 @@ export function flightHUD(s: Game, id: string) {
         : d.time < 120
           ? "EARTHBOUND CRUISE"
           : "EARTH APPROACH";
+  const scrubber = scrubberFault(d);
+  const carrier = scrubber?.cartridgeCarrier;
+  const carried = carrier !== undefined && Boolean(s.players[carrier]);
+  const atCabinet = Boolean(scrubber?.cartridgeRemoved && !carried && nearCartridgeCabinet(s.players[id]));
+  const scrubberHint = !scrubber ? "" : !scrubber.cartridgeRemoved
+    ? "Go to Life Support on the left and check the scrubber."
+    : carrier === id
+      ? "Carrying the spare and adapter. Return to Life Support."
+      : carried
+        ? "A crewmate is carrying the spare to Life Support."
+        : "Go aft, across the aisle, to the lit supplies cabinet.";
   const meters = [
     ["Hull", d.hull],
     [d.research ? "Air" : "O₂", d.oxygen],
@@ -35,7 +48,7 @@ export function flightHUD(s: Game, id: string) {
   return `<header class="flight-top" data-hud="flight-route"><div><small>OUTPOST DOWN / THE WAY HOME</small><h1>${arrival ? (d.outcome === "home" ? "EARTH. AT LAST." : "RECOVERY ORBIT") : leg}</h1></div><button data-do="pause" aria-label="Pause flight">Ⅱ</button><div class="flight-route"><span>MARS</span><progress max="${flightDuration}" value="${Math.min(flightDuration, d.time)}" aria-label="Journey to Earth"></progress><span>EARTH</span></div><small class="flight-time">${arrival ? "Crew secured · arrival in progress" : `${Math.max(0, Math.ceil(flightDuration - d.time))}s to Earth${d.research ? ` · ${landingChance(flight.baseChance, d)}% landing odds if flight-ready` : ""}`}</small></header>
   <aside class="flight-meters" data-hud="flight-systems">${meters.map(([label, value]) => `<div class="${label === "Heat" ? (value > 70 ? "critical" : "") : value < 35 ? "critical" : ""}"><span>${label}</span><b>${Math.round(value)}${label === "Heat" ? "°" : "%"}</b><progress max="100" value="${value}" aria-label="${label}"></progress></div>`).join("")}</aside>
   ${!arrival ? `<aside class="flight-jobs" data-hud="flight-jobs"><header><b>${faults.length ? "SHIP ALERTS" : "SYSTEMS ONLINE"}</b><span>${d.repaired} repairs</span></header>${faults.length ? faults.map((f) => `<div class="flight-job ${f.late ? "late" : ""}"><span>●</span><div><b>${escape(f.title)}</b><small>${flightStations[f.kind].name} · ${f.late ? "Overdue — repair now" : `${Math.max(0, Math.ceil(f.deadline - d.time))}s`}</small></div></div>`).join("") : `<p>Keep the course centered. Watch for faults.</p>`}<div class="flight-pilot"><b>${d.autopilot > 0 ? `Autopilot hold · ${Math.ceil(d.autopilot)}s` : d.pilot ? `${escape(s.players[d.pilot]?.name || "Pilot")} at helm` : "Helm available"}</b><span>Course error ${Math.round(Math.hypot(d.course.x, d.course.y) * 100)}%</span><span>Guidance ${d.guidance[0] ? "✓" : "○"} departure · ${d.guidance[1] ? "✓" : "○"} entry</span><small>${!d.guidance[0] && d.time < 120 ? "Lock departure at the helm before Earth approach." : d.time >= 120 && !d.guidance[1] ? "Earth approach: lock entry guidance at the helm." : ""}</small></div><button data-do="flightGuide">Crew plan / controls ↗</button></aside>` : ""}
-  ${!arrival ? `<section class="flight-bottom">${station ? `<button class="interaction" data-do="interact"><kbd>E</kbd> ${station === "helm" ? "Take the helm" : `Use ${flightStations[station].name}`}</button>` : ""}<div class="flight-controls"><kbd>WASD</kbd> Walk <span class="flight-look-hint">· Mouse / drag to look</span> <kbd>E</kbd> Use station <kbd>Esc</kbd> Pause</div></section><div id="touch"><div id="joystick"><i></i></div><button data-do="interact" aria-label="Use ship station">E</button></div>` : `<div class="arrival-message">${d.outcome === "home" ? "You kept the crew together. Welcome home." : "The rescue team is approaching. Your crew is safe."}</div>`}`;
+  ${!arrival ? `<section class="flight-bottom">${scrubberHint ? `<p class="flight-cartridge-hint">${scrubberHint}</p>` : ""}${atCabinet ? `<button class="interaction" data-do="interact"><kbd>E</kbd> Take spare cartridge and adapter</button>` : station ? `<button class="interaction" data-do="interact"><kbd>E</kbd> ${station === "helm" ? "Take the helm" : `Use ${flightStations[station].name}`}</button>` : ""}<div class="flight-controls"><kbd>WASD</kbd> Walk <span class="flight-look-hint">· Mouse / drag to look</span> <kbd>E</kbd> Use station <kbd>Esc</kbd> Pause</div></section><div id="touch"><div id="joystick"><i></i></div><button data-do="interact" aria-label="Use ship station">E</button></div>` : `<div class="arrival-message">${d.outcome === "home" ? "You kept the crew together. Welcome home." : "The rescue team is approaching. Your crew is safe."}</div>`}`;
 }
 export function helmPanel(s: Game, id: string) {
   const d = s.returnMission!.flight!.deck!;
@@ -47,7 +60,10 @@ export function flightRepairReading(kind: FailureKind, deck: DeckFlight) {
   if (kind === "hull") return `Hull integrity ${Math.round(deck.hull)}%`;
   return `Ship heat ${Math.round(deck.heat)}°`;
 }
-export function repairPanel(f: FlightIncident, deck: DeckFlight) {
+export function cartridgeStep(f: FlightIncident, id: string) {
+  return !f.cartridgeRemoved ? "remove" : f.cartridgeCarrier === id ? "fit" : "storage";
+}
+export function repairPanel(f: FlightIncident, deck: DeckFlight, id: string) {
   const research = f.research ? flightResearch[f.kind] : undefined;
   const quiz = research?.quiz && !f.quizCleared ? research.quiz : undefined;
   const researchCard = research
@@ -55,9 +71,13 @@ export function repairPanel(f: FlightIncident, deck: DeckFlight) {
     : "";
   const circuits = ["Main bus", "Guidance", "Life support"];
   const directions = ["Forward left", "Forward right", "Aft left", "Aft right"];
-  const scrubberSteps = f.research
-    ? ["Fit cartridge", "Latch rack", "Open rack"]
-    : ["Purge loop", "Reopen loop", "Isolate loop"];
+  const physicalScrubber = f.kind === "air" && f.research;
+  const step = cartridgeStep(f, id);
+  const cartridgeControls = step === "remove"
+    ? `<p>Pull the spent cartridge out of the scrubber rack.</p>${Button("Remove spent cartridge", "scrubberCartridge", 'data-step="remove"')}`
+    : step === "fit"
+      ? `<p>The spare is a different shape. Use the adapter collar to join it to the scrubber rack.</p>${Button("Fit adapter and install cartridge", "scrubberCartridge", 'data-step="fit"')}`
+      : `<p>Exit the console, then go aft and across the aisle to the lit <b>AFT SUPPLIES</b> cabinet. Press <b>E</b> there to take the spare and its adapter.</p>${Button("Back to cabin", "close")}`;
   const puzzle =
     f.kind === "power"
       ? `<p>Reconnect each supply lead to its labeled return port. Drag a lead across, or select both ends.</p>
@@ -66,10 +86,10 @@ export function repairPanel(f: FlightIncident, deck: DeckFlight) {
         <div class="wire-traces" aria-hidden="true">${[0, 1, 2].map((i) => `<span data-wire-trace="${i}" class="circuit-${i}"></span>`).join("")}</div>
         <div>${[2, 0, 1].map(i => `<button data-flight-wire="${i}" data-side="1" class="circuit-${i}" aria-label="Return port: ${circuits[i]}"><i aria-hidden="true"></i>${circuits[i]}</button>`).join("")}</div></div></div>`
       : f.kind === "air"
-        ? `<p>${f.research ? "Open the rack, fit the backup cartridge, then latch it to restore airflow." : "Isolate the loop, purge it, then reopen the valve."}</p>
-          <div class="repair-instrument"><div class="repair-instrument-head"><span>${f.research ? "CO₂ SCRUBBER" : "AIR LOOP"}</span><output id="repair-indicator">${f.research ? "Rack closed" : "Loop online"}</output></div>
+        ? `<p>Isolate the loop, purge it, then reopen the valve.</p>
+          <div class="repair-instrument"><div class="repair-instrument-head"><span>AIR LOOP</span><output id="repair-indicator">Loop online</output></div>
           <div class="scrubber-state" data-scrubber-step="0" aria-hidden="true"><i></i><b></b></div>
-          <div class="deck-valves">${scrubberSteps.map((t, i) => `<button data-flight-valve="${i}">${t}</button>`).join("")}</div><output id="valve-order">0 / 3 steps</output></div>`
+          <div class="deck-valves">${["Purge loop", "Reopen loop", "Isolate loop"].map((t, i) => `<button data-flight-valve="${i}">${t}</button>`).join("")}</div><output id="valve-order">0 / 3 steps</output></div>`
         : f.kind === "hull"
           ? `<p>${f.research ? "Bring each shield segment onto the backup circuit." : "Seal each of the four pressure leaks."}</p>
             <div class="repair-instrument"><div class="repair-instrument-head"><span>SHIELD SEGMENTS</span><output id="repair-indicator">0 / 4 ready</output></div><div class="deck-leaks">${directions.map((label, i) => `<button data-flight-patch="${i}" aria-pressed="false"><span>${label}</span><small>${f.research ? "Backup offline" : "Pressure leak"}</small></button>`).join("")}</div></div>`
@@ -80,8 +100,10 @@ export function repairPanel(f: FlightIncident, deck: DeckFlight) {
         quiz.answers.map((text, index) => ({ text, index })),
         { fault: f.id },
       )}</section>`
-    : `${puzzle}${Button("RETURN SYSTEM TO SERVICE", "finishFlightRepair", `data-fault="${f.id}" disabled`)}<p class="flight-feedback" role="status"></p>`;
-  return `<small class="flight-task-eyebrow">${flightStations[f.kind].name.toUpperCase()} / CREW REPAIR</small><h3>${escape(f.title)}</h3><div class="repair-timing"><span id="repair-seconds">Work for at least 3 seconds</span><span id="fault-deadline"></span><span id="repair-arrival"></span></div><p class="flight-reading"><b id="flight-repair-reading">${flightRepairReading(f.kind, deck)}</b><small>Live game reading</small></p>${researchCard}${controls}`;
+    : physicalScrubber
+      ? `<div class="repair-instrument" data-cartridge-step="${step}"><div class="repair-instrument-head"><span>CO₂ SCRUBBER</span><output>${step === "remove" ? "Spent cartridge" : step === "fit" ? "Spare and adapter ready" : "Rack empty"}</output></div>${cartridgeControls}</div><p class="flight-feedback" role="status"></p>`
+      : `${puzzle}${Button("RETURN SYSTEM TO SERVICE", "finishFlightRepair", `data-fault="${f.id}" disabled`)}<p class="flight-feedback" role="status"></p>`;
+  return `<small class="flight-task-eyebrow">${flightStations[f.kind].name.toUpperCase()} / CREW REPAIR</small><h3>${escape(f.title)}</h3><div class="repair-timing">${physicalScrubber ? "" : '<span id="repair-seconds">Work for at least 3 seconds</span>'}<span id="fault-deadline"></span><span id="repair-arrival"></span></div><p class="flight-reading"><b id="flight-repair-reading">${flightRepairReading(f.kind, deck)}</b><small>Live game reading</small></p>${researchCard}${controls}`;
 }
 export function flightGuide() {
   return `<div class="flight-guide"><h3>Get the crew home</h3><p>Walk to a station and press E. Click the view or drag to look around. The three-minute journey keeps running while you steer or repair.</p><ul><li><b>Helm · front</b> — Center the marker and lock departure guidance. Lock it again after 120 seconds for Earth entry.</li><li><b>Electrical · left corridor</b> — Check the flare log and reconnect the supply leads.</li><li><b>Life support · aft left</b> — Read CO₂ levels and swap the scrubber.</li><li><b>Hull · middle right</b> — Activate the backup shield panels.</li><li><b>Engine · forward left</b> — Move the coolant slider into the backup band.</li></ul><p>Expect up to ${flightEvents.length} alerts. Rarer installed parts and on-time repairs improve the game's landing odds. Missed alerts lower them. A ship that arrives without safe systems or both guidance locks goes to rescue orbit.</p><p>Split jobs with friends, or lock autopilot before leaving the helm. Solo pauses only in Pause. Co-op keeps going.</p></div>`;

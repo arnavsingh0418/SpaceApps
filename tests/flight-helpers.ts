@@ -1,5 +1,5 @@
 import { dispatch, tick, type Game } from "../shared/src/sim";
-import { flightStations } from "../shared/src/flight";
+import { cartridgeCabinet, flightStations } from "../shared/src/flight";
 import { flightResearch } from "../shared/src/flightResearch";
 export function runFlight(s: Game, seconds: number) {
   for (let t = 0; t < seconds - 1e-7; t += 0.1) tick(s, 0.1);
@@ -45,6 +45,18 @@ export function flyHome(s: Game, id: string) {
       if (quiz) {
         const error = dispatch(s, id, { type: "answerFlightQuiz", fault: fault.id, answer: quiz.correct });
         if (error) throw Error(error);
+      }
+      if (fault.kind === "air" && fault.research) {
+        for (const [step, at] of [
+          ["remove", flightStations.air],
+          ["take", cartridgeCabinet],
+          ["fit", flightStations.air],
+        ] as const) {
+          Object.assign(s.players[id], at);
+          const error = dispatch(s, id, { type: "scrubberCartridge", fault: fault.id, step });
+          if (error) throw Error(error);
+        }
+        continue;
       }
       runFlight(s, 3.2);
       const value =

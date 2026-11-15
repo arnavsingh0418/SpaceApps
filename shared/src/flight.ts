@@ -10,6 +10,7 @@ export const arrivalDuration = 12;
 export const deckSpeed = 4;
 export const deckRooms = SHIP_LAYOUT.rooms;
 export const flightStations = SHIP_LAYOUT.stations;
+export const cartridgeCabinet = { x: 1.45, z: 8.2 };
 export type FlightStation = keyof typeof flightStations;
 export type FailureKind = Exclude<FlightStation, "helm">;
 type FlightEvent = { at: number; kind: FailureKind; title: string };
@@ -37,6 +38,8 @@ export type FlightIncident = {
   late: boolean;
   research?: boolean;
   quizCleared?: boolean;
+  cartridgeRemoved?: boolean;
+  cartridgeCarrier?: string;
   repairedBy?: string;
 };
 export type DeckFlight = {
@@ -86,6 +89,13 @@ export function ensureFlightLayout(s: Game) {
 export function deckNear(p: { x: number; z: number }, station: FlightStation) {
   const pos = flightStations[station];
   return Math.hypot(p.x - pos.x, p.z - pos.z) <= 2.1;
+}
+export function nearCartridgeCabinet(p: { x: number; z: number }) {
+  return Math.hypot(p.x - cartridgeCabinet.x, p.z - cartridgeCabinet.z) <= 1.65;
+}
+
+export function scrubberFault(deck: DeckFlight) {
+  return deck.incidents.find((fault) => fault.kind === "air" && fault.research && !fault.fixed);
 }
 export function nearestFlightStation(p: {
   x: number;
@@ -341,13 +351,23 @@ export function flightAction(
   }
   const incident = d.incidents.find((i) => i.id === a.fault && !i.fixed);
   if (!incident) return "That fault is already repaired or unavailable.";
+  const physicalScrubber = incident.kind === "air" && incident.research;
+  if (a.type === "scrubberCartridge" && a.step === "take") {
+    if (!physicalScrubber || !incident.cartridgeRemoved)
+      return "Remove the spent cartridge at Life Support first.";
+    if (!nearCartridgeCabinet(p)) return "Go to the aft supplies cabinet.";
+    if (incident.cartridgeCarrier && s.players[incident.cartridgeCarrier])
+      return "The replacement cartridge is already with the crew.";
+    incident.cartridgeCarrier = id;
+    return;
+  }
   if (!deckNear(p, incident.kind))
     return `Go to ${flightStations[incident.kind].name} to repair this fault.`;
   if (a.type === "beginFlightRepair") {
     p.task = { kind: "flightRepair", target: incident.id, at: s.elapsed };
     return;
   }
-  if (a.type !== "finishFlightRepair" && a.type !== "answerFlightQuiz")
+  if (a.type !== "finishFlightRepair" && a.type !== "answerFlightQuiz" && a.type !== "scrubberCartridge")
     return "Unknown ship action.";
   if (
     p.task?.kind !== "flightRepair" ||
@@ -364,7 +384,18 @@ export function flightAction(
     return;
   }
   if (quiz && !incident.quizCleared) return "Complete the science quiz first.";
-  if (s.elapsed - p.task.at < 3)
+  if (physicalScrubber) {
+    if (a.type !== "scrubberCartridge") return "Replace the cartridge at Life Support.";
+    if (a.step === "remove") {
+      incident.cartridgeRemoved = true;
+      return;
+    }
+    if (a.step !== "fit" || !incident.cartridgeRemoved || incident.cartridgeCarrier !== id)
+      return "Bring the spare cartridge and adapter from the aft supplies cabinet.";
+    delete incident.cartridgeCarrier;
+  } else if (a.type === "scrubberCartridge") {
+    return "This station uses a different repair.";
+  } else if (s.elapsed - p.task.at < 3)
     return "Finish the repair at this station; it takes at least three seconds.";
   const valid =
     incident.kind === "power"
@@ -376,7 +407,7 @@ export function flightAction(
           : typeof a.value === "number" &&
             Number.isFinite(a.value) &&
             Math.abs(a.value - 35) <= 5;
-  if (!valid) return "Check the repair steps before confirming.";
+  if (!physicalScrubber && !valid) return "Check the repair steps before confirming.";
   incident.fixed = true;
   incident.repairedBy = id;
   d.repaired++;
