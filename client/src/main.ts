@@ -7,6 +7,7 @@ import { createReturnShip } from "./render/ship";
 import { createShipWalk } from "./shipWalk";
 import { createConstruction, recipeIds, recipes, type Structure } from "./construction";
 import { connectPowerPlan } from "./powerPlan";
+import { connectReturnMission } from "./returnMission";
 import { launchBattery, solarOutput } from "./solar";
 import "./style.css";
 
@@ -239,7 +240,7 @@ try {
       heading.textContent = "A new home on Mars";
       tag.textContent = "OUTPOST 01 / GALE CRATER";
       description.textContent =
-        "Explore your crew’s first outpost. A habitat to call home, sunlight for power and a workbench for the next big idea. Board the return ship to walk the cabin on the way to Earth.";
+        "Explore your crew’s first outpost. A habitat to call home, sunlight for power and a workbench for the next big idea. Recover ship parts from salvage caches, then rebuild the return ship.";
     }
     document
       .querySelectorAll<HTMLButtonElement>("[data-focus]")
@@ -331,10 +332,8 @@ try {
     renderer.render(shipScene, camera);
   }
 
-  document.querySelector<HTMLButtonElement>("#board-ship")!.addEventListener("click", () => {
-    boardShip();
-    canvas.requestPointerLock?.();
-  });
+  const returnMission = connectReturnMission(boardShip);
+  document.querySelector<HTMLButtonElement>("#board-ship")!.addEventListener("click", returnMission.open);
   document.querySelector<HTMLButtonElement>("#leave-ship")!.addEventListener("click", leaveShip);
 
   // Ignore drags, and resolve a clicked mesh to its station wrapper.
@@ -359,8 +358,7 @@ try {
       raycaster.intersectObjects(base.root.children.filter((model) => model.visible), true)[0]?.object || null;
     while (object && !object.userData.station && !object.userData.board) object = object.parent;
     if (object?.userData.board) {
-      boardShip();
-      canvas.requestPointerLock?.();
+      returnMission.open();
       return;
     }
     if (object) focus(object.userData.station);
