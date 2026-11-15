@@ -615,3 +615,113 @@
 #coolant-flow {
   background: linear-gradient(to right, #30434c 30%, #63ce9c 30% 40%, #30434c 40%);
 }
+
+.repair-instrument {
+  padding: 12px;
+  border: 1px solid #496170;
+  border-radius: 10px;
+  background: #142630;
+}
+.repair-instrument-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  color: #b5ccd6;
+  font-size: 11px;
+  font-weight: 800;
+}
+.repair-instrument-head output, #repair-indicator { color: #f6ce93; }
+#repair-indicator.stable { color: #a7e7d6; }
+.diagnostic-console p { margin: 12px 0; }
+.diagnostic-options { display: grid; gap: 6px; }
+.diagnostic-options > .button {
+  margin: 0;
+  min-height: 38px;
+  text-align: left;
+  font-size: 13px;
+  background: #233d4b;
+  border: 1px solid #52707d;
+}
+.deck-wires {
+  display: grid;
+  grid-template-columns: minmax(78px, 1fr) minmax(26px, 0.9fr) minmax(78px, 1fr);
+  padding: 12px 0 0;
+}
+.deck-wires > div:not(.wire-traces) { gap: 10px; }
+.deck-wires button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+  height: 44px;
+  padding: 4px 6px;
+  text-align: left;
+  font-size: clamp(10px, 2.8vw, 13px);
+  background: #192c37;
+  color: #e7f1f4;
+  border: 1px solid #52707d;
+}
+.deck-wires button[data-side="0"] { cursor: grab; }
+.deck-wires button[data-side="0"]:active { cursor: grabbing; }
+.deck-wires .circuit-0 { --wire: #f1a28e; }
+.deck-wires .circuit-1 { --wire: #84bfea; background: #192c37; }
+.deck-wires .circuit-2 { --wire: #f8d479; background: #192c37; }
+.deck-wires button i {
+  flex: 0 0 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wire);
+}
+.deck-wires button.done { opacity: 1; border-color: var(--wire); }
+.wire-traces { position: relative; background: #101e26; }
+.wire-traces span[data-wire-trace] { position: absolute; inset: 0; background: var(--wire); opacity: 0; }
+.wire-traces span.connected[data-wire-trace] { opacity: 1; }
+.wire-traces .circuit-0 { clip-path: polygon(0 13%, 100% 49%, 100% 51%, 0 15%); }
+.wire-traces .circuit-1 { clip-path: polygon(0 49%, 100% 84%, 100% 86%, 0 51%); }
+.wire-traces .circuit-2 { clip-path: polygon(0 84%, 100% 13%, 100% 15%, 0 86%); }
+.scrubber-state {
+  position: relative;
+  height: 58px;
+  margin-top: 10px;
+  border: 2px solid #587482;
+  border-radius: 8px;
+  background: #0c1b23;
+  overflow: hidden;
+}
+.scrubber-state i, .scrubber-state b { position: absolute; transition: transform 160ms ease, opacity 160ms ease; }
+.scrubber-state i {
+  inset: 4px;
+  background: repeating-linear-gradient(90deg, #315163 0 9px, #254450 9px 12px);
+  border-radius: 5px;
+}
+.scrubber-state b {
+  inset: 13px 17%;
+  border: 2px solid #a7e7d6;
+  border-radius: 14px;
+  background: repeating-linear-gradient(90deg, #478475 0 7px, #386e63 7px 10px);
+  opacity: 0;
+}
+.scrubber-state[data-scrubber-step="1"] i, .scrubber-state[data-scrubber-step="2"] i { transform: translateX(100%); }
+.scrubber-state[data-scrubber-step="2"] b, .scrubber-state[data-scrubber-step="3"] b { opacity: 1; }
+.deck-valves { gap: 6px; margin: 10px 0 6px; }
+.deck-valves button { padding: 9px; text-align: left; }
+.deck-leaks { gap: 6px; background: transparent; padding: 10px 0 0; }
+.deck-leaks button {
+  height: auto;
+  min-height: 54px;
+  font-size: 13px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+}
+.deck-leaks small { font-size: 10px; font-weight: 700; }
+.coolant-flow { gap: 8px; }
+.coolant-flow .repair-instrument-head output { font-size: 20px; }
+.coolant-scale { display: flex; justify-content: space-between; color: #c8e5e9; }
+.coolant-scale span:nth-child(2) { color: #a7e7d6; }
+@media (prefers-reduced-motion: reduce) {
+  .scrubber-state i, .scrubber-state b { transition: none; }
+}

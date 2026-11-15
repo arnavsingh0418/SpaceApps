@@ -9,7 +9,6 @@ import {
 } from "../../../shared/src/flight";
 import { flightResearch } from "../../../shared/src/flightResearch";
 import { Button, escape } from "./components";
-import { quizQuestion } from "./quiz";
 import "./flightDeck.css";
 
 export function flightHUD(s: Game, id: string) {
@@ -45,19 +44,32 @@ export function repairPanel(f: FlightIncident) {
   const researchCard = research
     ? `<section class="flight-research"><a href="${escape(research.url)}" target="_blank" rel="noopener noreferrer">${escape(research.name)} ↗</a><dl>${research.readings.map(([label, value]) => `<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join("")}</dl><p>${escape(research.note)}</p></section>`
     : "";
+  const circuits = ["Main bus", "Guidance", "Life support"];
+  const directions = ["Forward left", "Forward right", "Aft left", "Aft right"];
+  const scrubberSteps = f.research
+    ? ["Fit cartridge", "Latch rack", "Open rack"]
+    : ["Purge loop", "Reopen loop", "Isolate loop"];
   const puzzle =
     f.kind === "power"
-      ? `<p>Match all three circuits by color and shape.</p><div class="deck-wires">${[0, 1].map((side) => `<div>${(side ? [2, 0, 1] : [0, 1, 2]).map((i) => `<button data-flight-wire="${i}" data-side="${side}" class="circuit-${i}" aria-label="Circuit ${i + 1} ${side ? "right" : "left"}">${["◆", "●", "▲"][i]} ━</button>`).join("")}</div>`).join("")}</div>`
+      ? `<p>Reconnect each supply lead to its labeled return port. Drag a lead across, or select both ends.</p>
+        <div class="repair-instrument"><div class="repair-instrument-head"><span>POWER DISTRIBUTION</span><output id="repair-indicator">0 / 3 circuits</output></div>
+        <div class="deck-wires"><div>${circuits.map((name, i) => `<button draggable="true" data-flight-wire="${i}" data-side="0" class="circuit-${i}" aria-label="Supply lead: ${name}">${name}<i aria-hidden="true"></i></button>`).join("")}</div>
+        <div class="wire-traces" aria-hidden="true">${[0, 1, 2].map((i) => `<span data-wire-trace="${i}" class="circuit-${i}"></span>`).join("")}</div>
+        <div>${[2, 0, 1].map(i => `<button data-flight-wire="${i}" data-side="1" class="circuit-${i}" aria-label="Return port: ${circuits[i]}"><i aria-hidden="true"></i>${circuits[i]}</button>`).join("")}</div></div></div>`
       : f.kind === "air"
-        ? `<p>${f.research ? "Fit the backup scrubber: open rack → fit cartridge → latch rack." : "Reset the air loop in order: isolate → purge → reopen."}</p><div class="deck-valves">${(f.research ? ["FIT CARTRIDGE", "LATCH RACK", "OPEN RACK"] : ["PURGE", "REOPEN", "ISOLATE"]).map((t, i) => `<button data-flight-valve="${i}">${t}</button>`).join("")}</div><output id="valve-order">0 / 3 steps</output>`
+        ? `<p>${f.research ? "Open the rack, fit the backup cartridge, then latch it to restore airflow." : "Isolate the loop, purge it, then reopen the valve."}</p>
+          <div class="repair-instrument"><div class="repair-instrument-head"><span>${f.research ? "CO₂ SCRUBBER" : "AIR LOOP"}</span><output id="repair-indicator">${f.research ? "Rack closed" : "Loop online"}</output></div>
+          <div class="scrubber-state" data-scrubber-step="0" aria-hidden="true"><i></i><b></b></div>
+          <div class="deck-valves">${scrubberSteps.map((t, i) => `<button data-flight-valve="${i}">${t}</button>`).join("")}</div><output id="valve-order">0 / 3 steps</output></div>`
         : f.kind === "hull"
-          ? `<p>${f.research ? "Turn on all four backup shield panels." : "Seal all four pressure leaks."}</p><div class="deck-leaks">${[0, 1, 2, 3].map((i) => `<button data-flight-patch="${i}" aria-label="${f.research ? "Activate panel" : "Seal leak"} ${i + 1}">✦</button>`).join("")}</div>`
-          : `<p>Move the slider into the green backup band (30–40).</p><label class="coolant-flow">COOLANT FLOW <output id="coolant-value">70</output><input id="coolant-flow" type="range" min="0" max="100" value="70" aria-label="Coolant flow"></label>`;
+          ? `<p>${f.research ? "Bring each shield segment onto the backup circuit." : "Seal each of the four pressure leaks."}</p>
+            <div class="repair-instrument"><div class="repair-instrument-head"><span>SHIELD SEGMENTS</span><output id="repair-indicator">0 / 4 ready</output></div><div class="deck-leaks">${directions.map((label, i) => `<button data-flight-patch="${i}" aria-pressed="false"><span>${label}</span><small>${f.research ? "Backup offline" : "Pressure leak"}</small></button>`).join("")}</div></div>`
+          : `<p>Throttle the backup coolant loop into its operating band.</p><div class="coolant-flow"><div class="repair-instrument-head"><span>COOLANT FLOW</span><output id="coolant-value">70%</output></div><input id="coolant-flow" type="range" min="0" max="100" value="70" aria-label="Coolant flow percentage" aria-describedby="repair-indicator"><div class="coolant-scale"><span>0%</span><span>Backup band 30–40%</span><span>100%</span></div><output id="repair-indicator">Flow too high</output></div>`;
   const controls = quiz
-    ? quizQuestion(quiz.question, quiz.answers.map((text, index) => ({ text, index })), { fault: f.id })
-    : `${puzzle}${Button("CONFIRM REPAIR", "finishFlightRepair", `data-fault="${f.id}"`)}<p class="flight-feedback" role="status"></p>`;
+    ? `<section class="repair-instrument diagnostic-console"><div class="repair-instrument-head"><span>DIAGNOSTIC</span><span>CHECK REQUIRED</span></div><p>${escape(quiz.question)}</p><div class="diagnostic-options">${quiz.answers.map((answer, i) => Button(escape(answer), "answerFlightQuiz", `data-fault="${f.id}" data-answer="${i}"`, true)).join("")}</div></section><p class="flight-feedback" role="status"></p>`
+    : `${puzzle}${Button("RETURN SYSTEM TO SERVICE", "finishFlightRepair", `data-fault="${f.id}" disabled`)}<p class="flight-feedback" role="status"></p>`;
   return `<small class="flight-task-eyebrow">${flightStations[f.kind].name.toUpperCase()} / CREW REPAIR</small><h3>${escape(f.title)}</h3><div class="repair-timing"><span id="repair-seconds">Work for at least 3 seconds</span><span id="fault-deadline"></span><span id="repair-arrival"></span></div>${researchCard}${controls}`;
 }
 export function flightGuide() {
-  return `<div class="flight-guide"><h3>Get the crew home</h3><p>Walk to a station and press E. Click the view or drag to look around. The three-minute journey keeps running while you steer or repair.</p><ul><li><b>Helm · front</b> — Center the marker and lock departure guidance. Lock it again after 120 seconds for Earth entry.</li><li><b>Electrical · left corridor</b> — Read the flare log and match circuits.</li><li><b>Life support · aft left</b> — Read CO₂ levels and swap the scrubber.</li><li><b>Hull · middle right</b> — Activate the backup shield panels.</li><li><b>Engine · forward left</b> — Move the coolant slider into the backup band.</li></ul><p>Expect up to ${flightEvents.length} alerts. Rarer installed parts and on-time repairs improve the game's landing odds. Missed alerts lower them. A ship that arrives without safe systems or both guidance locks goes to rescue orbit.</p><p>Split jobs with friends, or lock autopilot before leaving the helm. Solo pauses only in Pause. Co-op keeps going.</p></div>`;
+  return `<div class="flight-guide"><h3>Get the crew home</h3><p>Walk to a station and press E. Click the view or drag to look around. The three-minute journey keeps running while you steer or repair.</p><ul><li><b>Helm · front</b> — Center the marker and lock departure guidance. Lock it again after 120 seconds for Earth entry.</li><li><b>Electrical · left corridor</b> — Check the flare log and reconnect the supply leads.</li><li><b>Life support · aft left</b> — Read CO₂ levels and swap the scrubber.</li><li><b>Hull · middle right</b> — Activate the backup shield panels.</li><li><b>Engine · forward left</b> — Move the coolant slider into the backup band.</li></ul><p>Expect up to ${flightEvents.length} alerts. Rarer installed parts and on-time repairs improve the game's landing odds. Missed alerts lower them. A ship that arrives without safe systems or both guidance locks goes to rescue orbit.</p><p>Split jobs with friends, or lock autopilot before leaving the helm. Solo pauses only in Pause. Co-op keeps going.</p></div>`;
 }

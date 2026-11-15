@@ -205,7 +205,7 @@ function sound(kind = "click") {
 document.addEventListener("input", (event) => {
   const coolant = event.target as HTMLInputElement;
   if (coolant.id === "coolant-flow")
-    $("#coolant-value").textContent = coolant.value;
+    updateRepairConsole();
   const el = event.target as HTMLInputElement;
   if (el.id === "field-dial") {
     const signal = Math.max(
@@ -326,6 +326,40 @@ function interactDeck() {
     "deck-modal",
   );
 }
+function updateRepairConsole() {
+  if (!deckRepair) return;
+  const repair = deckRepair;
+  const indicator = root.querySelector<HTMLOutputElement>("#repair-indicator");
+  const submit = root.querySelector<HTMLButtonElement>('[data-do="finishFlightRepair"]');
+  if (!indicator || !submit) return;
+  let ready = false;
+  if (repair.kind === "power") {
+    ready = repair.wires.size === 3;
+    indicator.textContent = ready ? "All circuits connected" : `${repair.wires.size} / 3 circuits`;
+  } else if (repair.kind === "air") {
+    ready = repair.valves.length === 3;
+    const scrubber = root.querySelector<HTMLElement>(".scrubber-state");
+    if (scrubber) scrubber.dataset.scrubberStep = String(repair.valves.length);
+    const incident = game.returnMission?.flight?.deck?.incidents.find((fault) => fault.id === repair.fault);
+    indicator.textContent = (incident?.research
+      ? ["Rack closed", "Rack open", "Cartridge seated", "Rack sealed · airflow ready"]
+      : ["Loop online", "Loop isolated", "Loop purged", "Flow restored"])[repair.valves.length];
+    const count = root.querySelector("#valve-order");
+    if (count) count.textContent = `${repair.valves.length} / 3 steps`;
+  } else if (repair.kind === "hull") {
+    ready = repair.patches.size === 4;
+    indicator.textContent = ready ? "Shield ready" : `${repair.patches.size} / 4 ready`;
+  } else {
+    const flow = Number(root.querySelector<HTMLInputElement>("#coolant-flow")?.value);
+    ready = flow >= 30 && flow <= 40;
+    indicator.textContent = ready ? "Backup flow stable" : flow < 30 ? "Flow too low" : "Flow too high";
+    const value = root.querySelector("#coolant-value");
+    if (value) value.textContent = `${flow}%`;
+  }
+  indicator.classList.toggle("stable", ready);
+  const begin = game.players[id]?.task?.at ?? game.elapsed;
+  submit.disabled = !ready || game.elapsed - begin < 3;
+}
 function finishDeckRepair() {
   if (!deckRepair) return;
   const r = deckRepair,
@@ -400,6 +434,7 @@ function drawDeck() {
         : `${Math.max(0, Math.ceil(fault.deadline - d.time))}s to escalation`;
     const arrival = root.querySelector("#repair-arrival");
     if (arrival) arrival.textContent = `${Math.max(0, Math.ceil(flightDuration - d.time))}s to Earth`;
+    updateRepairConsole();
   }
 }
 function updateDeck(dt: number, render: boolean) {
@@ -2656,47 +2691,85 @@ document.addEventListener("pointercancel", () => {
   helmPointer = null;
   helmPad = { x: 0, y: 0 };
 });
-document.addEventListener("click", (e) => {
+function selectRepairLead(wire: number) {
+  if (!deckRepair || deckRepair.wires.has(wire)) return;
+  deckRepair.left = wire;
+  root.querySelectorAll(".deck-wires .selected").forEach((e) => e.classList.remove("selected"));
+  root.querySelector(`[data-flight-wire="${wire}"][data-side="0"]`)?.classList.add("selected");
+}
+
+function connectRepairLead(wire: number) {
+  if (!deckRepair || deckRepair.wires.has(wire)) return;
+  const feedback = root.querySelector(".flight-feedback");
+  if (deckRepair.left !== wire) {
+    if (feedback) feedback.textContent = deckRepair.left === null
+      ? "Select a supply lead on the left first."
+      : "That return port goes to a different circuit.";
+    return;
+  }
+  deckRepair.wires.add(wire);
+  root.querySelectorAll(`[data-flight-wire="${wire}"]`).forEach((e) => {
+    e.classList.remove("selected");
+    e.classList.add("done");
+  });
+  root.querySelector(`[data-wire-trace="${wire}"]`)?.classList.add("connected");
+  deckRepair.left = null;
+  if (feedback) feedback.textContent = "";
+  updateRepairConsole();
+}
+
+document.addEventListener("dragstart", (event) => {
   if (modal !== "flightRepair" || !deckRepair) return;
-  const button = (e.target as HTMLElement).closest<HTMLElement>(
+  const lead = (event.target as HTMLElement).closest<HTMLElement>('[data-flight-wire][data-side="0"]');
+  if (!lead || lead.classList.contains("done")) return;
+  selectRepairLead(Number(lead.dataset.flightWire));
+  event.dataTransfer?.setData("text/plain", lead.dataset.flightWire!);
+});
+
+document.addEventListener("dragover", (event) => {
+  if (modal === "flightRepair" && deckRepair?.left != null &&
+    (event.target as HTMLElement).closest('[data-flight-wire][data-side="1"]')) {
+    event.preventDefault();
+  }
+});
+
+document.addEventListener("drop", (event) => {
+  if (modal !== "flightRepair" || !deckRepair) return;
+  const port = (event.target as HTMLElement).closest<HTMLElement>('[data-flight-wire][data-side="1"]');
+  if (!port) return;
+  event.preventDefault();
+  connectRepairLead(Number(port.dataset.flightWire));
+});
+
+document.addEventListener("click", (event) => {
+  if (modal !== "flightRepair" || !deckRepair) return;
+  const button = (event.target as HTMLElement).closest<HTMLElement>(
     "[data-flight-wire],[data-flight-valve],[data-flight-patch]",
   );
   if (!button || button.classList.contains("done")) return;
-  const r = deckRepair;
+  const repair = deckRepair;
   if (button.dataset.flightWire !== undefined) {
     const wire = Number(button.dataset.flightWire);
-    if (button.dataset.side === "0") {
-      r.left = wire;
-      root
-        .querySelectorAll(".deck-wires .selected")
-        .forEach((e) => e.classList.remove("selected"));
-      button.classList.add("selected");
-    } else if (r.left === wire) {
-      r.wires.add(wire);
-      root
-        .querySelectorAll('[data-flight-wire="' + wire + '"]')
-        .forEach((e) => e.classList.add("done"));
-      r.left = null;
-    }
-  }
-  if (button.dataset.flightPatch !== undefined) {
-    r.patches.add(Number(button.dataset.flightPatch));
+    if (button.dataset.side === "0") selectRepairLead(wire);
+    else connectRepairLead(wire);
+  } else if (button.dataset.flightPatch !== undefined) {
+    repair.patches.add(Number(button.dataset.flightPatch));
     button.classList.add("done");
-    button.textContent = "✓";
-  }
-  if (button.dataset.flightValve !== undefined) {
+    button.setAttribute("aria-pressed", "true");
+    const status = button.querySelector("small");
+    if (status) status.textContent = "Segment secure";
+  } else if (button.dataset.flightValve !== undefined) {
     const value = Number(button.dataset.flightValve);
-    if ([2, 0, 1][r.valves.length] !== value) {
-      r.valves = [];
-      root
-        .querySelectorAll("[data-flight-valve]")
-        .forEach((e) => e.classList.remove("done"));
-      const el = root.querySelector(".flight-feedback");
-      if (el) el.textContent = "Try the steps again in the order shown.";
-    } else {
-      r.valves.push(value);
-      button.classList.add("done");
+    const expected = [2, 0, 1][repair.valves.length];
+    const feedback = root.querySelector(".flight-feedback");
+    if (expected !== value) {
+      const next = root.querySelector(`[data-flight-valve="${expected}"]`)?.textContent;
+      if (feedback) feedback.textContent = `Next step: ${next?.trim()}.`;
+      return;
     }
-    $("#valve-order").textContent = r.valves.length + " / 3 steps";
+    repair.valves.push(value);
+    button.classList.add("done");
+    if (feedback) feedback.textContent = "";
   }
+  updateRepairConsole();
 });
