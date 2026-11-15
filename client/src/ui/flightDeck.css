@@ -725,3 +725,15 @@
 @media (prefers-reduced-motion: reduce) {
   .scrubber-state i, .scrubber-state b { transition: none; }
 }
+
+.flight-reading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  margin: 0;
+  color: #b9ebdf;
+}
+.flight-reading small { font-size: 11px; color: #b6cbd9; }
+.flight-research details { margin-top: 8px; }
+.flight-research summary { cursor: pointer; color: #a7e7d6; font-size: 12px; }

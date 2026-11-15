@@ -313,12 +313,15 @@ export function removePlayer(s: Game, id: string) {
   }
   if (s.host === id) s.host = Object.keys(s.players)[0] || "";
 }
+export const solarBrushPatches = 18;
+export function panelOutput(s: Game, panel: Pick<Panel, "clean" | "covered">) {
+  if (panel.covered) return 0;
+  const airborneDust = s.event?.kind === "storm" && s.event.resolved;
+  return B.panelPower * panel.clean * (airborneDust ? B.stormFactor : 1);
+}
 export function budget(s: Game) {
-  return Math.floor(
-    s.panels.reduce((n, p) => n + (p.covered ? 0 : B.panelPower * p.clean), 0) *
-      (s.event?.kind === "storm" && s.event.resolved ? B.stormFactor : 1) +
-      B.batteryPower,
-  );
+  const solar = s.panels.reduce((power, panel) => power + panelOutput(s, panel), 0);
+  return Math.floor(solar + B.batteryPower);
 }
 export const total = (a: Allocation) => a.air + a.light + a.radio + a.heat;
 const close = (p: Player, pos: Point) => distance(p, pos) <= B.interactRadius;
@@ -723,7 +726,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (!pos || !close(p, pos)) return fail("Stay near your task.");
     if (t.kind === "align") {
       if (!s.built.includes("radio")) return fail("Build the radio first.");
-      if (Math.abs(Number(a.value) - 72) > 5)
+      if (typeof a.value !== "number" || !Number.isFinite(a.value) || Math.abs(a.value - 72) > 5)
         return fail("The needle must be in the green zone.");
       s.radio = Math.min(B.radioTarget, s.radio + 3);
       s.aligned = true;
@@ -731,9 +734,12 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (t.kind === "wire" && String(a.value) !== "0,1,2")
       return fail("Match all three wire colors.");
     if (t.kind === "clean") {
-      if (Number(a.value) < 18) return fail("Keep brushing the panel.");
-      const panel = s.panels.find((o) => o.id === t.target)!;
+      if (typeof a.value !== "number" || !Number.isInteger(a.value) || a.value < solarBrushPatches || a.value > 24)
+        return fail("Keep brushing the panel.");
+      const panel = pos as Panel;
+      if (panel.covered) return fail("Uncover the panel before brushing.");
       panel.clean = 1;
+      s.power = budget(s);
     }
     if (t.kind === "wire") {
       if (!has(s, p, { scrap: 1 }))
@@ -759,7 +765,12 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       spend(s, p, { ice: 1 });
       s.watering = true;
     }
-    log(s, `${p.name} completed the ${t.kind} task.`);
+    const result = t.kind === "clean"
+      ? `Solar array clean: ${panelOutput(s, pos as Panel).toFixed(1)} power blocks from this panel.`
+      : t.kind === "align" ? "Antenna aligned. The radio signal is locked."
+      : t.kind === "patch" ? "Leak sealed. The crew air supply is protected."
+      : `${p.name} completed the ${t.kind} task.`;
+    log(s, result);
     p.task = undefined;
     return;
   }

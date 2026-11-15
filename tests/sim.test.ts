@@ -7,6 +7,7 @@ import {
   stations,
   B,
   budget,
+  panelOutput,
   total,
   recipes,
   removeStarterPanels,
@@ -40,6 +41,42 @@ function buildPanel(s: Game) {
   expect(dispatch(s, "a", { type: "finishBuild" })).toBeUndefined();
 }
 describe("shared deterministic simulation", () => {
+  it("restores solar output after brushing, while cover and airborne dust still limit power", () => {
+    const s = setup();
+    day(s);
+    const panel = { id: "array", x: 8, z: 8, clean: 0.2, covered: false };
+    s.panels.push(panel);
+    at(s, panel);
+    expect(budget(s)).toBe(B.batteryPower);
+    dispatch(s, "a", { type: "beginTask", kind: "clean", target: panel.id });
+    run(s, 2.2);
+    expect(dispatch(s, "a", { type: "finishTask", value: 12 })).toMatch(/brushing/);
+    expect(panel.clean).toBe(0.2);
+    expect(dispatch(s, "a", { type: "finishTask", value: 18 })).toBeUndefined();
+    expect(s.power).toBe(B.batteryPower + B.panelPower);
+    s.event = { kind: "storm", at: 0, resolved: true };
+    expect(panelOutput(s, panel)).toBeCloseTo(B.panelPower * B.stormFactor);
+    panel.covered = true;
+    expect(panelOutput(s, panel)).toBe(0);
+  });
+
+  it("protects air when a crew member seals a habitat leak before the deadline", () => {
+    const s = setup();
+    day(s);
+    addPlayer(s, "b", "B");
+    Object.assign(s.players.b, stations.oxygen);
+    s.event = { kind: "leak", at: 0, resolved: false };
+    const before = s.air;
+    expect(dispatch(s, "b", { type: "beginTask", kind: "patch" })).toBeUndefined();
+    run(s, 2.2);
+    expect(dispatch(s, "b", { type: "finishTask", value: 3 })).toBeUndefined();
+    const missed = structuredClone(s);
+    missed.leakFixed = false;
+    run(s, 29);
+    run(missed, 29);
+    expect(s.air).toBe(before);
+    expect(missed.air).toBe(before - 12);
+  });
   it("starts on backup power and retains only crew-built panels in old saves", () => {
     const s = setup();
     expect(s.panels).toEqual([]);

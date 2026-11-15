@@ -1,3 +1,5 @@
+import { careersPanel, surfaceDebrief, surfaceInstrument, surfaceReading } from "./ui/missionLearning";
+import { isSurfaceLesson } from "../../shared/src/missionLearning";
 import { shipMoveInput } from "../../shared/src/flightLayout";
 import { HAB_LAYOUT, habBlocked, moveInHab, nearestHabStation, habRoom, habSpeed } from "../../shared/src/hab";
 import { habDirectory, habEquipment } from "./ui/hab";
@@ -7,6 +9,7 @@ import {
   flightHUD,
   helmPanel,
   repairPanel,
+  flightRepairReading,
   flightGuide,
 } from "./ui/flightDeck";
 import { equippedItem } from "../../shared/src/inventory";
@@ -73,6 +76,7 @@ import {
   placeBatteryByAntenna,
   removeStarterPanels,
   startingAllocation,
+  solarBrushPatches,
   addPlayer,
   dispatch,
   tick,
@@ -204,6 +208,7 @@ function sound(kind = "click") {
 }
 document.addEventListener("input", (event) => {
   const coolant = event.target as HTMLInputElement;
+  if (coolant.id === "needle") updateSurfaceReadout();
   if (coolant.id === "coolant-flow")
     updateRepairConsole();
   const el = event.target as HTMLInputElement;
@@ -321,7 +326,7 @@ function interactDeck() {
   open(
     "flightRepair",
     "REPAIR STATION",
-    repairPanel(fault),
+    repairPanel(fault, d),
     true,
     "deck-modal",
   );
@@ -419,11 +424,14 @@ function drawDeck() {
     if (!fault || fault.fixed) {
       close();
       deckRepair = null;
-      toast("Repair complete. Crew systems updated.");
+      toast(fault ? `${flightRepairReading(fault.kind, d)} after repair` : "Repair complete");
       return;
     }
     if (fault.quizCleared && root.querySelector('[data-do="answerFlightQuiz"]'))
-      open("flightRepair", "REPAIR STATION", repairPanel(fault), true, "deck-modal");
+      open("flightRepair", "REPAIR STATION", repairPanel(fault, d), true, "deck-modal");
+    const reading = root.querySelector("#flight-repair-reading");
+    const currentReading = flightRepairReading(fault.kind, d);
+    if (reading && reading.textContent !== currentReading) reading.textContent = currentReading;
     const seconds = root.querySelector("#repair-seconds");
     if (seconds)
       seconds.textContent = `${Math.max(0, Math.ceil(3 - (game.elapsed - (game.players[id].task?.at ?? game.elapsed))))}s minimum work remaining`;
@@ -896,6 +904,10 @@ type Nearby = {
   pos: { x: number; z: number };
   text: string;
 };
+function airLeakActive() {
+  const event = game.event;
+  return event?.kind === "leak" && game.clock >= event.at && !event.resolved && !game.leakFixed;
+}
 function nearest(): Nearby | null {
   const p = game.players[id];
   if (!p) return null;
@@ -964,7 +976,7 @@ function nearest(): Nearby | null {
       type: k === "workbench" ? "bench" : "learn",
       target: k,
       pos,
-      text: k === "workbench" ? "Use workbench" : "Scan beacon",
+      text: k === "workbench" ? "Use workbench" : k === "oxygen" && airLeakActive() ? "Seal air leak" : "Scan beacon",
     });
   for (const p of game.panels)
     all.push({ type: "panel", target: p.id, pos: p, text: "Use solar panel" });
@@ -1055,15 +1067,15 @@ function interact() {
       )?.id || fieldMissions.find((m) => m.sector === n.target)!.id;
     mapScreen();
   }
-  if (n.type === "learn") learn(n.target);
+  if (n.type === "learn") {
+    if (n.target === "oxygen" && airLeakActive()) task("patch");
+    else learn(n.target);
+  }
   if (n.type === "panel")
     open(
       "panel",
       "SOLAR PANEL",
-      screens.panelMenu(
-        !!game.panels.find((p) => p.id === n.target)?.covered,
-        n.target,
-      ),
+      screens.panelMenu(game, game.panels.find((p) => p.id === n.target)!),
     );
 }
 function draw() {
@@ -1207,6 +1219,7 @@ let taskState: {
     count: number;
     wires: number[];
     left: number | null;
+    submitted?: boolean;
   } | null = null,
   pendingBuild: { at: number; seconds: number } | null = null;
 function task(kind: string, target = "") {
@@ -1219,10 +1232,30 @@ function task(kind: string, target = "") {
     wires: [],
     left: null,
   };
-  open("task", screens.taskTitles[kind], screens.miniTask(kind));
+  open("task", screens.taskTitles[kind],
+    (isSurfaceLesson(kind) ? surfaceInstrument(game, kind, target) : "") + screens.miniTask(kind),
+    true, isSurfaceLesson(kind) ? "learning-task" : "");
+}
+function updateSurfaceReadout() {
+  if (modal !== "task" || !taskState || !isSurfaceLesson(taskState.kind)) return;
+  const dial = root.querySelector<HTMLInputElement>("#needle");
+  const reading = surfaceReading(game, taskState.kind, taskState.target, taskState.count, Number(dial?.value ?? 20));
+  $("#surface-reading").textContent = reading.label;
+  $("#surface-status").textContent = reading.status;
+  ( $("#surface-meter") as HTMLProgressElement).value = reading.value;
+}
+function showSurfaceResult(kind: string, target: string) {
+  taskState = null;
+  cue(kind, target);
+  if (isSurfaceLesson(kind)) {
+    open("surfaceDebrief", "REPAIR REPORT", surfaceDebrief(game, kind, target));
+  } else {
+    close();
+    toast("Task complete");
+  }
 }
 function finishTask() {
-  if (!taskState) return;
+  if (!taskState || taskState.submitted) return;
   let value: unknown = taskState.count;
   if (taskState.kind === "align")
     value = Number(($("#needle") as HTMLInputElement).value);
@@ -1238,7 +1271,7 @@ function finishTask() {
     toast("Finish the task first.");
     return;
   }
-  if (taskState.kind === "clean" && Number(value) < 18) {
+  if (taskState.kind === "clean" && Number(value) < solarBrushPatches) {
     toast("Brush more dusty patches.");
     return;
   }
@@ -1255,10 +1288,8 @@ function finishTask() {
     return;
   }
   if (act({ type: "finishTask", value })) {
-    cue(taskState.kind, taskState.target);
-    toast("Task complete");
-    close();
-    taskState = null;
+    if (connection) taskState.submitted = true;
+    else showSurfaceResult(taskState.kind, taskState.target);
   }
 }
 async function connect(join: boolean) {
@@ -1284,7 +1315,8 @@ async function connect(join: boolean) {
   try {
     if (!/^wss?:\/\//.test(url)) throw Error("Use a ws:// or wss:// address.");
     const conn = new CrewConnection(url);
-    conn.onError = (error) =>
+    conn.onError = (error) => {
+      if (modal === "task" && taskState) taskState.submitted = false;
       [
         "alien",
         "alienBrush",
@@ -1298,10 +1330,16 @@ async function connect(join: boolean) {
       ].includes(modal)
         ? fieldFeedback(error)
         : toast(error);
+    };
     conn.onState = (s) => {
       const old = JSON.stringify(game.expedition);
       const oldLearned = game.learned.includes(activeLesson);
+      const previousTask = game.players[id]?.task;
       game = s;
+      if (modal === "task" && taskState?.submitted && previousTask?.kind === taskState.kind &&
+          previousTask.target === taskState.target && !s.players[id]?.task) {
+        showSurfaceResult(taskState.kind, taskState.target);
+      }
       if (started && modal === "power" && s.phase === "power") {
         const wait = game.host !== id && game.players[id]?.role !== "Comms";
         if (wait !== !!root.querySelector("[data-power-wait]")) powerBody();
@@ -1449,6 +1487,7 @@ document.addEventListener("click", (e) => {
     case "resume":
       start(true);
       break;
+    case "resumeSurface":
     case "close":
       close();
       break;
@@ -1463,6 +1502,9 @@ document.addEventListener("click", (e) => {
       break;
     case "help":
       open("help", "YOUR FIELD GUIDE", fieldManual());
+      break;
+    case "careers":
+      open("careers", "SPACE CAREERS", careersPanel());
       break;
     case "sources":
       sources();
@@ -1729,6 +1771,7 @@ function clearPatch(el: HTMLElement) {
   if (!taskState || el.classList.contains("cleared")) return;
   el.classList.add("cleared");
   taskState.count++;
+  updateSurfaceReadout();
 }
 document.addEventListener("click", (e) => {
   const patch = (e.target as HTMLElement).closest<HTMLElement>(
@@ -1904,7 +1947,7 @@ document.addEventListener("pointermove", (e) => {
 document.addEventListener("pointerdown", (e) => {
   if ((e.target as HTMLElement).closest('[data-do="roverBrake"]')) { roverBrake = true; brakePointer = e.pointerId; e.preventDefault(); }
 });
-document.addEventListener("pointercancel", () => { roverBrake = false; brakePointer = null; });
+document.addEventListener("pointercancel", () => { roverBrake = false; brakePointer = null; scrubbing = false; });
 document.addEventListener("pointerup", (e) => {
   if (e.pointerId === brakePointer) { roverBrake = false; brakePointer = null; }
   scrubbing = false;
@@ -2128,6 +2171,8 @@ function update(dt: number, render = true) {
       if (!connection && !document.hidden) {
         const paused = [
           "pause",
+          "surfaceDebrief",
+          "careers",
           "briefing",
           "help",
           "sources",
@@ -2544,6 +2589,20 @@ if (import.meta.env.DEV)
       world.zoom = 21;
       world.pitch = 0.6;
     }
+    if (name === "learning-solar") {
+      const panel = { id: "learning-panel", x: 8, z: 8, covered: false, clean: 0.28 };
+      game.panels.push(panel);
+      game.power = budget(game);
+      Object.assign(game.players[id], { x: panel.x - 2.4, z: panel.z });
+    }
+    if (name === "learning-radio") {
+      game.built.push("radio");
+      Object.assign(game.players[id], stations.comms);
+    }
+    if (name === "learning-leak") {
+      game.event = { kind: "leak", at: 0, resolved: false };
+      Object.assign(game.players[id], stations.oxygen);
+    }
     if (name === "tasks") {
       stagePanels(1);
       game.built = ["radio", "greenhouse"];
@@ -2649,6 +2708,9 @@ if (import.meta.env.DEV) {
     "rover-crew",
       "rover-east",
       "tasks",
+      "learning-solar",
+      "learning-radio",
+      "learning-leak",
       "workbench",
       "near-item",
       "ended",

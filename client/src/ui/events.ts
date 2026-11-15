@@ -21,10 +21,10 @@ export function eventBanner(s: Game) {
       45,
       "flare",
     );
-  if (e.kind === "leak")
+  if (e.kind === "leak" && !s.leakFixed)
     return Banner(
       "AIR LEAK",
-      "Patch the oxygen pipes.",
+      "Find the oxygen beacon and seal the leak.",
       Math.max(0, e.at + 30 - s.clock),
       30,
       "leak",

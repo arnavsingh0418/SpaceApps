@@ -406,3 +406,35 @@ body:has(.screen-dust:not([hidden])) #ui { z-index: 3; }
   color: var(--text-dim);
   font-size: 11px;
 }
+
+.learning-instrument {
+  display: grid;
+  gap: 6px;
+  margin-block: 12px;
+  padding: 12px;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  background: var(--ink);
+}
+.learning-instrument small { color: var(--text-dim); }
+.learning-instrument progress { width: 100%; accent-color: var(--food); }
+.learning-task #scrub { background: #112f4c; }
+.learning-task #scrub button {
+  background: linear-gradient(140deg, #bc9472, #795139);
+  min-height: 36px;
+}
+.learning-task #scrub .cleared {
+  opacity: 1;
+  background: repeating-linear-gradient(90deg, #2c6590 0 9px, #153859 9px 11px);
+}
+.learning-debrief details, .learning-careers article {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--ink);
+  margin-block: 8px;
+}
+.learning-debrief summary { cursor: pointer; color: var(--sun); }
+.learning-debrief p, .learning-careers p { margin-block: 6px; }
+.learning-result { color: var(--food); }
+.learning-careers { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 8px; }
+.learning-careers article { margin: 0; }

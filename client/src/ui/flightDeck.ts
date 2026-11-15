@@ -5,6 +5,8 @@ import {
   flightEvents,
   landingChance,
   nearestFlightStation,
+  type DeckFlight,
+  type FailureKind,
   type FlightIncident,
 } from "../../../shared/src/flight";
 import { flightResearch } from "../../../shared/src/flightResearch";
@@ -38,11 +40,17 @@ export function helmPanel(s: Game, id: string) {
   const d = s.returnMission!.flight!.deck!;
   return `<p>Use WASD, arrow keys or the buttons to move the gold marker into the center ring.</p><div class="helm-target"><div class="helm-ring"></div><span id="course-marker" style="left:${50 + d.course.x * 40}%;top:${50 + d.course.y * 40}%"></span><i>COURSE / CENTER TO LOCK</i></div><div class="helm-pad"><button data-steer-x="0" data-steer-y="-1" aria-label="Steer up">↑</button><button data-steer-x="-1" data-steer-y="0" aria-label="Steer left">←</button><button data-steer-x="0" data-steer-y="1" aria-label="Steer down">↓</button><button data-steer-x="1" data-steer-y="0" aria-label="Steer right">→</button></div><p class="helm-owner" id="helm-owner">${d.pilot === id ? "You have control" : d.pilot ? escape(s.players[d.pilot]?.name || "Crewmate") + " has control" : "Requesting helm…"}</p>${Button("HOLD COURSE FOR 30s", "holdCourse")}<p>Center first. Autopilot needs working electrical power. Lock departure guidance now and entry guidance after 120s. Hold course to leave the helm and make repairs.</p><p class="flight-feedback" role="status"></p>`;
 }
-export function repairPanel(f: FlightIncident) {
+export function flightRepairReading(kind: FailureKind, deck: DeckFlight) {
+  if (kind === "power") return `Ship power ${Math.round(deck.power)}%`;
+  if (kind === "air") return `Crew air ${Math.round(deck.oxygen)}%`;
+  if (kind === "hull") return `Hull integrity ${Math.round(deck.hull)}%`;
+  return `Ship heat ${Math.round(deck.heat)}°`;
+}
+export function repairPanel(f: FlightIncident, deck: DeckFlight) {
   const research = f.research ? flightResearch[f.kind] : undefined;
   const quiz = research?.quiz && !f.quizCleared ? research.quiz : undefined;
   const researchCard = research
-    ? `<section class="flight-research"><a href="${escape(research.url)}" target="_blank" rel="noopener noreferrer">${escape(research.name)} ↗</a><dl>${research.readings.map(([label, value]) => `<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join("")}</dl><p>${escape(research.note)}</p></section>`
+    ? `<section class="flight-research"><a href="${escape(research.url)}" target="_blank" rel="noopener noreferrer">${escape(research.name)} ↗</a><dl>${research.readings.map(([label, value]) => `<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join("")}</dl><p>${escape(research.note)}</p><details><summary>${escape(research.term)} · ${escape(research.role)}</summary><p>${escape(research.definition)}</p><p>${escape(research.model)}</p></details></section>`
     : "";
   const circuits = ["Main bus", "Guidance", "Life support"];
   const directions = ["Forward left", "Forward right", "Aft left", "Aft right"];
@@ -68,7 +76,7 @@ export function repairPanel(f: FlightIncident) {
   const controls = quiz
     ? `<section class="repair-instrument diagnostic-console"><div class="repair-instrument-head"><span>DIAGNOSTIC</span><span>CHECK REQUIRED</span></div><p>${escape(quiz.question)}</p><div class="diagnostic-options">${quiz.answers.map((answer, i) => Button(escape(answer), "answerFlightQuiz", `data-fault="${f.id}" data-answer="${i}"`, true)).join("")}</div></section><p class="flight-feedback" role="status"></p>`
     : `${puzzle}${Button("RETURN SYSTEM TO SERVICE", "finishFlightRepair", `data-fault="${f.id}" disabled`)}<p class="flight-feedback" role="status"></p>`;
-  return `<small class="flight-task-eyebrow">${flightStations[f.kind].name.toUpperCase()} / CREW REPAIR</small><h3>${escape(f.title)}</h3><div class="repair-timing"><span id="repair-seconds">Work for at least 3 seconds</span><span id="fault-deadline"></span><span id="repair-arrival"></span></div>${researchCard}${controls}`;
+  return `<small class="flight-task-eyebrow">${flightStations[f.kind].name.toUpperCase()} / CREW REPAIR</small><h3>${escape(f.title)}</h3><div class="repair-timing"><span id="repair-seconds">Work for at least 3 seconds</span><span id="fault-deadline"></span><span id="repair-arrival"></span></div><p class="flight-reading"><b id="flight-repair-reading">${flightRepairReading(f.kind, deck)}</b><small>Live game reading</small></p>${researchCard}${controls}`;
 }
 export function flightGuide() {
   return `<div class="flight-guide"><h3>Get the crew home</h3><p>Walk to a station and press E. Click the view or drag to look around. The three-minute journey keeps running while you steer or repair.</p><ul><li><b>Helm · front</b> — Center the marker and lock departure guidance. Lock it again after 120 seconds for Earth entry.</li><li><b>Electrical · left corridor</b> — Check the flare log and reconnect the supply leads.</li><li><b>Life support · aft left</b> — Read CO₂ levels and swap the scrubber.</li><li><b>Hull · middle right</b> — Activate the backup shield panels.</li><li><b>Engine · forward left</b> — Move the coolant slider into the backup band.</li></ul><p>Expect up to ${flightEvents.length} alerts. Rarer installed parts and on-time repairs improve the game's landing odds. Missed alerts lower them. A ship that arrives without safe systems or both guidance locks goes to rescue orbit.</p><p>Split jobs with friends, or lock autopilot before leaving the helm. Solo pauses only in Pause. Co-op keeps going.</p></div>`;

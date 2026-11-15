@@ -1,3 +1,5 @@
+import { careersPanel, solarPanelReading } from "./missionLearning";
+import type { Panel as SolarPanel } from "../../../shared/src/sim";
 import {
   facts,
   recipes,
@@ -15,7 +17,7 @@ import { quizQuestion } from "./quiz";
 import { returnReport } from "./returnMission";
 import { artURL, itemArt, buildingArt, crewPortrait } from "./modelArt";
 export function titleScreen(hasSave: boolean) {
-  return `<img class="menu-model-art" src="${artURL("title-hero.png")}" alt="Mars crew beside their crashed rocket"><div class="menu-top"><b>◈ MARS EXPLORATION PROGRAM</b><span>MISSION 001 / GALE CRATER</span></div><section class="title-screen"><div class="eyebrow">A LITTLE CREW. A BIG PLANET.</div><h1>OUTPOST<br><span>DOWN</span><i>↘</i></h1><div class="menu-actions">${Button("START MISSION ↗", "solo")}${hasSave ? Button("CONTINUE", "resume", "", true) : ""}${Button("PLAY WITH FRIENDS", "crew", "", true)}</div><div class="menu-links">${Button("HOW TO PLAY", "help", "", true)}${Button("NASA DATA", "sources", "", true)}</div></section><div class="mission-stamp"><span>5.4° S / 137.8° E</span><b>GALE CRATER</b></div><footer class="menu-footer">REBUILD YOUR SHIP / BRING THE CREW HOME · 15 SOLS</footer>`;
+  return `<img class="menu-model-art" src="${artURL("title-hero.png")}" alt="Mars crew beside their crashed rocket"><div class="menu-top"><b>◈ MARS EXPLORATION PROGRAM</b><span>MISSION 001 / GALE CRATER</span></div><section class="title-screen"><div class="eyebrow">A LITTLE CREW. A BIG PLANET.</div><h1>OUTPOST<br><span>DOWN</span><i>↘</i></h1><div class="menu-actions">${Button("START MISSION ↗", "solo")}${hasSave ? Button("CONTINUE", "resume", "", true) : ""}${Button("PLAY WITH FRIENDS", "crew", "", true)}</div><div class="menu-links">${Button("HOW TO PLAY", "help", "", true)}${Button("NASA DATA", "sources", "", true)}${Button("SPACE CAREERS", "careers", "", true)}</div></section><div class="mission-stamp"><span>5.4° S / 137.8° E</span><b>GALE CRATER</b></div><footer class="menu-footer">REBUILD YOUR SHIP / BRING THE CREW HOME · 15 SOLS</footer>`;
 }
 export function pauseScreen(
   s: Game,
@@ -24,7 +26,7 @@ export function pauseScreen(
   network: boolean,
   volume = 35,
 ) {
-  return `<p>${network ? "Crew mission keeps running." : "Solo mission paused."}</p><div class="settings-grid"><label>Crew role<select id="role-select">${["Engineer", "Scientist", "Medic", "Comms"].map((r) => `<option ${s.players[id].role === r ? "selected" : ""}>${r}</option>`).join("")}</select></label><label>Sound volume<input id="master-volume" aria-label="Sound volume" type="range" min="0" max="100" value="${volume}"></label></div><div class="menu-grid">${Button("RESUME", "close")}${Button(muted ? "SOUND OFF" : "SOUND ON", "mute", "", true)}${Button("FIELD GUIDE", "help", "", true)}${Button("FIELD MAP", "map", "", true)}${Button("SKIP TUTORIAL", "skip", "", true)}${Button("NASA DATA", "sources", "", true)}${Button("MAIN MENU", "menu", "", true)}</div>`;
+  return `<p>${network ? "Crew mission keeps running." : "Solo mission paused."}</p><div class="settings-grid"><label>Crew role<select id="role-select">${["Engineer", "Scientist", "Medic", "Comms"].map((r) => `<option ${s.players[id].role === r ? "selected" : ""}>${r}</option>`).join("")}</select></label><label>Sound volume<input id="master-volume" aria-label="Sound volume" type="range" min="0" max="100" value="${volume}"></label></div><div class="menu-grid">${Button("RESUME", "close")}${Button(muted ? "SOUND OFF" : "SOUND ON", "mute", "", true)}${Button("FIELD GUIDE", "help", "", true)}${Button("FIELD MAP", "map", "", true)}${Button("SKIP TUTORIAL", "skip", "", true)}${Button("NASA DATA", "sources", "", true)}${Button("SPACE CAREERS", "careers", "", true)}${Button("MAIN MENU", "menu", "", true)}</div>`;
 }
 export function controls() {
   return `<ul class="body-lines"><li>${KeyChip("WASD")} Walk ${KeyChip("E")} Interact</li><li>${KeyChip("B")} Build ${KeyChip("G")} Drop ${KeyChip("Q")} Map</li><li>${KeyChip("Tab")} Goals ${KeyChip("T")} Chat ${KeyChip("F")} Screen</li></ul>${Button("RESUME", "close")}`;
@@ -75,8 +77,9 @@ export function workbench(s: Game, id: string, index: number) {
     )
     .join("")}</div>`;
 }
-export function panelMenu(covered: boolean, target: string) {
-  return `${Button("BRUSH PANEL", "clean", `data-target="${target}"`)}${Button(covered ? "UNCOVER PANEL" : "COVER PANEL", "cover", `data-target="${target}"`, true)}<p>Covering protects it but costs its electricity.</p>`;
+export function panelMenu(s: Game, panel: SolarPanel) {
+  const { covered, id: target } = panel;
+  return `${solarPanelReading(s, panel)}${Button("BRUSH PANEL", "clean", `data-target="${target}" ${covered ? "disabled" : ""}`)}${Button(covered ? "UNCOVER PANEL" : "COVER PANEL", "cover", `data-target="${target}"`, true)}<p>Cover the array before a dust storm to reduce dust buildup. A covered array makes no power.</p>`;
 }
 export const taskTitles: Record<string, string> = {
   align: "ALIGN DISH",
@@ -88,13 +91,13 @@ export const taskTitles: Record<string, string> = {
 export function miniTask(kind: string) {
   const body =
     kind === "align"
-      ? `<p>Move the needle into green.</p><div class="signal-track"><span></span></div><input id="needle" aria-label="Dish alignment" type="range" min="0" max="100" value="20">`
+      ? `<p>Turn the antenna dial until the signal locks.</p><div class="signal-track"><span></span></div><input id="needle" aria-label="Dish alignment" type="range" min="0" max="100" value="20">`
       : kind === "clean"
-        ? `<p>Brush at least 18 dusty patches.</p><div id="scrub">${Array.from({ length: 24 }, (_, i) => `<button aria-label="Dust patch ${i + 1}" data-dust="${i}"></button>`).join("")}</div>`
+        ? `<p>Drag across the cells or tap each patch. Watch what happens to the estimated output.</p><div id="scrub">${Array.from({ length: 24 }, (_, i) => `<button aria-label="Dust patch ${i + 1}" data-dust="${i}"></button>`).join("")}</div>`
         : kind === "wire"
           ? `<p>Match the colors and shapes. Costs 1 scrap.</p><div class="wires">${[0, 1].map((side) => `<div>${(side ? [2, 0, 1] : [0, 1, 2]).map((n) => `<button data-wire="${n}" data-side="${side}" class="wire-${n}" aria-label="${["Red", "Blue", "Yellow"][n]} wire ${side ? "right" : "left"}">${["◆", "●", "▲"][n]} ━━</button>`).join("")}</div>`).join("")}</div>`
           : kind === "patch"
-            ? `<p>Patch all three holes.</p><div class="holes">${[0, 1, 2].map((i) => `<button data-hole="${i}" aria-label="Patch leak ${i + 1}">💨</button>`).join("")}</div>`
+            ? `<p>Close all three leaks, then check whether the pressure trend stabilizes.</p><div class="holes">${[0, 1, 2].map((i) => `<button data-hole="${i}" aria-label="Patch leak ${i + 1}">💨</button>`).join("")}</div>`
             : `<p>Slide water to the plants. Costs 1 ice.</p><input id="water" aria-label="Water the plants" type="range" min="0" max="100" value="0">`;
   return body + Button("DONE", "finishTask");
 }
@@ -121,7 +124,7 @@ export function endScreen(s: Game, id: string) {
     .map((p) => `<div><span>🧑‍🚀</span><b>${escape(p.name)}</b></div>`)
     .join(
       "",
-    )}</div><div class="end-stats"><span><b>${s.sol}</b>SOLS</span><span><b>${Math.round(s.dose)}</b>DOSE</span><span><b>${s.radio}/10</b>SIGNAL</span></div>${returnReport(s, id)}<div class="menu-grid">${Button("TRY AGAIN", "retry")}${Button("MAIN MENU", "menu", "", true)}</div></div>`;
+    )}</div><div class="end-stats"><span><b>${s.sol}</b>SOLS</span><span><b>${Math.round(s.dose)}</b>DOSE</span><span><b>${s.radio}/10</b>SIGNAL</span></div>${returnReport(s, id)}<details class="learning-debrief"><summary>Explore space careers</summary>${careersPanel()}</details><div class="menu-grid">${Button("TRY AGAIN", "retry")}${Button("MAIN MENU", "menu", "", true)}</div></div>`;
 }
 export function fieldMap(s: Game, id: string) {
   return expeditionMap(s, id, "", "");
