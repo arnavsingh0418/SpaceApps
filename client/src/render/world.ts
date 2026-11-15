@@ -891,7 +891,8 @@ export class World {
     this.screenDust.update(s.clock, Math.max(burst,vortexExposure*.7), this.motion.reduced);
     this.tracks.erode(s.devil, dt);
     this.tracks.update(s.elapsed);
-    this.dustDevil.update(s.devil,s.elapsed,this.terrain,this.camera,this.motion.reduced,!this.menu && s.phase === "day");
+    // Animate the dust on the render clock rather than the 10 Hz network clock.
+    this.dustDevil.update(s.devil,this.motion.time,this.terrain,this.camera,this.motion.reduced,!this.menu && s.phase === "day");
 
     // A shallow weather volume follows the local terrain height. It stays out of
     // collision and shared simulation; the same storm event drives every client.
