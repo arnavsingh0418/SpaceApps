@@ -51,7 +51,7 @@ try {
   await b.ready();
   b.send({ type: "join", name: "Rover B", code: a.room });
   await b.until(() => !!b.id && !!b.state, "join");
-  a.action({ type: "power", value: { air: 3, light: 3, radio: 3, heat: 2 } });
+  a.action({ type: "power", value: { air: 4, light: 3, radio: 0, heat: 1 } });
   await b.until(() => b.state?.phase === "day", "explore");
   await Promise.all(
     [a, b].map(async (c, index) => {

@@ -9,6 +9,8 @@ import {
   budget,
   total,
   recipes,
+  removeStarterPanels,
+  startingAllocation,
   type Game,
 } from "../shared/src/sim";
 import events from "../shared/src/data/events.json";
@@ -20,7 +22,7 @@ function setup(seed = 123) {
 function day(s: Game) {
   dispatch(s, "a", {
     type: "power",
-    value: { air: 4, light: 4, radio: 2, heat: 1 },
+    value: startingAllocation,
   });
 }
 function run(s: Game, seconds: number) {
@@ -29,7 +31,27 @@ function run(s: Game, seconds: number) {
 function at(s: Game, pos: { x: number; z: number }) {
   Object.assign(s.players.a, pos);
 }
+function buildPanel(s: Game) {
+  at(s, stations.workbench);
+  s.learned.push("power");
+  s.players.a.bag = { scrap: 2, glass: 1 };
+  expect(dispatch(s, "a", { type: "beginBuild", recipe: "panel" })).toBeUndefined();
+  run(s, B.engineerBuildSeconds + 0.1);
+  expect(dispatch(s, "a", { type: "finishBuild" })).toBeUndefined();
+}
 describe("shared deterministic simulation", () => {
+  it("starts on backup power and retains only crew-built panels in old saves", () => {
+    const s = setup();
+    expect(s.panels).toEqual([]);
+    expect(budget(s)).toBe(8);
+    const built = { id: "panel-3", x: 2.2, z: 7 * B.layoutScale, clean: 0.7, covered: false };
+    s.panels = [
+      { ...built, id: "panel-0", x: -8 * B.layoutScale },
+      built,
+    ];
+    removeStarterPanels(s);
+    expect(s.panels).toEqual([built]);
+  });
   it("replays the exact state for identical seeds and inputs", () => {
     const a = setup(37),
       b = setup(37);
@@ -81,7 +103,7 @@ describe("shared deterministic simulation", () => {
     }
     dispatch(a, "a", {
       type: "power",
-      value: { air: 4, light: 4, radio: 2, heat: 1 },
+      value: startingAllocation,
     });
     dispatch(b, "a", {
       type: "power",
@@ -210,6 +232,8 @@ describe("shared deterministic simulation", () => {
       damaged: false,
     }));
     s.stock = { ice: 5 };
+    buildPanel(s);
+    buildPanel(s);
     s.panels[0].covered = true;
     s.event = { kind: "storm", at: 0, resolved: false };
     run(s, 36);
@@ -222,6 +246,8 @@ describe("shared deterministic simulation", () => {
   it("covering has a real power trade-off", () => {
     const s = setup();
     day(s);
+    buildPanel(s);
+    expect(s.power).toBe(11);
     at(s, s.panels[0]);
     dispatch(s, "a", { type: "cover", target: s.panels[0].id });
     expect(s.power).toBe(8);

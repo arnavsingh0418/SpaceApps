@@ -177,8 +177,8 @@ const cacheChallenges: { part: Part; questions: Quiz[] }[] = [
 export const salvageSites = sectors.map((sector, index) => ({
   id: sector.id,
   name: sector.name,
-  x: sector.x + (sector.id === "basin" ? -8 : 8),
-  z: sector.z + 4,
+  x: sector.id === "basin" ? 82 : sector.x + 8,
+  z: sector.id === "basin" ? -141 : sector.z + 4,
   ...cacheChallenges[index],
 }));
 export const launchSite = {

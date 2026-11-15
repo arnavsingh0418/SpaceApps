@@ -68,6 +68,8 @@ import { CrewConnection } from "./net/crew";
 import {
   createGame,
   placeBatteryByAntenna,
+  removeStarterPanels,
+  startingAllocation,
   addPlayer,
   dispatch,
   tick,
@@ -116,7 +118,7 @@ let game = createGame(42),
   selected = 0,
   muted = true,
   saved: Game | null = null,
-  draft: Allocation = { air: 3, light: 3, radio: 3, heat: 2 };
+  draft: Allocation = { ...startingAllocation };
 let arrival: Arrival | null = null;
 let wasBlown = false;
 let crewConnecting = false;
@@ -126,7 +128,7 @@ let activeCache = "",
   activeLesson = "",
   missionPanelState = "";
 let trackedSalvage = "";
-let gaugeFrom = { power: 11, air: 85, food: 95, dose: 0 },
+let gaugeFrom = { power: B.batteryPower, air: 85, food: 95, dose: 0 },
   gaugeUntil = 0;
 let tutorial = 4,
   goalsOpen = false,
@@ -137,7 +139,7 @@ let tutorial = 4,
   lastMessages = 0,
   controlsUntil = 60,
   pickupUntil = 0,
-  previous = { power: 11, air: 85, food: 95, dose: 0 },
+  previous = { power: B.batteryPower, air: 85, food: 95, dose: 0 },
   reportBefore = { ...previous },
   hudSignature = "",
   lastEvent = "",
@@ -161,6 +163,7 @@ try {
   ) {
     saved = v.game;
     placeBatteryByAntenna(v.game);
+    removeStarterPanels(v.game);
   }
 } catch {}
 function cue(kind: string, target?: string) {
@@ -520,7 +523,7 @@ function start(resume = false) {
   if (!resume) {
     dispatch(game, id, {
       type: "power",
-      value: { air: 4, light: 3, radio: 3, heat: 1 },
+      value: startingAllocation,
     });
     phase = "day";
   }
@@ -738,6 +741,7 @@ function syncMissionPanel() {
       game.radio,
       game.aligned,
       game.host,
+      game.panels.map(({ clean, covered }) => [clean, covered]),
     ]);
     if (missionPanelState !== signature) {
       open(
@@ -2296,9 +2300,22 @@ if (import.meta.env.DEV)
     }
     dispatch(game, id, {
       type: "power",
-      value: { air: 3, light: 3, radio: 3, heat: 2 },
+      value: startingAllocation,
     });
     phase = "day";
+    function stagePanels(count: number) {
+      const player = game.players[id];
+      const position = { x: player.x, z: player.z };
+      Object.assign(player, stations.workbench);
+      game.learned.push("power");
+      game.stock = { scrap: 2 * count, glass: count };
+      for (let i = 0; i < count; i++) {
+        dispatch(game, id, { type: "beginBuild", recipe: "panel" });
+        game.elapsed += B.engineerBuildSeconds;
+        dispatch(game, id, { type: "finishBuild" });
+      }
+      Object.assign(player, position);
+    }
     if (name === "intro") {
       tutorial = 0;
       world.objectiveTarget = game.items[0];
@@ -2406,6 +2423,7 @@ if (import.meta.env.DEV)
     }
     if (name === "rover-crew") { wasRiding = true; world.yaw = 2.4; world.pitch = .32; world.zoom = 22; }
     if (name === "models") {
+      stagePanels(2);
       game.built = ["radio", "greenhouse", "shelter"];
       game.learned = ["shield", "comms", "grow", "power", "oxygen"];
       game.stock = { scrap: 6, ice: 6 };
@@ -2430,6 +2448,7 @@ if (import.meta.env.DEV)
       world.pitch = 0.6;
     }
     if (name === "tasks") {
+      stagePanels(1);
       game.built = ["radio", "greenhouse"];
       game.learned = ["shield", "comms", "grow", "power", "oxygen"];
       game.stock = { scrap: 6, ice: 6 };
@@ -2481,7 +2500,7 @@ if (import.meta.env.DEV)
       game.phase = "power";
       dispatch(game, id, {
         type: "power",
-        value: { air: 3, light: 3, radio: 3, heat: 2 },
+        value: startingAllocation,
       });
       game.clock = game.event!.at;
       flare();

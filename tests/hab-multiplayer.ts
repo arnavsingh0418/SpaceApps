@@ -74,7 +74,7 @@ try {
   await b.ready();
   b.send({ type: "join", code: a.room, name: "Hab B" });
   await b.until(() => !!b.state && !!b.id, "join");
-  a.action({ type: "power", value: { air: 3, light: 3, radio: 3, heat: 2 } });
+  a.action({ type: "power", value: { air: 4, light: 3, radio: 0, heat: 1 } });
   await b.until(() => b.state?.phase === "day", "day");
   await a.walk({ x: -1, z: -8.2 });
   a.action({ type: "enterHab" });

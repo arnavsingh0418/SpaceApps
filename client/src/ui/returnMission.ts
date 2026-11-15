@@ -10,7 +10,7 @@ import {
   returnProgress,
   salvageSites,
 } from "../../../shared/src/returnMission";
-import { startingHull } from "../../../shared/src/flight";
+import { startingFlightPower, startingHull } from "../../../shared/src/flight";
 import { Button, escape } from "./components";
 import { countdown, quizQuestion } from "./quiz";
 import { partArt, partReward } from "./shipParts";
@@ -52,7 +52,7 @@ export function hangar(s: Game, id: string) {
       })
       .join(
         "",
-    )}</div><p class="ship-hint">${Math.round(startingHull(s))}% starting hull condition · better parts protect the crew.</p>
+    )}</div><p class="ship-hint">${Math.round(startingHull(s))}% starting hull · ${Math.round(startingFlightPower(s))}% launch battery. Build and clean solar panels to charge the ship before launch.</p>
     ${ready ? (id === s.host ? Button(upgrade ? "LAUNCH WITH CURRENT PARTS" : "LAUNCH FOR EARTH", "launchShip") : "<p>The crew leader starts the flight.</p>") : Button("VIEW REPAIR MAP", "map", "", true)}
     <p class="quiz-feedback" role="status"></p>`;
 }

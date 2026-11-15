@@ -31,8 +31,8 @@ export const sectors = [
   {
     id: "basin",
     name: "Ancient basin",
-    x: 90,
-    z: -145,
+    x: 94,
+    z: -151,
     symbol: "04",
     color: "#efa888",
     prop: "rocks",
@@ -202,7 +202,7 @@ export const fieldMissions: FieldMission[] = [
     title: "Catch the sunlight",
     role: "JUNO · ENGINEER",
     brief:
-      "A cargo panel survived. Orient the test array toward the simulated Sun and see how the output changes.",
+      "Use the terminal's virtual solar array to see how pointing a panel toward the Sun changes its output.",
     requires: ["blackbox"],
     tool: "tune",
     target: 65,
@@ -221,7 +221,7 @@ export const fieldMissions: FieldMission[] = [
     explanation:
       "Dust intercepts sunlight before it reaches a panel. Facing the Sun helps, but dust, weather and daylight still matter.",
     debrief:
-      "Array test complete. Spare clear panels are in the cache. Next: read the weather before planning a long trip.",
+      "Array test complete. The cache contains clear glazing for construction. Next: read the weather before planning a long trip.",
     reward: { glass: 3 },
     source: "https://science.nasa.gov/mission/insight/",
     sourceName: "NASA · InSight and solar power",

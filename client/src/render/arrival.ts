@@ -464,20 +464,6 @@ export class Arrival {
       -7,
     );
     box(this.surface, 1.1, 1.6, 0.2, 0x24313a, 6, 0.8, -4.55);
-    for (let i = 0; i < 3; i++) {
-      const panel = box(
-        this.surface,
-        2.1,
-        0.12,
-        1.6,
-        0x204775,
-        1 + i * 2.7,
-        0.8,
-        -10,
-      );
-      panel.rotation.x = -0.25;
-      box(this.surface, 0.12, 0.8, 0.12, 0xc0b391, 1 + i * 2.7, 0.4, -10);
-    }
     for (let i = 0; i < 5; i++)
       box(
         this.surface,
