@@ -34,6 +34,7 @@ import { AlienVoice } from "./ui/alienVoice";
 import { alienScreen, alienBrush } from "./ui/alien";
 import {
   alienSite,
+  alienRoverSite,
   alienProgress,
   alienLine,
   alienLines,
@@ -55,6 +56,7 @@ import {
   missionSector,
   nextFieldMission,
   sectors,
+  solarRewardSite,
 } from "../../shared/src/expedition";
 import {
   flightTasks,
@@ -905,7 +907,7 @@ function nearest(): Nearby | null {
     type: "hangar",
     target: "return",
     pos: launchSite,
-    text: "Rebuild return ship",
+    text: "Repair crashed ship",
   });
   for (const i of game.items)
     all.push({
@@ -2378,6 +2380,26 @@ if (import.meta.env.DEV)
         deck.outcome = "home";
       }
     }
+    if (name === "crash-repairs") {
+      Object.assign(game.players[id], launchSite);
+      world.yaw = -0.42; world.pitch = 0.65; world.zoom = 32;
+      game.returnMission = { ...returnProgress(game), recovered: { booster: "Rare", hull: "Rare", nav: "Prototype", air: "Rare" } };
+    }
+    if (name === "radio-relay") {
+      const relay = sectors.find((site) => site.id === "relay")!;
+      Object.assign(game.players[id], { x: relay.x + 2, z: relay.z - 3 });
+      world.yaw = -0.8; world.pitch = 0.58; world.zoom = 18;
+    }
+    if (name === "solar-reward") {
+      Object.assign(game.players[id], { x: solarRewardSite.x - 3, z: solarRewardSite.z + 2 });
+      game.panels.push({ id: "panel-field-reward", ...solarRewardSite, clean: 1, covered: false });
+      world.yaw = 1.1; world.pitch = 0.48; world.zoom = 15;
+    }
+    if (name === "crew-rover-reward") {
+      Object.assign(roverState(game), alienRoverSite);
+      Object.assign(game.players[id], { x: alienRoverSite.x + 4, z: alienRoverSite.z });
+      world.yaw = 1; world.pitch = 0.48; world.zoom = 16;
+    }
     if (name === "ship" || name === "ship-ready") {
       Object.assign(game.players[id], launchSite);
       if (name === "ship-ready")
@@ -2530,6 +2552,10 @@ if (import.meta.env.DEV) {
       "alien-reward",
       "ship",
       "ship-ready",
+      "crash-repairs",
+      "radio-relay",
+      "solar-reward",
+      "crew-rover-reward",
       "flight",
       "flight-fault",
       "flight-approach",

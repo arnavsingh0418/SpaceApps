@@ -176,15 +176,14 @@ const cacheChallenges: { part: Part; questions: Quiz[] }[] = [
 
 export const salvageSites = sectors.map((sector, index) => ({
   id: sector.id,
-  name: sector.name,
-  x: sector.id === "basin" ? 82 : sector.x + 8,
-  z: sector.id === "basin" ? -141 : sector.z + 4,
+  name: sector.id === "ascent" ? "Far ridge" : sector.name,
+  x: sector.id === "ascent" ? 283 : sector.id === "basin" ? 82 : sector.x + 8,
+  z: sector.id === "ascent" ? -216 : sector.id === "basin" ? -141 : sector.z + 4,
   ...cacheChallenges[index],
 }));
-export const launchSite = {
-  x: sectors[6].x - 8,
-  z: sectors[6].z + 4,
-};
+export const crashShip = { x: -10, z: -36, heading: 0.5 };
+// Service console on the habitat side, clear of the hull and airlock.
+export const launchSite = { x: -13, z: -27 };
 
 export const flightTasks = [
   {

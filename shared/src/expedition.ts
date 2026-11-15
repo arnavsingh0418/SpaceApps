@@ -1,6 +1,6 @@
 import type { Bag, Game } from "./sim";
 
-export const solarRewardSite = { x: -82, z: 89 };
+export const solarRewardSite = { x: -79, z: 97 };
 
 export const sectors = [
   {
@@ -59,12 +59,12 @@ export const sectors = [
   },
   {
     id: "ascent",
-    name: "Return platform",
-    x: 275,
-    z: -220,
+    name: "Base flight terminal",
+    x: -5,
+    z: -27,
     symbol: "07",
     color: "#f3a394",
-    prop: "rocket",
+    prop: "flight",
   },
 ] as const;
 export type SectorId = (typeof sectors)[number]["id"];
@@ -423,7 +423,7 @@ export const fieldMissions: FieldMission[] = [
     explanation:
       "Earth–Mars signal delay varies with the planets' positions. A real-time joystick from Earth cannot control every landing or emergency.",
     debrief:
-      "Earth's message is recovered. One final field trip remains: inspect the return platform and send a clear readiness report.",
+      "Earth's message is recovered. Head back to base to inspect the base flight terminal and send a clear readiness report.",
     reward: { antenna: 1, battery: 1 },
     source:
       "https://www.jpl.nasa.gov/news/press_kits/mars_2020/landing/mission/",
@@ -457,7 +457,7 @@ export const fieldMissions: FieldMission[] = [
     explanation:
       "An oxidizer participates in combustion with fuel. Oxygen production is useful for both breathing and some rocket propulsion systems, at very different scales.",
     debrief:
-      "Return platform checked. File your evidence-based crew report at the relay to complete the field campaign.",
+      "Base flight terminal checked. File your evidence-based crew report at the relay to complete the field campaign.",
     reward: { food: 2 },
     source: oxygenSource,
     sourceName: "NASA · Oxygen for future Mars exploration",

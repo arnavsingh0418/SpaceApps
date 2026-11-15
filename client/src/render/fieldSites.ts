@@ -9,6 +9,7 @@ import {
 import { WORLD, type Game } from "../../../shared/src/sim";
 import type { Terrain } from "./terrain";
 import {
+  crashShip,
   launchSite,
   returnProgress,
   salvageSites,
@@ -21,7 +22,8 @@ export class FieldSites {
   groups = new Map<string, T.Group>();
   salvage = new Map<string, T.Group>();
   private lights = new Map<string, T.Mesh>();
-  ship!: ShipAssembly;
+  ship: ShipAssembly;
+  private repairGroup: T.Group;
   private placed = false;
   constructor(scene: T.Scene) {
     for (const site of sectors) {
@@ -124,11 +126,6 @@ export class FieldSites {
           5.5,
           -5.5,
         );
-      } else if (site.prop === "rocket") {
-        part(new T.CylinderGeometry(6, 6.5, 0.4, 12), 0x697174, 0, 0.2, -9);
-        part(new T.CylinderGeometry(1.5, 2.1, 9, 14), 0xe4d7bf, 0, 5, -9);
-        part(new T.ConeGeometry(1.5, 3, 14), 0xe4d7bf, 0, 11, -9);
-        this.ship = new ShipAssembly(g);
       } else if (site.prop === "wreck") {
         const recorder = part(
           new T.BoxGeometry(2.5, 1.6, 1.5),
@@ -155,17 +152,23 @@ export class FieldSites {
         rocks: ["Cliff_01", 8, -6, -5],
         shield: ["Storm_Shelter", 8, 0, -6],
         dish: ["Radio_Dish_Fixed", 6, 0, -6],
-        rocket: ["Rocket_Return", 12, 0, -9],
+        flight: null,
         wreck: ["Robotic_Lander_Wreck", 6, -3, -4],
       }[site.prop] as [string, number, number, number] | null;
       if (authored) void replaceVisual(prop, authored[0], {
-        ...(site.prop === "rocket" ? {height: authored[1]} : {size: authored[1]}),
+        size: authored[1],
         offset: {x:authored[2],z:authored[3]},
         batch: site.prop !== "dish",
       });
       scene.add(g);
       this.groups.set(site.id, g);
     }
+    const repairs = new T.Group();
+    repairs.position.set(crashShip.x, 0, crashShip.z);
+    repairs.rotation.y = crashShip.heading;
+    scene.add(repairs);
+    this.ship = new ShipAssembly(repairs);
+    this.repairGroup = repairs;
     for (const site of [...salvageSites, { id: "return", ...launchSite }]) {
       const g = new T.Group();
       g.position.set(site.x, 0, site.z);
@@ -204,7 +207,7 @@ export class FieldSites {
   }
   update(s: Game, terrain: Terrain, time: number, reduced = false) {
     if (terrain.ready && !this.placed) {
-      for (const g of [...this.groups.values(), ...this.salvage.values()])
+      for (const g of [...this.groups.values(), ...this.salvage.values(), this.repairGroup])
         g.position.y = terrain.heightAt(g.position.x, g.position.z);
       this.placed = true;
     }

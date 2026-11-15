@@ -1,3 +1,4 @@
+import { crashShip } from "../../../shared/src/returnMission";
 import { HAB_LAYOUT } from "../../../shared/src/hab";
 import { HabInterior } from "./habInterior";
 import { RoverView } from "./rover";
@@ -66,7 +67,7 @@ const colors = {
 };
 /** Where the hab and the crashed lander sit (metres, game coordinates). */
 export const HAB = { x: 0, z: -17 };
-export const WRECK = { x: -10, z: -36 };
+
 /** Built structures stand ~7 m further out than their science beacon so they don't swallow it. */
 function buildSpot(p: { x: number; z: number }, push = 7) {
   const r = Math.hypot(p.x, p.z) || 1;
@@ -231,7 +232,7 @@ export class World {
       .catch((err) => console.error("Mars map failed to load", err));
     // Life-sized base (layout spread by B.layoutScale in the sim).
     const solid = (o: THREE.Object3D) => (this.terrain.addStatic(o), o);
-    solid(wreck(WRECK.x, WRECK.z));
+    solid(wreck(crashShip.x, crashShip.z));
     const habitat = solid(hab(HAB.x, HAB.z, 6.2));
     this.buildings.set("hab", habitat);
     const airlockMarker = new THREE.Group();
@@ -255,7 +256,7 @@ export class World {
       this.addLabel(
         `salvage-${id}`,
         group,
-        id === "return" ? "Return ship" : "Salvage cache",
+        id === "return" ? "Repair crashed ship" : "Salvage cache",
         1.8,
       );
     for (const [key, pos] of Object.entries(stations)) {

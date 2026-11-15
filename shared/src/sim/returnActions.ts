@@ -133,7 +133,7 @@ export function returnAction(
   }
   if (a.type === "installPart" || a.type === "launchShip") {
     if (distance(p, launchSite) > B.interactRadius)
-      return "Go to the return platform.";
+      return "Go to the crashed ship at the main base.";
     if (a.type === "installPart") {
       if (!partSlots.includes(a.part as Part)) return "Choose a ship system.";
       const slot = a.part as Part;

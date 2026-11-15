@@ -112,10 +112,10 @@ export class ShipAssembly {
   active = "";
   constructor(parent: T.Group) {
     const positions: Record<Part, T.Vector3> = {
-      booster: new T.Vector3(0, 2.8, -9),
-      hull: new T.Vector3(0, 7.2, -9),
-      nav: new T.Vector3(1.8, 6, -7.3),
-      air: new T.Vector3(-2.4, 4.5, -9),
+      booster: new T.Vector3(-10.7, 2.7, 0),
+      hull: new T.Vector3(5.3, 2, 2.65),
+      nav: new T.Vector3(0.8, 3.1, 3.05),
+      air: new T.Vector3(-4.4, 2.2, 3.3),
     };
     partSlots.forEach((slot, i) => {
       const mount = positions[slot],
@@ -126,9 +126,9 @@ export class ShipAssembly {
       broken.position.copy(mount);
       good.visible = false;
       const from = new T.Vector3(
-        6.5 + (i % 2) * 3,
+        -12 + (i % 2) * 3,
         1.5,
-        -3 - Math.floor(i / 2) * 3.2,
+        10 + Math.floor(i / 2) * 3.2,
       );
       display.position.copy(from);
       display.scale.setScalar(0.65);

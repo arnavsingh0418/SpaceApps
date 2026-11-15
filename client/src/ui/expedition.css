@@ -914,3 +914,4 @@
   .field-guide.field-guide-compact h3 { font-size: 16px; }
   .field-guide.field-guide-compact footer { font-size: 11px; }
 }
+.nav-shortcut .minimap-open > span { white-space: nowrap; }

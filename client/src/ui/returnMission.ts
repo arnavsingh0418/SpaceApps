@@ -42,7 +42,7 @@ export function hangar(s: Game, id: string) {
       progress.recovered[slot] &&
       progress.recovered[slot] !== progress.installed[slot],
   );
-  return `<div class="ship-overview"><b>RETURN VEHICLE / DAMAGE REPORT</b><span>${Object.values(progress.installed).length} / 4 REPAIRED</span></div><progress class="ship-progress" max="4" value="${Object.values(progress.installed).length}" aria-label="Ship systems repaired"></progress><p class="ship-hint">${ready ? "All four systems online. After launch, head to the helm and lock departure guidance." : "Recover hardware through field tasks, salvage or Nemi's repair. Install each replacement here."}</p>
+  return `<div class="ship-overview"><b>CRASHED SHIP / REPAIRS</b><span>${Object.values(progress.installed).length} / 4 REPAIRED</span></div><progress class="ship-progress" max="4" value="${Object.values(progress.installed).length}" aria-label="Ship systems repaired"></progress><p class="ship-hint">${ready ? "All four systems online. After launch, head to the helm and lock departure guidance." : "Recover hardware through field tasks, salvage or Nemi's repair. Install each replacement here."}</p>
     <div class="ship-part-roster">${partSlots
       .map((slot) => {
         const installed = progress.installed[slot],

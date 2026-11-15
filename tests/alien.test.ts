@@ -117,7 +117,7 @@ it("rewards the crew exactly once, survives saves and installs at the ship", () 
   );
   expect(returnProgress(s).points).toBe(points);
   expect(dispatch(s, "a", { type: "installPart", part: "nav" })).toContain(
-    "platform",
+    "crashed ship at the main base",
   );
   Object.assign(s.players.a, launchSite);
   act(s, "a", { type: "installPart", part: "nav" });
