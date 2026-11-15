@@ -10,7 +10,7 @@ export function countdown(fallback = "") {
 export function quizQuestion(
   question: string,
   answers: { text: string; index: number }[],
-  submit: { fact: string } | { mission: string } | { site: string; step: number } | { flight: number },
+  submit: { fact: string } | { mission: string } | { site: string; step: number } | { flight: number } | { fault: string },
 ) {
   const action = "fact" in submit
     ? `data-do="answer" data-fact="${escape(submit.fact)}"`
@@ -18,7 +18,9 @@ export function quizQuestion(
       ? `data-do="fieldAnswer" data-mission="${escape(submit.mission)}"`
       : "site" in submit
         ? `data-do="salvageAnswer" data-site="${escape(submit.site)}" data-step="${submit.step}"`
-        : `data-do="flightTask" data-step="${submit.flight}"`;
+        : "fault" in submit
+          ? `data-do="answerFlightQuiz" data-fault="${escape(submit.fault)}"`
+          : `data-do="flightTask" data-step="${submit.flight}"`;
   const timedLesson = "fact" in submit || "mission" in submit;
 
   return `<div class="quiz-question">
@@ -26,7 +28,7 @@ export function quizQuestion(
       <span>SCIENCE QUIZ</span>
       <h3 id="quiz-question">${escape(question)}</h3>
     </header>
-    ${countdown(timedLesson ? "Answer quickly for bonus points" : "")}
+    ${"fault" in submit ? "" : countdown(timedLesson ? "Answer quickly for bonus points" : "")}
     <div class="quiz-answers" role="group" aria-labelledby="quiz-question">
       ${answers.map(({ text, index }, position) => `
         <button class="quiz-answer" type="button" ${action} data-answer="${index}">

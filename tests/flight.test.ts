@@ -6,7 +6,9 @@ import {
   walkableDeck,
   flightDuration,
   startingFlightPower,
+  landingChance,
 } from "../shared/src/flight";
+import { partSlots } from "../shared/src/returnMission";
 import { flyHome, runFlight, lockGuidance } from "./flight-helpers";
 function setup() {
   const s = createGame(42);
@@ -100,6 +102,12 @@ it("validates repair position, duration, puzzle and shared exactly-once credit",
   Object.assign(s.players.b, flightStations.power);
   dispatch(s, "a", { type: "beginFlightRepair", fault: f.id });
   dispatch(s, "b", { type: "beginFlightRepair", fault: f.id });
+  const answer = { type: "answerFlightQuiz", fault: f.id };
+  expect(dispatch(s, "a", { ...answer, answer: 0 })).toContain("NASA readings");
+  expect(dispatch(s, "a", { type: "finishFlightRepair", fault: f.id, value: "0,1,2" })).toContain("science quiz");
+  expect(dispatch(s, "b", { ...answer, answer: 1 })).toBeUndefined();
+  dispatch(s, "a", { ...answer, answer: 1 });
+  expect(s.returnMission!.crewPoints).toEqual({ b: 50 });
   expect(
     dispatch(s, "a", {
       type: "finishFlightRepair",
@@ -125,22 +133,52 @@ it("validates repair position, duration, puzzle and shared exactly-once credit",
       value: "0,1,2",
     }),
   ).toContain("already");
-  expect(s.returnMission!.points).toBe(150);
+  expect(s.returnMission!.points).toBe(200);
 });
-it("repairs and two guidance locks produce an Earth arrival without a random roll", () => {
+it("runs four incidents and rolls for landing after both guidance locks", () => {
   const s = setup();
+  s.rng = 42;
   flyHome(s, "a");
   const f = s.returnMission!.flight!;
   expect(s.phase).toBe("ended");
   expect(f.deck).toMatchObject({
-    repaired: 5,
+    repaired: 4,
     missed: 0,
     arrived: true,
     outcome: "home",
     guidance: [true, true],
   });
-  expect(f.roll).toBeUndefined();
+  expect(f.chance).toBe(58);
+  expect(f.roll).toBeLessThan(f.chance!);
   expect(s.result).toContain("Mission complete");
+});
+it("uses the installed parts and late faults to change the landing odds", () => {
+  const s = setup();
+  const progress = s.returnMission!;
+  for (const part of partSlots) progress.installed[part] = "Standard";
+  startDeckFlight(s);
+  const standard = progress.flight!.baseChance;
+  for (const part of partSlots) progress.installed[part] = "Prototype";
+  startDeckFlight(s);
+  const flight = progress.flight!;
+  runFlight(s, 18.1);
+  expect(landingChance(flight.baseChance, flight.deck!)).toBeGreaterThan(landingChance(standard, flight.deck!));
+  const before = landingChance(flight.baseChance, flight.deck!);
+  runFlight(s, 36);
+  expect(landingChance(flight.baseChance, flight.deck!)).toBe(before - 9);
+});
+it("sends a flight-ready crew to recovery orbit when the landing roll misses", () => {
+  const s = setup();
+  s.rng = 1800;
+  flyHome(s, "a");
+  const flight = s.returnMission!.flight!;
+  expect(flight.chance).toBe(58);
+  expect(flight.roll).toBeGreaterThan(flight.chance!);
+  expect(flight.deck).toMatchObject({
+    outcome: "rescue",
+    repaired: 4,
+    guidance: [true, true],
+  });
 });
 it("unattended faults damage systems and produce a rescue ending instead of a free win", () => {
   const s = setup();
