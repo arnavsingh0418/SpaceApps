@@ -231,7 +231,7 @@ export function createGame(seed = 42): Game {
     result: "",
     serial: 0,
     host: "",
-    devil: { x: 19 * L, z: -10 * L },
+    devil: { x: 18 * L, z: 0 },
     devilDropAt: 0,
     leakFixed: false,
     watering: false,
@@ -375,6 +375,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       "flightSteer",
       "holdCourse",
       "beginFlightRepair",
+      "answerFlightQuiz",
       "finishFlightRepair",
     ].includes(a.type)
   )

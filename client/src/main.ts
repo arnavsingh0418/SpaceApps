@@ -13,6 +13,7 @@ import { equippedItem } from "../../shared/src/inventory";
 import { movePastPlayers } from "../../shared/src/playerCollision";
 import {
   flightStations,
+  flightDuration,
   nearestFlightStation,
   type FlightStation,
 } from "../../shared/src/flight";
@@ -150,7 +151,9 @@ const previewScene = import.meta.env.DEV
   : null;
 const soloSaveKey = previewScene === "flight-approach"
   ? "outpost-preview-flight-approach-v1"
-  : "outpost-save-v1";
+  : previewScene === "ship-launch"
+    ? "outpost-preview-ship-launch-v1"
+    : "outpost-save-v1";
 if (import.meta.env.DEV)
   (window as unknown as { __world: World }).__world = world; // dev-only debugging hook
 addPlayer(game, id, "Explorer");
@@ -383,6 +386,8 @@ function drawDeck() {
       toast("Repair complete. Crew systems updated.");
       return;
     }
+    if (fault.quizCleared && root.querySelector('[data-do="answerFlightQuiz"]'))
+      open("flightRepair", "REPAIR STATION", repairPanel(fault), true, "deck-modal");
     const seconds = root.querySelector("#repair-seconds");
     if (seconds)
       seconds.textContent = `${Math.max(0, Math.ceil(3 - (game.elapsed - (game.players[id].task?.at ?? game.elapsed))))}s minimum work remaining`;
@@ -391,6 +396,8 @@ function drawDeck() {
       timer.textContent = fault.late
         ? "Overdue — repair now"
         : `${Math.max(0, Math.ceil(fault.deadline - d.time))}s to escalation`;
+    const arrival = root.querySelector("#repair-arrival");
+    if (arrival) arrival.textContent = `${Math.max(0, Math.ceil(flightDuration - d.time))}s to Earth`;
   }
 }
 function updateDeck(dt: number, render: boolean) {
@@ -1336,6 +1343,10 @@ document.addEventListener("click", (e) => {
     case "finishFlightRepair":
       finishDeckRepair();
       break;
+    case "answerFlightQuiz":
+      if (modal === "flightRepair" && d.fault === deckRepair?.fault)
+        dispatchMission({ type: "answerFlightQuiz", fault: d.fault, answer: Number(d.answer) });
+      break;
     case "alienSpeak":
       if (d.line) void alienVoice.speak(d.line as AlienLine);
       break;
@@ -1906,7 +1917,7 @@ function update(dt: number, render = true) {
     return;
   }
   if (arrival) {
-    arrival.update(dt);
+    arrival.update(dt, render);
     return;
   }
   if (started) {
@@ -1986,7 +1997,10 @@ function update(dt: number, render = true) {
       } else roverDriverKey = "";
     } else if (me && !me.gust) {
       if (wasInHab) {controller.reset(me.x,me.z,world.terrain.heightAt(me.x,me.z));world.cameraFollow=null;world.pitch=.36;world.zoom=9;}
-      if (wasRiding || wasBlown) controller.reset(me.x, me.z, world.terrain.heightAt(me.x,me.z));
+      if (wasRiding || wasBlown) {
+        controller.reset(me.x, me.z, world.terrain.heightAt(me.x,me.z));
+        if (wasBlown) controller.heading = world.actors.get(id)?.rotation.y ?? controller.heading;
+      }
       roverDriverKey = "";
       const drift = Math.hypot(me.x - controller.x, me.z - controller.z);
       if (controllerSeed !== game.seed || drift > (connection ? 6 : 4)) {
@@ -2374,9 +2388,9 @@ if (import.meta.env.DEV)
       if (name === "flight-approach") {
         const deck = game.returnMission.flight!.deck!;
         deck.time = 120;
-        deck.nextEvent = 4;
+        deck.nextEvent = 3;
         deck.guidance[0] = true;
-        deck.repaired = 4;
+        deck.repaired = 3;
         Object.assign(game.players[id], flightStations.helm);
       }
       if (name === "flight-arrival") {
@@ -2386,18 +2400,21 @@ if (import.meta.env.DEV)
         deck.outcome = "home";
       }
     }
-    if (name === "ship" || name === "ship-ready") {
+    if (name === "ship" || name === "ship-ready" || name === "ship-launch") {
       Object.assign(game.players[id], launchSite);
-      if (name === "ship-ready")
+      if (name !== "ship") {
+        const parts = {
+          booster: "Rare",
+          hull: "Rare",
+          air: "Rare",
+          nav: "Prototype",
+        } as const;
         game.returnMission = {
           ...returnProgress(game),
-          recovered: {
-            booster: "Rare",
-            hull: "Rare",
-            air: "Rare",
-            nav: "Prototype",
-          },
+          recovered: { ...parts },
+          installed: name === "ship-launch" ? { ...parts } : {},
         };
+      }
       showHangar();
     }
     if (name === "hab" || name === "hab-crew" || name === "hab-airlock") {
@@ -2422,6 +2439,12 @@ if (import.meta.env.DEV)
       }
     }
     if (name === "rover-crew") { wasRiding = true; world.yaw = 2.4; world.pitch = .32; world.zoom = 22; }
+    if (name === "rover-east") {
+      const rover = roverState(game);
+      rover.heading = -Math.PI / 2;
+      Object.assign(game.players[id], { x: rover.x, z: rover.z });
+      dispatch(game, id, { type: "boardRover" });
+    }
     if (name === "models") {
       stagePanels(2);
       game.built = ["radio", "greenhouse", "shelter"];
@@ -2532,6 +2555,7 @@ if (import.meta.env.DEV) {
       "alien-reward",
       "ship",
       "ship-ready",
+      "ship-launch",
       "flight",
       "flight-fault",
       "flight-approach",
@@ -2545,6 +2569,7 @@ if (import.meta.env.DEV) {
     "rover",
     "rover-driving",
     "rover-crew",
+      "rover-east",
       "tasks",
       "workbench",
       "near-item",
@@ -2624,11 +2649,11 @@ document.addEventListener("click", (e) => {
         .querySelectorAll("[data-flight-valve]")
         .forEach((e) => e.classList.remove("done"));
       const el = root.querySelector(".flight-feedback");
-      if (el) el.textContent = "Isolate first, then purge, then reopen.";
+      if (el) el.textContent = "Try the steps again in the order shown.";
     } else {
       r.valves.push(value);
       button.classList.add("done");
     }
-    $("#valve-order").textContent = r.valves.length + " / 3 valves";
+    $("#valve-order").textContent = r.valves.length + " / 3 steps";
   }
 });

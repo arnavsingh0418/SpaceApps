@@ -584,3 +584,34 @@
     max-width: 92vw;
   }
 }
+.flight-research {
+  margin-block: 12px;
+  padding: 10px 12px;
+  border: 1px solid #496170;
+  border-radius: 8px;
+  background: #142530;
+  color: #d9e8ef;
+}
+.flight-research a {
+  color: #9be2ff;
+}
+.flight-research dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 8px;
+  margin-block: 8px;
+}
+.flight-research dt {
+  font-size: .8rem;
+}
+.flight-research dd {
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
+}
+.flight-research p {
+  margin: 0;
+}
+#coolant-flow {
+  background: linear-gradient(to right, #30434c 30%, #63ce9c 30% 40%, #30434c 40%);
+}

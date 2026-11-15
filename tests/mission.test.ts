@@ -151,7 +151,7 @@ it("the outpost supports a complete mission from gathering to Earth entry", () =
   expect(s.aligned).toBe(true);
   expect(s.phase).toBe("ended");
   expect(returnProgress(s).flight).toMatchObject({
-    deck: { outcome: "home", repaired: 5, guidance: [true, true] },
+    deck: { outcome: "home", repaired: 4, guidance: [true, true] },
   });
   expect(s.result).toContain("Mission complete");
 });

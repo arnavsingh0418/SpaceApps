@@ -99,6 +99,6 @@ it("validates assembly and launch permissions, then flies the crew home", () => 
   flyHome(s, "pilot");
   expect(s.phase).toBe("ended");
   expect(progress.flight?.deck?.outcome).toBe("home");
-  expect(progress.flight?.roll).toBeUndefined();
+  expect(progress.flight?.roll).toBeLessThan(progress.flight!.chance!);
   expect(s.result).toContain("Mission complete");
 });

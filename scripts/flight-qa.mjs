@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 import fs from "node:fs/promises";
 import assert from "node:assert/strict";
-const dir = "references/flight";
+const dir = "artifacts/flight";
 const layout = JSON.parse(
   await fs.readFile(
     new URL("../shared/src/data/flight-layout.json", import.meta.url),
@@ -11,6 +11,7 @@ const layout = JSON.parse(
 const base = process.env.QA_BASE_URL || "http://127.0.0.1:5173";
 await fs.mkdir(dir, { recursive: true });
 const browser = await chromium.launch({
+  executablePath: process.env.QA_CHROME,
   headless: true,
   args: ["--enable-unsafe-swiftshader"],
 });
@@ -23,9 +24,14 @@ try {
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
   });
+  await page.addInitScript(() => {
+    const raf = requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (callback) => callback.name === "frame" ? 0 : raf(callback);
+  });
   await page.goto(`${base}/?qaScene=flight`);
   await page.waitForFunction(
     () => window.__stageScene && window.render_game_to_text,
+    null, { polling: 100, timeout: 90000 },
   );
   const state = async () =>
     JSON.parse(await page.evaluate(() => window.render_game_to_text()));
@@ -106,6 +112,14 @@ try {
       await page.keyboard.press("e");
       await step(160);
       assert.equal((await state()).modal, "flightRepair");
+      if (fault.kind === "power" || fault.kind === "air") {
+        const answer = fault.kind === "power" ? 1 : 2;
+        await page.click(`[data-do="answerFlightQuiz"][data-answer="${answer}"]`);
+        await step(160);
+        assert.ok((await state()).returnMission.flight.deck.incidents.find(
+          (incident) => incident.id === fault.id,
+        ).quizCleared);
+      }
       if (fault.kind === "power")
         for (let i = 0; i < 3; i++) {
           await page.click(`[data-flight-wire="${i}"][data-side="0"]`);
@@ -179,7 +193,7 @@ try {
   assert.deepEqual(errors, []);
   await fs.writeFile(`${dir}/errors.json`, JSON.stringify(errors));
   console.log(
-    "PASS: physical walking, helm, five repairs, two guidance locks, home/rescue, pause, responsive and reduced motion; no browser errors.",
+    "PASS: physical walking, helm, four repairs, two NASA quizzes, two guidance locks, home/rescue, pause, responsive and reduced motion; no browser errors.",
   );
 } finally {
   await browser.close();

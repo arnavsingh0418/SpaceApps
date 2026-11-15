@@ -27,6 +27,7 @@
   color: #9ebdbb;
 }
 .arrival-location {
+  opacity: var(--title-opacity, 1);
   top: 121px;
   left: 28px;
 }
@@ -251,4 +252,35 @@
   .film-curtain {
     opacity: 0 !important;
   }
+}
+
+/* Short story presentation: let the animation fill the screen. */
+.arrival .film-act,
+.arrival .arrival-location,
+.arrival .arrival-eyebrow,
+.arrival .arrival-fact,
+.arrival .arrival-bottom,
+.arrival .arrival-timeline,
+.arrival .film-telemetry,
+.arrival .arrival-film-edge { display: none; }
+.arrival .arrival-header { background: transparent; border: 0; }
+.arrival .arrival-brand small { display: none; }
+.arrival .arrival-footer {
+  display: flex;
+  justify-content: center;
+  padding: 35px 24px 42px;
+  background: linear-gradient(transparent, #061117d9);
+}
+.arrival .arrival-captions { text-align: center; max-width: 650px; }
+.arrival .arrival-captions p {
+  font-size: clamp(18px, 2.3vw, 28px);
+  line-height: 1.4;
+  min-height: 0;
+  text-shadow: 0 2px 12px #000;
+}
+.arrival .film-curtain { inset: 0; }
+@media (max-width: 760px) {
+  .arrival .arrival-brand { max-width: 80px; font-size: 8px; }
+  .arrival .arrival-footer { padding-bottom: 40px; }
+  .arrival .arrival-captions p { font-size: 20px; }
 }

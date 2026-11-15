@@ -525,7 +525,11 @@ export class World {
       );
       const airtime = (2 * B.jumpSpeed) / B.marsGravity;
       const since = s.elapsed - (p.jumpAt ?? -99);
-      const lift = p.gust?.height ?? (since < airtime ? jumpArc(since) : 0);
+      const wind = (player.userData.wind ||= { height: 0, yaw: player.rotation.y, active: false });
+      if (p.gust && !wind.active) wind.yaw = player.rotation.y;
+      wind.active = !!p.gust;
+      wind.height = THREE.MathUtils.damp(wind.height, p.gust?.height ?? 0, 14, dt);
+      const lift = p.gust || wind.height > 0.01 ? wind.height : (since < airtime ? jumpArc(since) : 0);
       player.position.set(x, this.terrain.heightAt(x, z) + lift, z);
       this.tracks.trace(p.id, x, player.position.y, z, player.rotation.y,
         !this.menu && s.phase === "day" && lift <= 0 && !p.gust, this.terrain, s.elapsed);
@@ -538,8 +542,9 @@ export class World {
         landImpact: 0.4,
       });
       if (p.gust && !this.motion.reduced) {
-        player.rotation.y = s.elapsed * 5;
-        player.rotation.z = Math.sin(s.elapsed * 6) * Math.min(0.85, lift * 0.3);
+        wind.yaw += dt * Math.min(3, Math.hypot(p.gust.vx, p.gust.vz) * 0.35) * Math.min(1, lift);
+        player.rotation.y = wind.yaw;
+        player.rotation.z = Math.sin(wind.yaw * 1.3) * Math.min(0.65, lift * 0.22);
       }
     }
     for (const [key, obj] of this.pickups)
