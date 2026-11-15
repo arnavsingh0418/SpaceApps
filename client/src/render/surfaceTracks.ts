@@ -1,5 +1,6 @@
 import * as T from "three";
 import type { Terrain } from "./terrain";
+import { vortexField } from "../../../shared/src/dustDevil";
 
 const lifetime = 85;
 type Trail = { x: number; z: number; remaining: number; left: boolean };
@@ -115,6 +116,14 @@ class Marks {
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 
+  erode(center: { x: number; z: number }, dt: number) {
+    for (const record of this.records) {
+      if (!record) continue;
+      const e = record.matrix.elements;
+      record.at -=
+        vortexField(e[12], e[14], center).strength * Math.min(dt, 0.1) * 35;
+    }
+  }
   clear() {
     this.next = 0;
     this.mesh.count = 0;
@@ -193,6 +202,10 @@ export class SurfaceTracks {
     trail.remaining = offset - distance;
     trail.x = x;
     trail.z = z;
+  }
+  erode(center: { x: number; z: number }, dt: number) {
+    this.boots.erode(center, dt);
+    this.tires.erode(center, dt);
   }
   update(time: number) {
     this.boots.update(time);

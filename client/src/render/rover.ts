@@ -12,6 +12,7 @@ export class RoverView {
   private travel = 0;
   private frontSteer = 0;
   private previousHeading = 0;
+  private windHeight = 0;
   private last: { x: number; z: number } | null = null;
   constructor(scene: T.Scene) {
     this.group.name = "Wayfarer rover";
@@ -80,12 +81,12 @@ export class RoverView {
         !this.last ||
         Math.hypot(x - this.group.position.x, z - this.group.position.z) > 20
       )
-        this.group.position.set(x, terrain.heightAt(x, z), z);
+        this.group.position.set(x, terrain.groundAt(x, z), z);
       else {
         const k = 1 - Math.exp(-14 * dt);
         this.group.position.x += (x - this.group.position.x) * k;
         this.group.position.z += (z - this.group.position.z) * k;
-        this.group.position.y = terrain.heightAt(
+        this.group.position.y = terrain.groundAt(
           this.group.position.x,
           this.group.position.z,
         );
@@ -94,19 +95,20 @@ export class RoverView {
         angleDelta(r.heading, this.group.rotation.y) * (1 - Math.exp(-14 * dt));
       const c = Math.cos(r.heading),
         s = Math.sin(r.heading);
-      const front = terrain.heightAt(x - s * 2.25, z - c * 2.25),
-        back = terrain.heightAt(x + s * 2.25, z + c * 2.25);
-      const left = terrain.heightAt(x - c * 1.95, z + s * 1.95),
-        right = terrain.heightAt(x + c * 1.95, z - s * 1.95);
+      const front = terrain.groundAt(x - s * 2.25, z - c * 2.25),
+        back = terrain.groundAt(x + s * 2.25, z + c * 2.25);
+      const left = terrain.groundAt(x - c * 1.95, z + s * 1.95),
+        right = terrain.groundAt(x + c * 1.95, z - s * 1.95);
       this.group.rotation.x = Math.atan2(front - back, 4.5);
       this.group.rotation.z = -Math.atan2(left - right, 3.9);
       if (this.last)
         this.travel += (x - this.last.x) * -s + (z - this.last.z) * -c;
     }
-    if (r.gust && !local) {
-      this.group.position.y += r.gust.height;
-      this.group.rotation.x += Math.sin(r.heading * 3) * Math.min(0.7, r.gust.height * 0.24);
-      this.group.rotation.z += Math.cos(r.heading * 2) * Math.min(0.8, r.gust.height * 0.28);
+    this.windHeight += ((r.gust?.height ?? 0)-this.windHeight)*(1-Math.exp(-dt*16));
+    if (!local && this.windHeight > .001) {
+      this.group.position.y += this.windHeight;
+      this.group.rotation.x += Math.sin(r.heading * 3) * Math.min(0.7, this.windHeight * 0.15);
+      this.group.rotation.z += Math.cos(r.heading * 2) * Math.min(0.8, this.windHeight * 0.18);
     }
     if (local) this.frontSteer = local.steer;
     else if (this.last) {

@@ -8,6 +8,8 @@ import { WorldMotion } from "./motion";
 import { SANDSTORM_LAYER } from "./sandstorm";
 import { SurfaceTracks } from "./surfaceTracks";
 import { ScreenDust } from "./screenDust";
+import { DustDevil } from "./dustDevil";
+import { vortexField } from "../../../shared/src/dustDevil";
 import {
   replaceVisual,
   disposeModel,
@@ -94,7 +96,8 @@ export class World {
     string,
     { obj: THREE.Object3D; el: HTMLElement; height: number }
   >();
-  devil = new THREE.Group();
+  dustDevil = new DustDevil(this.scene);
+  devil = this.dustDevil.group;
   tracks = new SurfaceTracks(this.scene);
   screenDust = new ScreenDust();
   objectiveTarget: { x: number; z: number } | null = null;
@@ -267,31 +270,6 @@ export class World {
     }
     const broken = buildSpot(stations.comms);
     this.brokenDish = solid(dish(broken.x, broken.z, true));
-    for (let i = 0; i < 10; i++) {
-      const m = new THREE.Mesh(
-        new THREE.CylinderGeometry(
-          0.4 + i * 0.12,
-          0.3 + i * 0.12,
-          0.65,
-          9,
-          1,
-          true,
-        ),
-        new THREE.MeshStandardMaterial({
-          color: 0xdca06c,
-          transparent: true,
-          opacity: 0.18,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        }),
-      );
-      m.position.y = i * 0.6;
-      m.position.x = Math.sin(i) * 0.25;
-      this.devil.add(m);
-    }
-    this.devil.scale.setScalar(2);
-    this.scene.add(this.devil);
-    void replaceVisual(this.devil, "Dust_Devil", { height: 6, batch: true });
     this.renderer.domElement.addEventListener("pointermove", (event) => {
       this.pointer.set(
         (event.clientX / innerWidth) * 2 - 1,
@@ -391,6 +369,7 @@ export class World {
   }
   remove(id: string, obj: THREE.Object3D) {
     obj.userData.marsDisposed = true;
+    this.terrain.removeStatic(obj);
     this.scene.remove(obj);
     this.labels.get(id)?.el.remove();
     this.labels.delete(id);
@@ -711,12 +690,6 @@ export class World {
         o.userData.born = this.motion.time;
         this.buildings.set(k, o);
       }
-    this.devil.position.set(
-      s.devil.x,
-      this.terrain.heightAt(s.devil.x, s.devil.z),
-      s.devil.z,
-    );
-    this.devil.rotation.y = s.elapsed * 1.5;
     for (const [k, o] of this.buildings) {
       if (k === "hab") continue;
       if (k === "radio")
@@ -913,8 +886,14 @@ export class World {
     const impact = s.event?.kind === "storm" ? s.clock - s.event.at - B.stormWarningSeconds : -1;
     const burst = !this.menu && s.phase === "day" && impact >= 0 && impact < 7
       ? Math.min(1, (impact + 0.1) * 4, (7 - impact) / 2) : 0;
-    this.screenDust.update(s.clock, burst, this.motion.reduced);
+    const vortexExposure = !this.menu && !s.players[id]?.hab && s.phase === "day"
+      ? vortexField(s.players[id]?.x ?? 0,s.players[id]?.z ?? 0,s.devil).strength : 0;
+    this.screenDust.update(s.clock, Math.max(burst,vortexExposure*.7), this.motion.reduced);
+    this.tracks.erode(s.devil, dt);
     this.tracks.update(s.elapsed);
+    // Animate the dust on the render clock rather than the 10 Hz network clock.
+    this.dustDevil.update(s.devil,this.motion.time,this.terrain,this.camera,this.motion.reduced,!this.menu && s.phase === "day");
+
     // A shallow weather volume follows the local terrain height. It stays out of
     // collision and shared simulation; the same storm event drives every client.
     const weatherOrigin = this.actors.get(id)?.position || this.camera.position;
@@ -929,8 +908,8 @@ export class World {
       this.motion.reduced,
     );
     const fog = this.scene.fog as THREE.Fog;
-    fog.near = THREE.MathUtils.lerp(THREE.MathUtils.lerp(110, 18, weather), 7, burst);
-    fog.far = THREE.MathUtils.lerp(THREE.MathUtils.lerp(620, 145, weather), 32, burst);
+    fog.near = THREE.MathUtils.lerp(THREE.MathUtils.lerp(110, 18, weather), 5, Math.max(burst,vortexExposure));
+    fog.far = THREE.MathUtils.lerp(THREE.MathUtils.lerp(620, 145, weather), 35, Math.max(burst,vortexExposure));
     this.renderer.render(this.scene, this.camera);
     this.frameMs = performance.now() - renderBegin;
     this.fps = this.fps * 0.95 + 0.05 / Math.max(0.001, dt);

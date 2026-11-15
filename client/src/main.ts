@@ -1971,12 +1971,12 @@ function update(dt: number, render = true) {
         const canDrive = canMove && world.terrain.ready;
         const key = `${game.seed}/${rover.driver}`;
         if (roverDriverKey !== key || Math.hypot(roverController.x-rover.x,roverController.z-rover.z)>6) {
-          roverController.reset(rover, (x,z) => world.terrain.heightAt(x,z));
+          roverController.reset(rover, (x,z) => world.terrain.groundAt(x,z));
           roverDriverKey = key;
         }
         if (!canDrive) roverController.speed = 0;
         roverController.update(dt, { throttle: canDrive ? -z : 0, steer: canDrive ? x : 0, brake: !canDrive || keys.has(" ") || roverBrake },
-          (x,z,y) => world.terrain.heightAt(x,z,y),
+          (x,z,y) => world.terrain.groundAt(x,z,y),
           (x,z,y) => world.terrain.collides(x,z,y,.6,ROVER.height,.65) || Object.values(game.players).some((p) => !p.hab && roverSeat(rover,p.id)<0 && Math.hypot(p.x-x,p.z-z)<1.7),
         );
         if (game.phase === "day" && (!connection || game.elapsed-inputAt>.05)) {
@@ -2187,7 +2187,7 @@ window.render_game_to_text = () =>
     seconds: Math.round(game.clock),
     player: game.players[id],
     hab: { inside: !!game.players[id].hab, position: game.players[id].hab, berth: game.players[id].habBerth, room: game.players[id].hab && habRoom(game.players[id].hab!), model: world.habInterior.status },
-    rover: { ...roverState(game), seat: roverSeat(roverState(game),id), model: world.rover.status, local: world.localRover && { x: roverController.x, z: roverController.z, speed: roverController.speed } },
+    rover: { ...roverState(game), seat: roverSeat(roverState(game),id), model: world.rover.status, local: world.localRover && { x: roverController.x, z: roverController.z, speed: roverController.speed, y: roverController.y, vy: roverController.vy, grounded: roverController.grounded, recoveries: roverController.recoveries, impact: roverController.impact } },
     crew: Object.values(game.players).map((p) => ({
       id: p.id,
       name: p.name,
@@ -2229,6 +2229,7 @@ window.render_game_to_text = () =>
       loops: Array.from(sfx.loops.keys()),
     },
     motion: {
+      dustDevil: world.dustDevil.state,
       storm: world.motion.storm,
       sandstorm: {
         status: world.motion.sandstorm.status,
@@ -2268,6 +2269,8 @@ if (import.meta.env.DEV)
     pendingScan = null;
     pendingBuild = null;
     world.lastSeed = -1;
+    world.local = null;world.localRover = null;world.cameraFollow = null;
+    controllerSeed = -1;roverDriverKey = "";
     world.motion.storm = 0;
     world.motion.lastDose = 0;
     world.motion.particles.life.fill(0);
@@ -2478,6 +2481,20 @@ if (import.meta.env.DEV)
       Object.assign(roverState(game), { x: center.x + 2, z: center.z });
       game.devil = center;
     }
+    if (name === "devil-overview") {
+      const center = {x:18*B.layoutScale,z:0};
+      Object.assign(game.players[id],{x:center.x,z:24});
+      Object.assign(roverState(game),{x:center.x+8,z:9});
+      game.devil=center;world.yaw=0;world.pitch=.55;world.zoom=24;
+    }
+    if (name === "rover-recovery") {
+      const r=roverState(game);
+      Object.assign(game.players[id],{x:r.x+3,z:r.z});
+      dispatch(game,id,{type:"boardRover"});
+      Object.assign(r,{x:0,z:-17,heading:-Math.PI/2,gust:{vx:4,vz:0,height:3,vy:0}});
+      Object.assign(game.players[id],{x:r.x,z:r.z});
+      world.yaw=-1;world.pitch=.5;world.zoom=22;
+    }
     if (name === "flare") {
       game.sol = 3;
       game.phase = "power";
@@ -2536,6 +2553,8 @@ if (import.meta.env.DEV) {
       "storm",
       "storm-impact",
       "devil",
+      "devil-overview",
+      "rover-recovery",
     ].includes(scene || "")
   )
     window.__stageScene?.(scene!);

@@ -195,8 +195,11 @@ describe("shared rover authority and lifecycle", () => {
       heading: 0,
       speed: 5,
     });
-    expect(r.speed).toBe(0);
-    expect(r.x).toBeLessThan(WORLD.x + WORLD.r - 5);
+    for (const dx of [-ROVER.halfWidth, ROVER.halfWidth])
+      for (const dz of [-ROVER.halfLength, ROVER.halfLength]) {
+        const p = {x:r.x+dx,z:r.z+dz};
+        expect(Math.hypot(p.x-WORLD.x,p.z-WORLD.z)).toBeLessThan(WORLD.r);
+      }
   });
 });
 
@@ -224,7 +227,7 @@ describe("rover terrain controller", () => {
     expect(c.speed).toBeCloseTo(ROVER.maxSpeed, 1);
     expect(c.speed).toBeGreaterThan(gaitSpeed("sprint", false));
     const z = c.z;
-    drive(c, 1.2, { throttle: 1, steer: 0, brake: true });
+    drive(c, 3.3, { throttle: 1, steer: 0, brake: true });
     expect(c.speed).toBe(0);
     expect(c.z).toBeLessThan(z);
     drive(c, 2, { throttle: -1, steer: 0, brake: false });
@@ -252,10 +255,12 @@ describe("rover terrain controller", () => {
     expect(c.z).toBeGreaterThan(ROVER.spawn.z - 4.4);
     expect(c.speed).toBe(0);
   });
-  it("rejects a cliff drop and steep terrain but follows a gentle slope", () => {
+  it("falls off ledges under gravity, rejects steep uphill terrain and follows gentle slopes", () => {
     const cliff = controller();
     drive(cliff, 3, undefined, (_x, z) => (z < ROVER.spawn.z - 6 ? -8 : 0));
-    expect(cliff.z).toBeGreaterThan(ROVER.spawn.z - 4);
+    expect(cliff.z).toBeLessThan(ROVER.spawn.z - 6);
+    expect(cliff.y).toBeLessThan(0);
+    expect(cliff.y).toBeGreaterThanOrEqual(-8);
     const gentle = controller();
     const slope = (_x: number, z: number) => (ROVER.spawn.z - z) * 0.12;
     gentle.reset(createRover(), slope);
