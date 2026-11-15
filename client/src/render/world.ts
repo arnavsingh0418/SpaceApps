@@ -629,6 +629,8 @@ export class World {
     for (const p of s.panels) {
       let o = this.panels.get(p.id);
       if (!o) {
+        // A saved field array needs the loaded terrain height on its first frame.
+        if (!this.terrain.ready) continue;
         o = panel(p.x, p.z, 0, 0);
         o.position.y = this.terrain.heightAt(p.x, p.z);
         this.terrain.addStatic(o!);
