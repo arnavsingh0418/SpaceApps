@@ -24,10 +24,10 @@ export function alienScreen(s: Game, id: string, line?: AlienLine) {
   const q = alienProgress(s),
     ready = alienSupplied(s) && q.brushed;
   const clip = line || alienLine(s);
-  return `<div class="alien-contact"><header><span class="contact-live">● LOCAL CONTACT</span><small>FICTIONAL CHARACTER · REAL SCIENCE</small></header><div class="alien-intro">${alienPortrait()}<div><small>FIELD FRIEND / 01</small><h2>Nemi needs a hand.</h2><p>Restore the water loop.<br>Earn your ship's navigation core.</p></div></div><div class="alien-dialogue"><span>NEMI</span><p id="alien-subtitle">${escape(alienLines[clip])}</p><button class="voice-replay" data-do="alienSpeak" data-line="${clip}">▶ Listen again</button><small id="alien-voice-status" role="status">Subtitles on</small></div>
+  return `<div class="alien-contact"><header><span class="contact-live">● LOCAL CONTACT</span><small>FICTIONAL CHARACTER · REAL SCIENCE</small></header><div class="alien-intro">${alienPortrait()}<div><small>FIELD FRIEND / 01</small><h2>Nemi needs a hand.</h2><p>Restore the water loop.<br>Unlock the crew rover.</p></div></div><div class="alien-dialogue"><span>NEMI</span><p id="alien-subtitle">${escape(alienLines[clip])}</p><button class="voice-replay" data-do="alienSpeak" data-line="${clip}">▶ Listen again</button><small id="alien-voice-status" role="status">Subtitles on</small></div>
     ${
       q.completed
-        ? `${partReward("nav", "Prototype", "A PROMISE KEPT")}<div class="alien-success">✓ Water flowing · collector online</div>${Button("PIN RETURN SHIP ↗", "trackSalvage", 'data-site="return"')}`
+        ? `${partReward("nav", "Prototype", "BONUS SHIP PART")}<div class="alien-success">✓ Water flowing · Wayfarer rover unlocked nearby</div>${Button("PIN RETURN SHIP ↗", "trackSalvage", 'data-site="return"')}`
         : !q.accepted
           ? `<div class="alien-offer"><span>YOUR CREW BRINGS</span><b>❄️ 3 ice · 🪟 2 clear panels · 🔩 2 scrap</b><p>Anyone can deliver. Solo explorers can do it too.</p></div>${Button("WE'LL HELP YOU", "acceptAlien")}`
           : `<section class="alien-manifest"><div class="manifest-heading"><h3>One repair. Whole crew.</h3><span>${Object.keys(q.contributions).length} helpers</span></div>${Object.entries(

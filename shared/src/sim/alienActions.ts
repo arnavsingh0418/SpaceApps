@@ -1,11 +1,13 @@
 import { B, distance, log, type Action, type Game, type Item } from "./index";
 import {
   alienNeeds,
+  alienRoverSite,
   alienProgress,
   alienSite,
   alienSupplied,
   type AlienSupply,
 } from "../alien";
+import { roverState } from "../rover";
 import { recoverPart } from "../shipRewards";
 import { awardPoints, returnProgress } from "../returnMission";
 
@@ -20,7 +22,7 @@ export function alienAction(
     return "Move closer to Nemi's refuge.";
   const q = (s.alienQuest ??= alienProgress(s));
   if (q.completed)
-    return "Nemi's water loop is already repaired. Your crew has the core.";
+    return "Nemi's water loop is already repaired. Your crew has its rewards.";
   if (a.type === "acceptAlien") {
     q.accepted = true;
     return;
@@ -77,13 +79,15 @@ export function alienAction(
       return "Melted ice can still contain contaminants. Treat it, then test it before use.";
     q.completed = true;
     q.completedAt = s.elapsed;
+    const rover = roverState(s);
+    if (rover.locked) Object.assign(rover, alienRoverSite, { locked: false });
     recoverPart(s, "nav", "Prototype");
     const progress = (s.returnMission ??= returnProgress(s));
     for (const helper of Object.keys(q.contributions))
       awardPoints(progress, helper, 150);
     log(
       s,
-      "NEMI: Water loop restored! Prototype navigation core recovered for the whole crew.",
+      "NEMI: Water loop restored! Wayfarer rover unlocked. The crew also receives a navigation core.",
     );
   }
 }

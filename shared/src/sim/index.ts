@@ -15,6 +15,7 @@ import { returnAction, scoreLesson, updateFlight } from "./returnActions";
 import { type AlienProgress } from "../alien";
 import { alienAction } from "./alienActions";
 import { fieldPartRewards, recoverPart } from "../shipRewards";
+import { solarRewardSite } from "../expedition";
 import { deckSpawn, flightAction, tickDeckFlight } from "../flight";
 import { movePastPlayers } from "../playerCollision";
 import { blowDustDevil, type Gust } from "../dustDevil";
@@ -201,7 +202,7 @@ function spawn(s: Game, kind: Item, count: number, x: number, z: number) {
 }
 export function createGame(seed = 42): Game {
   const s: Game = {
-    rover: createRover(),
+    rover: { ...createRover(), locked: true },
     seed,
     rng: seed >>> 0,
     sol: 1,
@@ -579,17 +580,18 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (a.answer !== m.correct)
       return fail("Recheck the evidence. " + m.explanation);
     f.completed.push(m.id);
+    if (m.id === "solar-test") {
+      s.panels.push({ id: "panel-field-reward", ...solarRewardSite, clean: 1, covered: false });
+      s.power = budget(s);
+      log(s, "Solar array online. It powers the habitat and charges the return ship.");
+    }
     const partReward = fieldPartRewards[m.id];
     if (partReward) recoverPart(s, partReward.part, partReward.rarity);
     scoreLesson(s, id, "field", m.id);
-    for (const [kind, count] of Object.entries(m.reward))
-      spawn(
-        s,
-        kind as Item,
-        count,
-        missionSector(m).x + 3,
-        missionSector(m).z + 2,
-      );
+    const site = missionSector(m);
+    Object.entries(m.reward).forEach(([kind, count], index) => {
+      spawn(s, kind as Item, count, site.x + 3, site.z + 2 + index * 2);
+    });
     log(s, `FIELD JOURNAL: ${m.title}. ${m.debrief}`);
     return;
   }
@@ -768,8 +770,8 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       const index = s.panels.length;
       s.panels.push({
         id: `panel-built-${++s.serial}`,
-        x: (index % 5 - 2) * 7,
-        z: 29 + Math.floor(index / 5) * 6,
+        x: solarRewardSite.x + 7 + (index % 5) * 7,
+        z: solarRewardSite.z + Math.floor(index / 5) * 6,
         clean: 1,
         covered: false,
       });
@@ -858,7 +860,7 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
     z: 16 * L * Math.sin(s.elapsed * 0.045),
   };
   const rover = s.rover;
-  if (rover) {
+  if (rover && !rover.locked) {
     const wasBlown = !!rover.gust;
     blowDustDevil(rover, s.devil, s.elapsed, dt, true, (_from,to,gust) =>
       resolveRoverSurface({...to,heading:rover.heading},gust));

@@ -46,6 +46,7 @@ it("keeps rover occupants with a thrown rover and rejects position overwrites du
     value: { air: 4, light: 3, radio: 0, heat: 1 },
   });
   const rover = roverState(game);
+  rover.locked = false;
   rover.x = 18 * B.layoutScale;
   rover.z = 0;
   rover.driver = "driver";

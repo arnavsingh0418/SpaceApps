@@ -427,6 +427,7 @@ export class World {
     const rover = roverState(s);
     this.rover.update(rover, this.terrain, dt, rover.driver === id ? this.localRover : null);
     const vehicle = this.rover.group;
+    vehicle.visible = !rover.locked;
     this.tracks.trace("rover", vehicle.position.x, vehicle.position.y, vehicle.position.z,
       vehicle.rotation.y, !this.menu && s.phase === "day" && !rover.gust, this.terrain, s.elapsed, true);
     const aboard = roverSeat(rover, id) >= 0;
@@ -833,7 +834,7 @@ export class World {
     );
     const labelRay = new THREE.Vector3();
     for (const [key, l] of this.labels) {
-      if (s.players[key]?.hab || roverSeat(rover, key) >= 0 || (key === "rover" && aboard)) l.el.hidden = true;
+      if (s.players[key]?.hab || roverSeat(rover, key) >= 0 || (key === "rover" && (aboard || rover.locked))) l.el.hidden = true;
       if (!l.el.hidden && (key.startsWith("field-") || key.startsWith("salvage-") || (key !== "workbench" && Object.hasOwn(stations, key)))) {
         labelRay.copy(l.obj.position).sub(this.camera.position);
         labelRay.y += l.height;

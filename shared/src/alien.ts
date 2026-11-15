@@ -1,6 +1,7 @@
 import type { Bag, Game, Item } from "./sim";
 
-export const alienSite = { id: "nemi", name: "Nemi's refuge", x: -34, z: -8 };
+export const alienSite = { id: "nemi", name: "Nemi's refuge", x: -52, z: 12 };
+export const alienRoverSite = { x: -45, z: 12 };
 export const alienNeeds = { ice: 3, glass: 2, scrap: 2 } as const;
 export type AlienSupply = keyof typeof alienNeeds;
 export type AlienProgress = {
@@ -26,7 +27,7 @@ export const alienSupplied = (s: Game) =>
 
 export const alienLines = {
   hello:
-    "Hello, explorers! I am Nemi. Dust has dimmed my collector, and my water loop has stopped. Help me fix it, and this navigation core is yours.",
+    "Hello, explorers! I am Nemi. Dust has dimmed my collector, and my water loop has stopped. Help me fix it, and you can take my rover.",
   accepted:
     "A team! Wonderful. Bring three ice, two clear panels, and two scrap. Each of you can carry a different supply. Then brush my collector clean.",
   delivery:
@@ -36,7 +37,7 @@ export const alienLines = {
   ready:
     "Everything is ready. Before we restart, choose the safe water procedure. Use the evidence, not a guess.",
   complete:
-    "It works! Water is flowing again. Take this prototype navigation core. You helped my home. Now let us get your crew home too.",
+    "It works! Water is flowing again. The Wayfarer rover is yours. I added a prototype navigation core for your ship, too. You helped my home. Now let us get your crew home too.",
   wrong:
     "Not quite. Clear water can still contain contaminants. Treatment and testing come before use. Try again, explorers.",
 } as const;

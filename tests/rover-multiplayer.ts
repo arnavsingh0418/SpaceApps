@@ -1,44 +1,6 @@
 import assert from "node:assert/strict";
-import { WebSocket } from "ws";
-import type { Game } from "../shared/src/sim";
-import { roverState, roverExits, ROVER } from "../shared/src/rover";
-class Client {
-  ws = new WebSocket(process.env.TEST_SERVER || "ws://localhost:2567");
-  id = "";
-  room = "";
-  state: Game | null = null;
-  error = "";
-  constructor() {
-    this.ws.on("message", (b) => {
-      const m = JSON.parse(b.toString());
-      if (m.type === "welcome") {
-        this.id = m.id;
-        this.room = m.room;
-      }
-      if (m.type === "state") this.state = m.state;
-      if (m.type === "error") this.error = m.message;
-    });
-  }
-  ready() {
-    return new Promise<void>((resolve, reject) => {
-      this.ws.once("open", resolve);
-      this.ws.once("error", reject);
-    });
-  }
-  send(m: object) {
-    this.ws.send(JSON.stringify(m));
-  }
-  action(a: object) {
-    this.send({ type: "action", action: a });
-  }
-  async until(condition: () => boolean, label: string) {
-    const end = Date.now() + 9000;
-    while (!condition()) {
-      if (Date.now() > end) throw Error(`Timed out: ${label} ${this.error}`);
-      await new Promise((r) => setTimeout(r, 30));
-    }
-  }
-}
+import { roverState, roverExits } from "../shared/src/rover";
+import { Client, unlockCrewRover } from "./alien-crew-fixture";
 const clients: Client[] = [];
 try {
   const a = new Client();
@@ -53,27 +15,10 @@ try {
   await b.until(() => !!b.id && !!b.state, "join");
   a.action({ type: "power", value: { air: 4, light: 3, radio: 0, heat: 1 } });
   await b.until(() => b.state?.phase === "day", "explore");
-  await Promise.all(
-    [a, b].map(async (c, index) => {
-      // Approach separate boarding positions so the newly added crew collision
-      // does not let the first arrival physically block the second explorer.
-      const target = { x: ROVER.spawn.x + (index === 0 ? -3 : 3), z: ROVER.spawn.z };
-      const p = c.state!.players[c.id],
-        dx = target.x - p.x,
-        dz = target.z - p.z,
-        d = Math.hypot(dx, dz);
-      c.action({ type: "move", x: dx / d, z: dz / d });
-      await c.until(
-        () =>
-          Math.hypot(
-            c.state!.players[c.id].x - target.x,
-            c.state!.players[c.id].z - target.z,
-          ) < .8,
-        "walk to rover",
-      );
-      c.action({ type: "move", x: 0, z: 0 });
-    }),
-  );
+  await unlockCrewRover(a, b);
+  const parkedRover = roverState(a.state!);
+  await a.walk(parkedRover.x - 3, parkedRover.z);
+  await b.walk(parkedRover.x + 3, parkedRover.z);
   a.action({ type: "boardRover" });
   b.action({ type: "boardRover" });
   await a.until(

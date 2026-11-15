@@ -15,6 +15,7 @@ export const ROVER = {
 };
 export type RoverState = {
   gust?: Gust;
+  locked?: boolean;
   x: number;
   z: number;
   heading: number;
@@ -51,11 +52,12 @@ export function roverPoint(
   return { x: r.x + x * c + z * s, z: r.z - x * s + z * c };
 }
 export function roverBlocks(
-  r: { x: number; z: number; heading: number },
+  r: { x: number; z: number; heading: number; locked?: boolean },
   x: number,
   z: number,
   radius = 0.6,
 ) {
+  if (r.locked) return false;
   const dx = x - r.x,
     dz = z - r.z,
     c = Math.cos(r.heading),
@@ -87,6 +89,7 @@ export function roverAction(
 ): string | undefined {
   const r = roverState(s),
     p = s.players[id];
+  if (r.locked) return "Repair Nemi’s water loop to unlock the rover.";
   if (s.phase !== "day") return "Use the rover during exploration.";
   const seat = roverSeat(r, id);
   if (a.type === "boardRover") {

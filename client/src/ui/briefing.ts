@@ -3,11 +3,10 @@ import { Button, KeyChip } from "./components";
 export function missionBriefing() {
   return `<div class="mission-brief"><section class="mission-brief-card" role="dialog" aria-modal="true" aria-labelledby="brief-title" tabindex="-1">
     <small>SUIT SEALED · CREW SAFE · SOL 01</small><h2 id="brief-title">Rebuild the ship. Get home.</h2>
-    <p>Vega's crew survived the crash. A separate return ship was delivered before the crew arrived, but four of its systems need replacements. Recover the parts and launch for Earth before the end of Sol 15.</p>
+    <p>Recover four ship parts before Sol 15 ends. Follow the gold marker to get started, then open the map for field tasks and salvage.</p>
     <div class="brief-cards"><article><span>01 ↗</span><h3>Recover & learn</h3><p>Follow the gold marker to supplies. Cyan beacons teach the science that unlocks building recipes.</p></article><article><span>02 ⌂</span><h3>Build your base</h3><p>Bring supplies to the habitat's workbench. Make a greenhouse, radiation shelter, and radio.</p></article><article><span>03 ☀</span><h3>Keep everyone safe</h3><p>Share electricity between air, plants, heat, and radio. Protect the crew when storms and flares arrive.</p></article></div>
     <div class="brief-keyline"><span>${KeyChip("WASD")} / arrows: walk</span><span>${KeyChip("E")} use nearby objects</span><span>${KeyChip("Q")} map</span><span>${KeyChip("Esc")} pause & guide</span><span>Touch: joystick + E button</span></div>
-    <p>Open the map (Q) to pin the flight recorder or a salvage cache. Investigations and timed quizzes can earn ship parts. Help Nemi repair a water loop to earn a prototype navigation core.</p>
-    <p>Backup power keeps the habitat running. Scan the solar science beacon, then build panels at the workbench to get more power and charge the return ship. Your first power plan is on Sol 2.</p>
+    <p>Restore the array at Sunward Flats to power the habitat and charge the return ship.</p>
     <div class="brief-actions"><small>Mission paused until you're ready. A sol is one Mars day.</small>${Button("LET'S EXPLORE ↗", "beginExplore")}</div>
   </section></div>`;
 }

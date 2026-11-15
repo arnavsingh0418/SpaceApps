@@ -1,5 +1,7 @@
 import type { Bag, Game } from "./sim";
 
+export const solarRewardSite = { x: -82, z: 89 };
+
 export const sectors = [
   {
     id: "landing",

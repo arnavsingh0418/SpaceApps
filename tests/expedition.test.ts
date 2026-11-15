@@ -112,6 +112,7 @@ describe("field expedition", () => {
         m.tool === "tune" ? [m.target!] : m.order || m.samples.map((_, i) => i);
       for (const value of values)
         expect(observe(s, m.id, value), m.id).toBeUndefined();
+      const itemIds = new Set(s.items.map((item) => item.id));
       expect(
         dispatch(s, "a", {
           type: "fieldAnswer",
@@ -120,9 +121,16 @@ describe("field expedition", () => {
         }),
         m.id,
       ).toBeUndefined();
+      const rewards = Object.fromEntries(s.items.filter((item) => !itemIds.has(item.id)).map(({kind, count}) => [kind, count]));
+      expect(rewards, m.id).toEqual(m.reward);
+      const itemCount = s.items.length;
+      dispatch(s, "a", { type: "fieldAnswer", mission: m.id, answer: m.correct });
+      expect(s.items).toHaveLength(itemCount);
       s = JSON.parse(JSON.stringify(s));
     }
     expect(fieldProgress(s).completed).toHaveLength(12);
+    expect(s.panels.filter((panel) => panel.id === "panel-field-reward")).toHaveLength(1);
+    expect(s.returnMission?.recovered).toEqual({booster:"Standard", air:"Rare", hull:"Rare", nav:"Rare"});
     expect(nextFieldMission(s)).toBeUndefined();
     expect(s.messages.at(-1)).toContain("EXPEDITION COMPLETE");
   });
@@ -147,7 +155,7 @@ describe("field expedition", () => {
     expect(html).toContain('data-do="trackMission"');
     expect(html).toContain("bearing, not a safe walking route");
     expect(miniMap(s, "a", "", "")).toContain(
-      'aria-label="Expand expedition map"',
+      'aria-label="Open map and mission details"',
     );
     expect(fieldStation(s, fieldMissions[0])).not.toContain(
       'data-do="fieldAnswer"',

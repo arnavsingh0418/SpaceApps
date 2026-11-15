@@ -84,9 +84,9 @@ function mapSurface(
         return `<span class="salvage-pin ${salvage[site.id]?.reward ? "recovered" : ""}" style="left:${point.x}%;top:${point.y}%" title="${e(partNames[site.part])} salvage">${salvage[site.id]?.reward ? "✓" : "✦"}</span>`;
       })
       .join("")}
-    <span class="salvage-pin nemi-pin" style="left:${nemi.x}%;top:${nemi.y}%" title="Nemi · navigation core">${alienProgress(s).completed ? "✓" : "✧"}</span><span class="salvage-pin launch-pin" style="left:${launch.x}%;top:${launch.y}%" title="Return vehicle">↑</span>
+    <span class="salvage-pin nemi-pin" style="left:${nemi.x}%;top:${nemi.y}%" title="Nemi · rover unlock">${alienProgress(s).completed ? "✓" : "✧"}</span><span class="salvage-pin launch-pin" style="left:${launch.x}%;top:${launch.y}%" title="Return vehicle">↑</span>
     <span class="base-pin" style="left:${base.x}%;top:${base.y}%" title="Habitat / workbench">⌂</span>
-    <span class="rover-pin" style="left:${roverPin.x}%;top:${roverPin.y}%" title="Wayfarer rover" aria-label="Rover position">▰</span>
+    ${rover.locked ? "" : `<span class="rover-pin" style="left:${roverPin.x}%;top:${roverPin.y}%" title="Wayfarer rover" aria-label="Rover position">▰</span>`}
     <span class="crew-pin" style="left:${p.x}%;top:${p.y}%" aria-label="Your position">▲</span>
     <span class="map-scale" style="width:${(100 / (WORLD.r * 2)) * 100}%"><i></i>100 m</span><span class="map-caption">TRAINING REGION · NOT A REAL GALE SURVEY</span>
   </div>`;
@@ -94,14 +94,12 @@ function mapSurface(
 export function miniMap(
   s: Game,
   id: string,
-  image: string,
   tracked: string,
   trackedSalvage = "",
 ) {
   const next = tracked ? nextFieldMission(s, tracked) : undefined,
-    target = next ? missionSector(next) : shipTarget(s, id, trackedSalvage),
-    done = fieldProgress(s).completed.length;
-  return `<aside class="minimap-panel" data-hud="map" aria-label="Expedition minimap"><button class="minimap-open" data-do="map" aria-label="Expand expedition map"><header><span>◈ FIELD NAV</span><span>Q · EXPAND ↗</span></header>${mapSurface(s, id, image, tracked, true, trackedSalvage)}</button><div class="minimap-footer"><span>${done} / ${fieldMissions.length} INVESTIGATIONS</span><i>${Math.round(distance(s.players[id], target))} m</i></div></aside>`;
+    target = next ? missionSector(next) : shipTarget(s, id, trackedSalvage);
+  return `<aside class="minimap-panel nav-shortcut" data-hud="map" aria-label="Navigation"><button class="minimap-open" data-do="map" aria-label="Open map and mission details"><span>Map <kbd>Q</kbd></span><small>${Math.round(distance(s.players[id], target))} m ↗</small></button></aside>`;
 }
 export function missionTracker(
   s: Game,
@@ -138,12 +136,12 @@ export function expeditionMap(
   const progress = fieldProgress(s),
     done = progress.completed.includes(m.id),
     available = missionAvailable(s, m);
-  return `<div class="expedition-map"><div class="map-overview"><div class="map-kicker"><span>GALE / TRAINING REGION</span><b>${progress.completed.length}<small> / 12 FIELD MISSIONS</small></b></div>${mapSurface(s, id, image, tracked, false, trackedSalvage)}<div class="expedition-legend"><span><i class="gold"></i> Pinned mission</span><span><i class="cyan"></i> Available</span><span>✓ Complete</span><span>✦ Salvage · ↑ Return ship</span><span>▲ You · ⌂ Base · ▰ Rover</span></div><div class="salvage-roster"><b>SHIP REPAIRS</b><button data-do="trackSalvage" data-site="nemi"><span>✧ Nemi’s refuge</span><small>${alienProgress(s).completed ? "✓ Water loop repaired" : "Team delivery · Prototype navigation"}</small></button>${salvageSites.map((site) => `<button data-do="trackSalvage" data-site="${site.id}" ${returnProgress(s).caches[site.id]?.reward ? "disabled" : ""}><span>${e(site.name)}</span><small>${returnProgress(s).caches[site.id]?.reward ?? "✦"} · ${partNames[site.part]}</small></button>`).join("")}<button data-do="trackSalvage" data-site="return"><span>↑ Return vehicle</span><small>Return platform</small></button></div><p class="map-note">North-up · distances in game metres. Dotted line is a bearing, not a safe walking route. Go around cliffs and rocks. ${s.phase === "day" ? "Solo exploration pauses while this map is open." : "Plan your next excursion."}</p></div>
+  return `<div class="expedition-map"><div class="map-overview"><div class="map-kicker"><span>GALE / TRAINING REGION</span><b>${progress.completed.length}<small> / 12 FIELD MISSIONS</small></b></div>${mapSurface(s, id, image, tracked, false, trackedSalvage)}<div class="expedition-legend"><span><i class="gold"></i> Pinned mission</span><span><i class="cyan"></i> Available</span><span>✓ Complete</span><span>✦ Salvage · ↑ Return ship</span><span>▲ You · ⌂ Base · ▰ Rover</span></div><div class="salvage-roster"><b>SHIP REPAIRS</b><button data-do="trackSalvage" data-site="nemi"><span>✧ Nemi’s refuge</span><small>${alienProgress(s).completed ? "✓ Water loop repaired" : "Team delivery · Rover unlock"}</small></button>${salvageSites.map((site) => `<button data-do="trackSalvage" data-site="${site.id}" ${returnProgress(s).caches[site.id]?.reward ? "disabled" : ""}><span>${e(site.name)}</span><small>${returnProgress(s).caches[site.id]?.reward ?? "✦"} · ${partNames[site.part]}</small></button>`).join("")}<button data-do="trackSalvage" data-site="return"><span>↑ Return vehicle</span><small>Return platform</small></button></div><p class="map-note">North-up · distances in game metres. Dotted line is a bearing, not a safe walking route. Go around cliffs and rocks. ${s.phase === "day" ? "Solo exploration pauses while this map is open." : "Plan your next excursion."}</p></div>
     <div class="mission-dossier"><small>ACT ${m.act} / ${actNames[m.act].toUpperCase()}</small><h3>${e(m.title)}</h3><div class="dossier-place">${e(missionSector(m).name)} · ${Math.round(distance(s.players[id], missionSector(m)))} m</div><p>${e(done ? m.debrief : m.brief)}</p>
     ${
       done
         ? `<div class="journal-note"><b>YOUR SCIENCE NOTE</b><p>${e(m.explanation)}</p><a href="${m.source}" target="_blank" rel="noopener noreferrer">${m.sourceName} ↗</a></div>`
-        : `<div class="mission-steps"><span>01 · Travel to the field terminal</span><span>02 · ${m.tool === "scan" ? "Inspect all readings" : m.tool === "tune" ? "Tune the instrument" : "Arrange the procedure"}</span><span>03 · Explain what the evidence means</span></div><div class="mission-reward">SUPPLY CACHE <b>${rewardText(m)}</b></div>${
+        : `<div class="mission-steps"><span>01 · Travel to the field terminal</span><span>02 · ${m.tool === "scan" ? "Inspect all readings" : m.tool === "tune" ? "Tune the instrument" : "Arrange the procedure"}</span><span>03 · Explain what the evidence means</span></div><div class="mission-reward">Rewards <b>${rewardText(m)}${m.id === "solar-test" ? " · Working solar array" : ""}</b></div>${
             available
               ? `<button class="button" data-do="trackMission" data-mission="${m.id}">${tracked === m.id ? "FOLLOW PINNED MISSION ↗" : "PIN MISSION & EXPLORE ↗"}</button>`
               : `<p class="mission-locked">Complete first: ${m.requires

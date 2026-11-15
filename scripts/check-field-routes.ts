@@ -4,8 +4,8 @@ import * as T from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { Terrain, SPAWN_BLENDER } from "../client/src/render/terrain";
-import { sectors } from "../shared/src/expedition";
-import { alienSite } from "../shared/src/alien";
+import { sectors, solarRewardSite } from "../shared/src/expedition";
+import { alienSite, alienRoverSite } from "../shared/src/alien";
 import { launchSite, salvageSites } from "../shared/src/returnMission";
 const loader = new GLTFLoader();
 loader.setMeshoptDecoder(MeshoptDecoder);
@@ -79,6 +79,8 @@ let failed = false;
 for (const s of [
   ...sectors,
   alienSite,
+  { ...alienRoverSite, name: "Wayfarer rover" },
+  { ...solarRewardSite, name: "Sunward solar array" },
   ...salvageSites.map((site) => ({ ...site, name: `${site.name} salvage` })),
   { ...launchSite, name: "Return vehicle" },
 ]) {

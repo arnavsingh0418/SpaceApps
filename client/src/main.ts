@@ -137,7 +137,6 @@ let tutorial = 4,
   sourceIndex = 0,
   unread = 0,
   lastMessages = 0,
-  controlsUntil = 60,
   pickupUntil = 0,
   previous = { power: B.batteryPower, air: 85, food: 95, dose: 0 },
   reportBefore = { ...previous },
@@ -874,7 +873,7 @@ function nearest(): Nearby | null {
   if (roverSeat(r, id) >= 0) return { type: "rover", target: "rover", pos: r, text: Math.abs(r.speed) > .5 ? "Brake before exiting" : "Exit rover" };
   const all: Nearby[] = [];
   if (distance(p,HAB_LAYOUT.exterior)<3.1) all.push({type:"habEnter",target:"hab",pos:HAB_LAYOUT.exterior,text:"Enter habitat airlock"});
-  if (distance(p, r) <= ROVER.boardRadius && Math.abs(r.speed) < .5)
+  if (!r.locked && distance(p, r) <= ROVER.boardRadius && Math.abs(r.speed) < .5)
     all.push({ type: "rover", target: "rover", pos: r, text: r.driver ? "Ride rover" : "Drive rover" });
   all.push({
     type: "alien",
@@ -1033,12 +1032,10 @@ function draw() {
     chat: chatOpen,
     tutorial,
     guide: !modal,
-    mapImage: world.mapImage,
     trackedMission,
     trackedSalvage,
     hint: "",
     prompt: !modal && game.phase === "day" ? n?.text || "" : "",
-    controls: game.clock < controlsUntil,
     unread,
     bounce: game.elapsed < pickupUntil,
     previous: game.elapsed < gaugeUntil ? gaugeFrom : current,
@@ -1067,7 +1064,7 @@ function draw() {
     game.rover && [game.rover.driver, game.rover.passengers, Math.round(game.rover.speed * 3.6), Math.round(game.rover.odometer)],
     game.messages,
     game.panels.map((p) => [p.covered, p.clean]),
-    { ...model, mapImage: !!model.mapImage },
+    model,
   ]);
   if (sig !== hudSignature && !document.activeElement?.matches("#ui select")) {
     const active = document.activeElement as HTMLElement | null;
@@ -1855,8 +1852,7 @@ let last = performance.now(),
   inputAt = 0,
   manualMode = false,
   controllerSeed = -1,
-  jumpTipShown = false,
-  lookTipShown = false;
+  jumpTipShown = false;
 const controller = new LocalController();
 const roverController = new RoverController();
 let roverDriverKey = "", wasRiding = false, roverBrake = false, wasInHab = false;
@@ -2051,14 +2047,6 @@ function update(dt: number, render = true) {
     wasInHab = !!me?.hab;
     world.lookAllowed = () =>
       started && !modal && !arrival && game.phase === "day";
-    if (started && !modal && !lookTipShown && game.phase === "day") {
-      lookTipShown = true;
-      toast(
-        innerWidth <= 760
-          ? "Drag open space to look; use the joystick to walk."
-          : "Click the game, then move mouse to look",
-      );
-    }
     fixed += dt;
     while (fixed >= 0.1) {
       if (!connection && !document.hidden) {
@@ -2306,6 +2294,7 @@ if (import.meta.env.DEV)
       value: startingAllocation,
     });
     phase = "day";
+    roverState(game).locked = false;
     function stagePanels(count: number) {
       const player = game.players[id];
       const position = { x: player.x, z: player.z };

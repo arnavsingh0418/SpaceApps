@@ -25,6 +25,7 @@ import { Terrain } from "../client/src/render/terrain";
 import { roverDashboard } from "../client/src/ui/rover";
 const setup = () => {
   const s = createGame(420);
+  roverState(s).locked = false;
   addPlayer(s, "a");
   addPlayer(s, "b");
   s.phase = "day";
