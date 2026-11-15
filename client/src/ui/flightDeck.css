@@ -634,15 +634,12 @@
 }
 .repair-instrument-head output, #repair-indicator { color: #f6ce93; }
 #repair-indicator.stable { color: #a7e7d6; }
-.diagnostic-console p { margin: 12px 0; }
-.diagnostic-options { display: grid; gap: 6px; }
-.diagnostic-options > .button {
-  margin: 0;
-  min-height: 38px;
-  text-align: left;
-  font-size: 13px;
-  background: #233d4b;
-  border: 1px solid #52707d;
+.diagnostic-console .quiz-prompt {
+  min-height: 90px;
+  padding-block: 12px;
+}
+.diagnostic-console .quiz-answer {
+  min-height: 52px;
 }
 .deck-wires {
   display: grid;

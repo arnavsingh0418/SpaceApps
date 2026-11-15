@@ -11,6 +11,7 @@ import {
 } from "../../../shared/src/flight";
 import { flightResearch } from "../../../shared/src/flightResearch";
 import { Button, escape } from "./components";
+import { quizQuestion } from "./quiz";
 import "./flightDeck.css";
 
 export function flightHUD(s: Game, id: string) {
@@ -74,7 +75,11 @@ export function repairPanel(f: FlightIncident, deck: DeckFlight) {
             <div class="repair-instrument"><div class="repair-instrument-head"><span>SHIELD SEGMENTS</span><output id="repair-indicator">0 / 4 ready</output></div><div class="deck-leaks">${directions.map((label, i) => `<button data-flight-patch="${i}" aria-pressed="false"><span>${label}</span><small>${f.research ? "Backup offline" : "Pressure leak"}</small></button>`).join("")}</div></div>`
           : `<p>Throttle the backup coolant loop into its operating band.</p><div class="coolant-flow"><div class="repair-instrument-head"><span>COOLANT FLOW</span><output id="coolant-value">70%</output></div><input id="coolant-flow" type="range" min="0" max="100" value="70" aria-label="Coolant flow percentage" aria-describedby="repair-indicator"><div class="coolant-scale"><span>0%</span><span>Backup band 30–40%</span><span>100%</span></div><output id="repair-indicator">Flow too high</output></div>`;
   const controls = quiz
-    ? `<section class="repair-instrument diagnostic-console"><div class="repair-instrument-head"><span>DIAGNOSTIC</span><span>CHECK REQUIRED</span></div><p>${escape(quiz.question)}</p><div class="diagnostic-options">${quiz.answers.map((answer, i) => Button(escape(answer), "answerFlightQuiz", `data-fault="${f.id}" data-answer="${i}"`, true)).join("")}</div></section><p class="flight-feedback" role="status"></p>`
+    ? `<section class="repair-instrument diagnostic-console">${quizQuestion(
+        quiz.question,
+        quiz.answers.map((text, index) => ({ text, index })),
+        { fault: f.id },
+      )}</section>`
     : `${puzzle}${Button("RETURN SYSTEM TO SERVICE", "finishFlightRepair", `data-fault="${f.id}" disabled`)}<p class="flight-feedback" role="status"></p>`;
   return `<small class="flight-task-eyebrow">${flightStations[f.kind].name.toUpperCase()} / CREW REPAIR</small><h3>${escape(f.title)}</h3><div class="repair-timing"><span id="repair-seconds">Work for at least 3 seconds</span><span id="fault-deadline"></span><span id="repair-arrival"></span></div><p class="flight-reading"><b id="flight-repair-reading">${flightRepairReading(f.kind, deck)}</b><small>Live game reading</small></p>${researchCard}${controls}`;
 }
