@@ -11,6 +11,7 @@ import {
   salvageSites,
 } from "../../../shared/src/returnMission";
 import { startingFlightPower, startingHull } from "../../../shared/src/flight";
+import { flightResearch } from "../../../shared/src/flightResearch";
 import { Button, escape } from "./components";
 import { countdown, quizQuestion } from "./quiz";
 import { partArt, partReward } from "./shipParts";
@@ -86,7 +87,11 @@ export function returnReport(s: Game, id: string) {
     .join("")}</div>`;
   if (flight?.deck) {
     const d = flight.deck;
-    return `${crew}<div class="return-result"><p>${escape(s.result)}</p><p><b>${d.repaired} systems repaired</b> · ${d.missed} escalations · guidance ${d.guidance.filter(Boolean).length}/2</p><p>Hull ${Math.round(d.hull)}% · Oxygen ${Math.round(d.oxygen)}% · ${progress.points} crew points</p><p>Your steering and repairs determined this ending.</p></div>`;
+    const odds = flight.chance === undefined ? "" : flight.roll === undefined
+      ? "<p>Landing readiness was lost. The capsule entered recovery orbit.</p>"
+      : `<p>Final landing odds <b>${flight.chance}%</b> · Flight roll ${flight.roll.toFixed(2)} / 100</p>`;
+    const sources = d.incidents.filter((fault) => fault.research).map(({ kind }) => flightResearch[kind]);
+    return `${crew}<div class="return-result"><p>${escape(s.result)}</p><p><b>${d.repaired} systems repaired</b> · ${d.missed} escalations · guidance ${d.guidance.filter(Boolean).length}/2</p><p>Hull ${Math.round(d.hull)}% · ${d.research ? "Air" : "Oxygen"} ${Math.round(d.oxygen)}% · ${progress.points} crew points</p>${odds}${sources.length ? `<details><summary>NASA flight references</summary><ul>${sources.map((source) => `<li><a href="${escape(source.url)}" target="_blank" rel="noopener noreferrer">${escape(source.name)} ↗</a></li>`).join("")}</ul></details>` : ""}</div>`;
   }
   return `${crew}<div class="return-result"><p>${escape(s.result)}</p><p><b>${progress.points} crew points</b> · ${progress.crewPoints[id] ?? 0} contributed by you</p>${flight?.chance === undefined ? "" : `<p>Final success chance <b>${flight.chance}%</b> · Flight tasks passed <b>${flight.passed.filter(Boolean).length} / ${flightTasks.length}</b></p><p>${partSlots.map((slot) => `${progress.installed[slot]} ${partNames[slot].toLowerCase()}`).join(" · ")}</p>`}</div>`;
 }

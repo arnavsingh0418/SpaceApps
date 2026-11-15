@@ -1,7 +1,9 @@
 import { SHIP_LAYOUT, walkableShip, moveOnShip } from "./flightLayout";
 import type { Action, Game, Player } from "./sim";
+import { random } from "./sim";
 import { movePastPlayers } from "./playerCollision";
 import { awardPoints, returnChance, returnProgress } from "./returnMission";
+import { flightResearch } from "./flightResearch";
 
 export const flightDuration = 180;
 export const arrivalDuration = 12;
@@ -10,7 +12,8 @@ export const deckRooms = SHIP_LAYOUT.rooms;
 export const flightStations = SHIP_LAYOUT.stations;
 export type FlightStation = keyof typeof flightStations;
 export type FailureKind = Exclude<FlightStation, "helm">;
-export const flightEvents: { at: number; kind: FailureKind; title: string }[] =
+type FlightEvent = { at: number; kind: FailureKind; title: string };
+const legacyFlightEvents: FlightEvent[] =
   [
     { at: 18, kind: "power", title: "Power relay shorted" },
     { at: 47, kind: "air", title: "Oxygen valve stuck" },
@@ -18,6 +21,12 @@ export const flightEvents: { at: number; kind: FailureKind; title: string }[] =
     { at: 112, kind: "engine", title: "Coolant pump overheated" },
     { at: 145, kind: "power", title: "Backup circuit tripped" },
   ];
+export const flightEvents: FlightEvent[] = [
+  { at: 18, kind: "power", title: "Electrical circuits offline" },
+  { at: 50, kind: "engine", title: "Engine cooling alert" },
+  { at: 83, kind: "air", title: "Cabin CO₂ rising" },
+  { at: 133, kind: "hull", title: "Heat shield backup offline" },
+];
 export type FlightIncident = {
   id: string;
   kind: FailureKind;
@@ -26,11 +35,14 @@ export type FlightIncident = {
   deadline: number;
   fixed: boolean;
   late: boolean;
+  research?: boolean;
+  quizCleared?: boolean;
   repairedBy?: string;
 };
 export type DeckFlight = {
   /** Versioned so occupied cutaway saves can migrate without losing systems progress. */
   layoutVersion?: number;
+  research?: boolean;
   time: number;
   hull: number;
   oxygen: number;
@@ -52,6 +64,10 @@ export type DeckFlight = {
 };
 const clamp = (v: number, min = 0, max = 100) =>
   Math.max(min, Math.min(max, v));
+export function landingChance(base: number, deck: DeckFlight) {
+  const onTime = deck.incidents.filter((fault) => fault.fixed && !fault.late).length;
+  return clamp(base + 16 + onTime * 3 - deck.missed * 9, 5, 98);
+}
 export const walkableDeck = walkableShip;
 /** Move an old occupied deck into the new corridor while retaining the ongoing flight. */
 export function ensureFlightLayout(s: Game) {
@@ -102,6 +118,7 @@ export function startDeckFlight(s: Game) {
     baseChance: returnChance(s),
     deck: {
       layoutVersion: SHIP_LAYOUT.version,
+      research: true,
       time: 0,
       hull: startingHull(s),
       oxygen: 100,
@@ -135,10 +152,12 @@ function finish(s: Game, home: boolean) {
   s.phase = "ended";
   s.result = home
     ? "Mission complete! You steered the ship home and brought the crew back to Earth."
-    : "The crew reached a recovery orbit. Mission Control sent a rescue craft. Repair faults sooner and keep the course centered next time.";
+    : f.roll !== undefined
+      ? "The capsule missed its safe entry window. Mission Control recovered the crew from orbit."
+      : "The crew reached a recovery orbit. Mission Control sent a rescue craft. Repair faults sooner and keep the course centered next time.";
   for (const p of Object.values(s.players)) p.move = { x: 0, z: 0 };
 }
-/** Fixed-step, server-owned cabin simulation; no random final success roll. */
+/** Fixed-step cabin simulation shared by solo and crew games. */
 export function tickDeckFlight(s: Game, dt: number) {
   if (dt > 0.10001) {
     for (let remaining = dt; remaining > 1e-8; remaining -= 0.1)
@@ -194,17 +213,16 @@ export function tickDeckFlight(s: Game, dt: number) {
       1,
     );
   }
-  while (
-    d.nextEvent < flightEvents.length &&
-    d.time >= flightEvents[d.nextEvent].at
-  ) {
-    const event = flightEvents[d.nextEvent++];
+  const events = d.research ? flightEvents : legacyFlightEvents;
+  while (d.nextEvent < events.length && d.time >= events[d.nextEvent].at) {
+    const event = events[d.nextEvent++];
     d.incidents.push({
       ...event,
       id: `fault-${d.nextEvent}`,
       deadline: event.at + 36,
       fixed: false,
       late: false,
+      research: d.research,
     });
     s.messages.push(
       `SHIP ALERT: ${event.title}. Go to ${flightStations[event.kind].name}.`,
@@ -235,15 +253,18 @@ export function tickDeckFlight(s: Game, dt: number) {
   f.stage = Math.min(2, Math.floor(d.time / 60));
   const emergency = d.hull <= 0 || d.oxygen <= 0 || d.heat >= 100;
   if (emergency || d.time >= flightDuration) {
-    d.outcome =
+    const ready =
       !emergency &&
       d.hull > 20 &&
       d.oxygen > 20 &&
       d.heat < 90 &&
       Math.hypot(d.course.x, d.course.y) < 0.7 &&
-      d.guidance.every(Boolean)
-        ? "home"
-        : "rescue";
+      d.guidance.every(Boolean);
+    if (d.research) {
+      f.chance = ready ? landingChance(f.baseChance, d) : 0;
+      if (ready) f.roll = random(s) * 100;
+    }
+    d.outcome = ready && (f.roll === undefined || f.roll < (f.chance ?? 0)) ? "home" : "rescue";
     d.arrivalAt = d.time;
     d.pilot = "";
     d.steer = { x: 0, y: 0 };
@@ -326,12 +347,24 @@ export function flightAction(
     p.task = { kind: "flightRepair", target: incident.id, at: s.elapsed };
     return;
   }
-  if (a.type !== "finishFlightRepair") return "Unknown ship action.";
+  if (a.type !== "finishFlightRepair" && a.type !== "answerFlightQuiz")
+    return "Unknown ship action.";
   if (
     p.task?.kind !== "flightRepair" ||
-    p.task.target !== incident.id ||
-    s.elapsed - p.task.at < 3
+    p.task.target !== incident.id
   )
+    return "Open the repair at this station first.";
+  const quiz = incident.research ? flightResearch[incident.kind].quiz : undefined;
+  if (a.type === "answerFlightQuiz") {
+    if (!quiz) return "This station has no science quiz.";
+    if (incident.quizCleared) return;
+    if (a.answer !== quiz.correct) return "Check the NASA readings and try again.";
+    incident.quizCleared = true;
+    awardPoints(s.returnMission!, id, 50);
+    return;
+  }
+  if (quiz && !incident.quizCleared) return "Complete the science quiz first.";
+  if (s.elapsed - p.task.at < 3)
     return "Finish the repair at this station; it takes at least three seconds.";
   const valid =
     incident.kind === "power"

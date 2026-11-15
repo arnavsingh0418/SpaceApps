@@ -5,7 +5,7 @@ Recommended setup: **one Render Web Service hosts the website and game server**.
 ## Deploy on Render
 
 1. Sign in at https://dashboard.render.com and connect GitHub.
-2. Choose **New → Blueprint** and select `arnavsingh0418/TEST_nasa`, branch `main`.
+2. Choose **New → Blueprint** and select `arnavsingh0418/SpaceApps`, branch `main`.
 3. Render reads `render.yaml`. Review the proposed service `outpost-down-crew` and choose **Deploy Blueprint**. The blueprint requests the Free instance; review the selected plan before creating the service.
 4. Wait until the service is **Live**, then open the exact HTTPS URL Render displays. This is the game link to give everyone. No environment variables or API keys are needed.
 5. Open that link in two separate browsers/devices. Create a crew in one, enter its five-digit code in the other. Both should show the same code and crew members. The host assigns power to start the mission.
