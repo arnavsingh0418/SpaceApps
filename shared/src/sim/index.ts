@@ -149,6 +149,7 @@ export type Game = {
 export type Action = { type: string; [key: string]: unknown };
 /** The base layout is spread out by this factor so buildings can be life-sized. */
 const L: number = (B as { layoutScale?: number }).layoutScale ?? 1;
+export const startingAllocation: Allocation = { air: 4, light: 3, radio: 0, heat: 1 };
 export const stations = {
   workbench: { x: 0 * L, z: -2 * L },
   shield: { x: -10 * L, z: 2 * L },
@@ -209,17 +210,11 @@ export function createGame(seed = 42): Game {
     air: B.initialAir,
     food: B.initialFood,
     dose: 0,
-    power: 11,
-    allocation: { air: 3, light: 3, radio: 3, heat: 2 },
+    power: B.batteryPower,
+    allocation: { ...startingAllocation },
     players: {},
     items: [],
-    panels: [-8, -5, -2].map((x0, i) => ({
-      id: `panel-${i}`,
-      x: x0 * L,
-      z: 7 * L,
-      clean: 1,
-      covered: false,
-    })),
+    panels: [],
     stock: {},
     learned: [],
     built: [],
@@ -259,6 +254,16 @@ export function createGame(seed = 42): Game {
   return s;
 }
 /** One battery sits beside the antenna until it is carried, stored, or built into the radio. */
+export function removeStarterPanels(s: Game) {
+  const starterX = [-8, -5, -2];
+  const panels = s.panels.filter((p) =>
+    !starterX.some((x, index) => p.id === `panel-${index}` && p.x === x * L && p.z === 7 * L),
+  );
+  if (panels.length === s.panels.length) return;
+  s.panels = panels;
+  enforcePower(s);
+}
+
 export function placeBatteryByAntenna(s: Game) {
   if (s.built.includes("radio")) return;
   if ((s.stock.battery || 0) > 0) return;
@@ -759,15 +764,17 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       return fail("Those supplies were used. Gather more.");
     spend(s, p, r.cost as Bag);
     if (r.id === "panel") {
+      const index = s.panels.length;
       s.panels.push({
-        id: `panel-${s.panels.length}`,
-        x: (-8 + s.panels.length * 3) * L,
-        z: 7 * L,
+        id: `panel-built-${++s.serial}`,
+        x: (index % 5 - 2) * 7,
+        z: 29 + Math.floor(index / 5) * 6,
         clean: 1,
         covered: false,
       });
+      s.power = budget(s);
     } else s.built.push(r.id);
-    log(s, `${r.name} built!`);
+    log(s, r.id === "panel" ? "Solar panel online. Adds base power and charges the return ship." : `${r.name} built!`);
     p.task = undefined;
     return;
   }

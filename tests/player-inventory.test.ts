@@ -8,7 +8,7 @@ function setup() {
   addPlayer(s, "b");
   dispatch(s, "a", {
     type: "power",
-    value: { air: 4, light: 3, radio: 3, heat: 1 },
+    value: { air: 4, light: 3, radio: 0, heat: 1 },
   });
   return s;
 }

@@ -6,7 +6,7 @@
   "initialFood": 95,
   "initialDose": 0,
   "panelPower": 3,
-  "batteryPower": 2,
+  "batteryPower": 8,
   "stormFactor": 0.4,
   "airMinimum": 3,
   "airDrain": 8,

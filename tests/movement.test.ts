@@ -4,7 +4,7 @@ import { createGame, addPlayer, dispatch, tick, gaitSpeed, B } from "../shared/s
 function setup() {
   const s = createGame(7);
   addPlayer(s, "a", "A");
-  dispatch(s, "a", { type: "power", value: { air: 3, light: 3, radio: 3, heat: 2 } });
+  dispatch(s, "a", { type: "power", value: { air: 4, light: 3, radio: 0, heat: 1 } });
   return s;
 }
 
@@ -58,7 +58,7 @@ describe("Minecraft-style movement in the shared sim", () => {
     addPlayer(s, "a", "A");
     dispatch(s, "a", { type: "jump" });
     expect(s.players.a.jumpAt).toBeUndefined(); // power phase
-    dispatch(s, "a", { type: "power", value: { air: 3, light: 3, radio: 3, heat: 2 } });
+    dispatch(s, "a", { type: "power", value: { air: 4, light: 3, radio: 0, heat: 1 } });
     tick(s, 0.1);
     dispatch(s, "a", { type: "jump" });
     const first = s.players.a.jumpAt;

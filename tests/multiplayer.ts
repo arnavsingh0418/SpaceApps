@@ -68,10 +68,10 @@ try {
   assert.match(a.room, /^[1-9][0-9]{4}$/);
   assert.equal(a.room, b.room);
   assert.equal(a.state!.seed, b.state!.seed);
-  b.action({ type: "power", value: { air: 3, light: 3, radio: 3, heat: 2 } });
+  b.action({ type: "power", value: { air: 4, light: 3, radio: 0, heat: 1 } });
   await b.until(() => !!b.error, "reject guest power changes");
   assert.match(b.error, /leader/);
-  a.action({ type: "power", value: { air: 3, light: 3, radio: 3, heat: 2 } });
+  a.action({ type: "power", value: { air: 4, light: 3, radio: 0, heat: 1 } });
   await a.until(() => a.state!.phase === "day", "start exploration");
   await b.until(() => b.state!.phase === "day", "broadcast phase");
   const target = a.state!.items[0];

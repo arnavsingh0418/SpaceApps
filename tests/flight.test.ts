@@ -5,6 +5,7 @@ import {
   flightStations,
   walkableDeck,
   flightDuration,
+  startingFlightPower,
 } from "../shared/src/flight";
 import { flyHome, runFlight, lockGuidance } from "./flight-helpers";
 function setup() {
@@ -14,6 +15,17 @@ function setup() {
   startDeckFlight(s);
   return s;
 }
+it("charges launch power from productive solar panels", () => {
+  const s = createGame();
+  expect(startingFlightPower(s)).toBe(65);
+  const panel = { id: "panel-built-1", x: 0, z: 29, clean: 1, covered: false };
+  s.panels = [panel];
+  expect(startingFlightPower(s)).toBe(83);
+  panel.clean = 0.5;
+  expect(startingFlightPower(s)).toBe(74);
+  panel.covered = true;
+  expect(startingFlightPower(s)).toBe(65);
+});
 it("puts the crew in a connected bounded physical cabin and rejects Mars teleport actions", () => {
   const s = setup();
   expect(Object.values(s.players).every((p) => walkableDeck(p.x, p.z))).toBe(

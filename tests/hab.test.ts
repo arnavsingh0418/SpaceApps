@@ -23,7 +23,7 @@ function mission(n = 1) {
   for (let i = 0; i < n; i++) addPlayer(s, String(i), "Crew " + i);
   dispatch(s, "0", {
     type: "power",
-    value: { air: 3, light: 3, radio: 3, heat: 2 },
+    value: { air: 4, light: 3, radio: 0, heat: 1 },
   });
   return s;
 }

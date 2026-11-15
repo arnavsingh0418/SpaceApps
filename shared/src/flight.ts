@@ -87,6 +87,10 @@ export function nearestFlightStation(p: {
 export function startingHull(s: Game) {
   return clamp(78 + (returnChance(s) - 50) * 0.4, 70, 96);
 }
+export function startingFlightPower(s: Game) {
+  const solarCharge = s.panels.reduce((charge, panel) => charge + (panel.covered ? 0 : panel.clean * 18), 0);
+  return clamp(65 + solarCharge);
+}
 export function deckSpawn(index: number) {
   return { x: (index - 1.5) * 0.9, z: 2 };
 }
@@ -101,7 +105,7 @@ export function startDeckFlight(s: Game) {
       time: 0,
       hull: startingHull(s),
       oxygen: 100,
-      power: 100,
+      power: startingFlightPower(s),
       heat: 25,
       course: { x: 0.35, y: -0.2 },
       steer: { x: 0, y: 0 },

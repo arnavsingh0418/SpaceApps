@@ -52,7 +52,7 @@ export class FieldSites {
         partParent.add(m);
         return m;
       };
-      part(new T.CylinderGeometry(2.5, 2.8, 0.18, 12), 0x29383b, 0, 0.09, 0);
+      part(new T.CylinderGeometry(0.9, 1, 0.32, 12), 0x29383b, 0, 0, 0);
       part(new T.BoxGeometry(1.5, 0.9, 0.85), 0xd2c4ae, 0, 1.1, 0);
       part(new T.CylinderGeometry(0.13, 0.2, 1.2, 8), 0x5c6a6a, 0, 0.6, 0);
       const screen = part(
@@ -64,14 +64,13 @@ export class FieldSites {
         true,
       );
       this.lights.set(site.id, screen);
-      part(new T.CylinderGeometry(0.045, 0.08, 7, 6), 0xb5ad97, -2, 3.5, -1);
-      part(new T.BoxGeometry(1.6, 0.8, 0.04), site.color, -1.25, 6.4, -1, true);
+      part(new T.CylinderGeometry(0.05, 0.08, 1.2, 8), 0xb5ad97, 0, 2.15, 0);
       const beacon = part(
         new T.OctahedronGeometry(0.4),
         site.color,
-        -2,
-        7.3,
-        -1,
+        0,
+        3.12,
+        0,
         true,
       );
       beacon.name = "field-beacon";
@@ -89,32 +88,6 @@ export class FieldSites {
           m.rotation.z = (i - 3) * 0.12;
         }
         part(new T.CylinderGeometry(0.25, 0.4, 2, 8), 0xe9d8ba, 3.5, 1, -3);
-      } else if (site.prop === "solar") {
-        for (let i = 0; i < 3; i++) {
-          part(
-            new T.BoxGeometry(0.16, 1.4, 0.16),
-            0xb8baa8,
-            i * 3.8 - 3,
-            0.7,
-            -5,
-          );
-          const p = part(
-            new T.BoxGeometry(3.2, 0.15, 2.1),
-            0x224c70,
-            i * 3.8 - 3,
-            1.6,
-            -5,
-          );
-          p.rotation.x = -0.25;
-          for (let j = 0; j < 5; j++)
-            part(
-              new T.BoxGeometry(0.025, 0.04, 2.05),
-              0x7ba7bd,
-              i * 3.8 - 4.4 + j * 0.6,
-              1.72,
-              -5,
-            );
-        }
       } else if (site.prop === "rocks") {
         for (let i = 0; i < 6; i++)
           part(
@@ -156,7 +129,7 @@ export class FieldSites {
         part(new T.CylinderGeometry(1.5, 2.1, 9, 14), 0xe4d7bf, 0, 5, -9);
         part(new T.ConeGeometry(1.5, 3, 14), 0xe4d7bf, 0, 11, -9);
         this.ship = new ShipAssembly(g);
-      } else {
+      } else if (site.prop === "wreck") {
         const recorder = part(
           new T.BoxGeometry(2.5, 1.6, 1.5),
           0xe48d40,
@@ -178,14 +151,14 @@ export class FieldSites {
       }
       const authored = {
         ice: ["Ice_Chunk", 7, -3, -4],
-        solar: ["Solar_Panels_Clean", 11, 0, -5],
-        rocks: ["Cliff_01", 8, -3, -6],
+        solar: null,
+        rocks: ["Cliff_01", 8, -6, -5],
         shield: ["Storm_Shelter", 8, 0, -6],
         dish: ["Radio_Dish_Fixed", 6, 0, -6],
         rocket: ["Rocket_Return", 12, 0, -9],
         wreck: ["Robotic_Lander_Wreck", 6, -3, -4],
-      }[site.prop] as [string, number, number, number];
-      void replaceVisual(prop, authored[0], {
+      }[site.prop] as [string, number, number, number] | null;
+      if (authored) void replaceVisual(prop, authored[0], {
         ...(site.prop === "rocket" ? {height: authored[1]} : {size: authored[1]}),
         offset: {x:authored[2],z:authored[3]},
         batch: site.prop !== "dish",

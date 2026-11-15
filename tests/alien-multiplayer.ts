@@ -94,7 +94,7 @@ try {
   await a.until(() => !!a.state, "create");
   b.send({ type: "join", name: "Panel runner", code: a.room });
   await b.until(() => !!b.state, "join");
-  a.action({ type: "power", value: { air: 4, light: 3, radio: 3, heat: 1 } });
+  a.action({ type: "power", value: { air: 4, light: 3, radio: 0, heat: 1 } });
   await a.until(() => a.state!.phase === "day", "day");
   await b.until(() => b.state!.phase === "day", "guest day");
   await a.collect("scrap");

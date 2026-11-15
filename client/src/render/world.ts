@@ -39,7 +39,6 @@ import {
   panel,
   dish,
   crate,
-  glow,
 } from "./builders.js";
 import {
   B,
@@ -258,7 +257,6 @@ export class World {
     for (const [key, pos] of Object.entries(stations)) {
       if (key === "workbench") continue;
       const g = solid(beacon(pos.x, pos.z));
-      glow(pos.x, 0.05, pos.z, 0x67e8f9);
       this.addLabel(
         key,
         g,
@@ -632,6 +630,7 @@ export class World {
       let o = this.panels.get(p.id);
       if (!o) {
         o = panel(p.x, p.z, 0, 0);
+        o.position.y = this.terrain.heightAt(p.x, p.z);
         this.terrain.addStatic(o!);
         this.panels.set(p.id, o!);
         this.addLabel(p.id, o!, "", 3.6);
@@ -840,8 +839,17 @@ export class World {
       this.menu || !!this.focus,
       this.hovered,
     );
+    const labelRay = new THREE.Vector3();
     for (const [key, l] of this.labels) {
       if (s.players[key]?.hab || roverSeat(rover, key) >= 0 || (key === "rover" && aboard)) l.el.hidden = true;
+      if (!l.el.hidden && (key.startsWith("field-") || key.startsWith("salvage-") || (key !== "workbench" && Object.hasOwn(stations, key)))) {
+        labelRay.copy(l.obj.position).sub(this.camera.position);
+        labelRay.y += l.height;
+        const distanceToLabel = labelRay.length();
+        if (distanceToLabel > 0.2 && this.terrain.rayHit(this.camera.position, labelRay.normalize(), distanceToLabel - 0.2) !== null) {
+          l.el.hidden = true;
+        }
+      }
       if (
         this.actors.has(key) ||
         key === "nemi" ||

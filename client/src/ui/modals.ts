@@ -65,7 +65,7 @@ export function workbench(s: Game, id: string, index: number) {
     )
     .join(
       "",
-    )}</div><p>${built ? "Built and ready." : locked ? "Scan its science beacon first." : "Your supplies and storage both count."}</p>${Button(built ? "BUILT" : locked ? "LEARN FIRST" : "BUILD", "build", `data-recipe="${r.id}" ${built || locked ? "disabled" : ""}`)}${Button("STORE ITEMS", "store", "", true)}${Button("WIRE CIRCUIT −1 🔩", "task", 'data-kind="wire"', true)}<div class="stock">${Object.entries(
+    )}</div>${r.id === "panel" ? "<p>Each clean, uncovered panel adds 3 base power blocks and helps charge the return ship.</p>" : ""}<p>${built ? "Built and ready." : locked ? "Scan its science beacon first." : "Your supplies and storage both count."}</p>${Button(built ? "BUILT" : locked ? "LEARN FIRST" : "BUILD", "build", `data-recipe="${r.id}" ${built || locked ? "disabled" : ""}`)}${Button("STORE ITEMS", "store", "", true)}${Button("WIRE CIRCUIT −1 🔩", "task", 'data-kind="wire"', true)}<div class="stock">${Object.entries(
     s.stock,
   )
     .filter(([, n]) => n)

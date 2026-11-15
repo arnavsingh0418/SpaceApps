@@ -29,7 +29,7 @@ it("keeps rover occupants with a thrown rover and rejects position overwrites du
   addPlayer(game, "walker");
   dispatch(game, "driver", {
     type: "power",
-    value: { air: 4, light: 3, radio: 3, heat: 1 },
+    value: { air: 4, light: 3, radio: 0, heat: 1 },
   });
   const rover = roverState(game);
   rover.x = 18 * B.layoutScale;
