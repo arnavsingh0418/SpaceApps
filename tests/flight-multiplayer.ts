@@ -184,6 +184,11 @@ try {
     () => b.state!.elapsed - repairAt >= 3.1,
     "server repair duration",
   );
+  b.action({ type: "answerFlightQuiz", fault: fault.id, answer: 1 });
+  await a.until(
+    () => a.state!.returnMission!.flight!.deck!.incidents[0].quizCleared === true,
+    "shared NASA quiz answer",
+  );
   b.action({ type: "finishFlightRepair", fault: fault.id, value: "0,1,2" });
   await b.until(
     () => b.state!.returnMission!.flight!.deck!.repaired === 1,
@@ -197,7 +202,7 @@ try {
     a.state!.returnMission!.flight!.deck!.incidents[0].repairedBy,
     b.id,
   );
-  assert.equal(a.state!.returnMission!.crewPoints[b.id], 150);
+  assert.equal(a.state!.returnMission!.crewPoints[b.id], 200);
   assert.equal(a.state!.returnMission!.flight!.deck!.pilot, a.id);
   console.log(
     "PASS: two WebSocket clients salvage, install, launch, walk inside, steer and repair concurrently with shared ownership and credit.",

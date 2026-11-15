@@ -376,6 +376,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       "flightSteer",
       "holdCourse",
       "beginFlightRepair",
+      "answerFlightQuiz",
       "finishFlightRepair",
     ].includes(a.type)
   )
