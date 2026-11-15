@@ -128,17 +128,30 @@ try {
           await page.click(`[data-flight-wire="${i}"][data-side="0"]`);
           await page.click(`[data-flight-wire="${i}"][data-side="1"]`);
         }
-      if (fault.kind === "air")
-        for (const i of [2, 0, 1])
-          await page.click(`[data-flight-valve="${i}"]`);
+      if (fault.kind === "air") {
+        await page.getByRole("button", { name: "Remove spent cartridge" }).click();
+        await page.getByRole("button", { name: "Back to cabin" }).click();
+        await walk(0, pos.z);
+        await walk(0, 8.2);
+        await walk(1.45, 8.2);
+        await page.getByRole("button", { name: /Take spare cartridge and adapter/ }).click();
+        await walk(0, 8.2);
+        await walk(0, pos.z);
+        await walk(pos.x, pos.z);
+        await page.keyboard.press("e");
+        await capture("scrubber-replacement");
+        await page.getByRole("button", { name: "Fit adapter and install cartridge" }).click();
+      }
       if (fault.kind === "hull")
         for (let i = 0; i < 4; i++)
           await page.click(`[data-flight-patch="${i}"]`);
       if (fault.kind === "engine")
         await page.locator("#coolant-flow").fill("35");
-      await step(3200);
-      await capture(`repair-${fault.id}`);
-      await page.click("[data-do=finishFlightRepair]");
+      if (fault.kind !== "air") {
+        await step(3200);
+        await capture(`repair-${fault.id}`);
+        await page.click("[data-do=finishFlightRepair]");
+      }
       await step(240);
       assert.ok(
         (await state()).returnMission.flight.deck.incidents.find(

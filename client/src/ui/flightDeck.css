@@ -641,6 +641,16 @@
 .diagnostic-console .quiz-answer {
   min-height: 52px;
 }
+.flight-cartridge-hint {
+  max-width: min(340px, 82vw);
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid #5bc7a6;
+  border-radius: 8px;
+  background: #102a35f0;
+  color: #ddf9ed;
+  text-align: center;
+}
 .deck-wires {
   display: grid;
   grid-template-columns: minmax(78px, 1fr) minmax(26px, 0.9fr) minmax(78px, 1fr);

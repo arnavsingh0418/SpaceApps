@@ -50,7 +50,7 @@ export const flightResearch: Record<FailureKind, Research> = {
     term: "CO₂ scrubber",
     definition: "A filter that removes carbon dioxide from the air the crew breathes.",
     role: "Spacecraft life-support engineer",
-    model: "Fitting the cartridge represents the crew’s Apollo 13 workaround. The game simplifies that procedure.",
+    model: "Apollo 13’s crew used bags, tape, and a suit hose to adapt an incompatible cartridge. Your ship has a reusable adapter collar in the aft supplies cabinet.",
     name: "NASA · Apollo 13 carbon dioxide technical brief",
     url: "https://www.nasa.gov/ochmo-tb-004-carbon-dioxide-2/",
     readings: [["Before the scrubber fix", "14.9 mmHg CO₂"], ["After the scrubber fix", "1 mmHg CO₂"]],

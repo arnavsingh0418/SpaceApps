@@ -1,6 +1,7 @@
 import * as T from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { updateHeldItem } from "./heldItem";
+import { ScrubberProps } from "./scrubberProps";
 import { astronaut } from "./builders.js";
 import { disposeModel } from "./modelAssets";
 import { SHIP_LAYOUT } from "../../../shared/src/flightLayout";
@@ -106,6 +107,7 @@ export class FlightCabin {
   status: "loading" | "ready" | "fallback" = "loading";
   ready: Promise<void>;
   private root = new T.Group();
+  private scrubber: ScrubberProps;
   private earth: T.Mesh;
   private stars: T.InstancedMesh;
   private dummy = new T.Object3D();
@@ -119,6 +121,8 @@ export class FlightCabin {
   constructor(private renderer: T.WebGLRenderer) {
     this.scene.background = new T.Color(0x060c20);
     this.scene.add(this.root, new T.HemisphereLight(0xf2f4dd, 0x5d736c, 2.0));
+    this.scene.add(this.camera);
+    this.scrubber = new ScrubberProps(this.root, this.camera);
     const fill = new T.DirectionalLight(0xffefd1, 1.4);
     fill.position.set(2, 8, 5);
     this.scene.add(fill);
@@ -241,6 +245,7 @@ export class FlightCabin {
     pitch = 0.03,
   ) {
     const d = s.returnMission!.flight!.deck!;
+    this.scrubber.update(d, id, s.players);
     this.time += dt;
     this.progress = Math.min(1, d.time / flightDuration);
     if (this.seed !== s.seed) {

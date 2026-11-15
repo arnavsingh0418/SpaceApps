@@ -11,12 +11,16 @@ import {
   repairPanel,
   flightRepairReading,
   flightGuide,
+  cartridgeStep,
 } from "./ui/flightDeck";
 import { equippedItem } from "../../shared/src/inventory";
 import { movePastPlayers } from "../../shared/src/playerCollision";
 import {
   flightStations,
   flightDuration,
+  flightEvents,
+  nearCartridgeCabinet,
+  scrubberFault,
   nearestFlightStation,
   type FlightStation,
 } from "../../shared/src/flight";
@@ -157,7 +161,9 @@ const previewScene = import.meta.env.DEV
   : null;
 const soloSaveKey = previewScene === "flight-approach"
   ? "outpost-preview-flight-approach-v1"
-  : previewScene === "ship-launch"
+  : previewScene === "flight-co2"
+    ? "outpost-preview-flight-co2-v1"
+    : previewScene === "ship-launch"
     ? "outpost-preview-ship-launch-v1"
     : "outpost-save-v1";
 if (import.meta.env.DEV)
@@ -299,7 +305,14 @@ function close() {
 function interactDeck() {
   const d = game.returnMission?.flight?.deck;
   if (!d || d.arrivalAt !== undefined) return;
-  const key = nearestFlightStation(game.players[id]);
+  const player = game.players[id];
+  const scrubber = scrubberFault(d);
+  if (scrubber?.cartridgeRemoved && nearCartridgeCabinet(player) &&
+      (!scrubber.cartridgeCarrier || !game.players[scrubber.cartridgeCarrier])) {
+    dispatchMission({ type: "scrubberCartridge", fault: scrubber.id, step: "take" });
+    return;
+  }
+  const key = nearestFlightStation(player);
   if (!key) {
     toast("Walk closer to a ship station.");
     return;
@@ -326,7 +339,7 @@ function interactDeck() {
   open(
     "flightRepair",
     "REPAIR STATION",
-    repairPanel(fault, d),
+    repairPanel(fault, d, id),
     true,
     "deck-modal",
   );
@@ -345,10 +358,7 @@ function updateRepairConsole() {
     ready = repair.valves.length === 3;
     const scrubber = root.querySelector<HTMLElement>(".scrubber-state");
     if (scrubber) scrubber.dataset.scrubberStep = String(repair.valves.length);
-    const incident = game.returnMission?.flight?.deck?.incidents.find((fault) => fault.id === repair.fault);
-    indicator.textContent = (incident?.research
-      ? ["Rack closed", "Rack open", "Cartridge seated", "Rack sealed · airflow ready"]
-      : ["Loop online", "Loop isolated", "Loop purged", "Flow restored"])[repair.valves.length];
+    indicator.textContent = ["Loop online", "Loop isolated", "Loop purged", "Flow restored"][repair.valves.length];
     const count = root.querySelector("#valve-order");
     if (count) count.textContent = `${repair.valves.length} / 3 steps`;
   } else if (repair.kind === "hull") {
@@ -427,8 +437,10 @@ function drawDeck() {
       toast(fault ? `${flightRepairReading(fault.kind, d)} after repair` : "Repair complete");
       return;
     }
-    if (fault.quizCleared && root.querySelector('[data-do="answerFlightQuiz"]'))
-      open("flightRepair", "REPAIR STATION", repairPanel(fault, d), true, "deck-modal");
+    const cartridgePanel = root.querySelector<HTMLElement>("[data-cartridge-step]");
+    if ((fault.quizCleared && root.querySelector('[data-do="answerFlightQuiz"]')) ||
+        (cartridgePanel && cartridgePanel.dataset.cartridgeStep !== cartridgeStep(fault, id)))
+      open("flightRepair", "REPAIR STATION", repairPanel(fault, d, id), true, "deck-modal");
     const reading = root.querySelector("#flight-repair-reading");
     const currentReading = flightRepairReading(fault.kind, d);
     if (reading && reading.textContent !== currentReading) reading.textContent = currentReading;
@@ -1444,6 +1456,10 @@ document.addEventListener("click", (e) => {
       if (modal === "flightRepair" && d.fault === deckRepair?.fault)
         dispatchMission({ type: "answerFlightQuiz", fault: d.fault, answer: Number(d.answer) });
       break;
+    case "scrubberCartridge":
+      if (modal === "flightRepair" && deckRepair)
+        dispatchMission({ type: "scrubberCartridge", fault: deckRepair.fault, step: d.step });
+      break;
     case "alienSpeak":
       if (d.line) void alienVoice.speak(d.line as AlienLine);
       break;
@@ -2455,6 +2471,7 @@ if (import.meta.env.DEV)
     if (
       name === "flight" ||
       name === "flight-fault" ||
+      name === "flight-co2" ||
       name === "flight-arrival" ||
       name === "flight-approach" ||
       name === "flight-cockpit" ||
@@ -2474,6 +2491,17 @@ if (import.meta.env.DEV)
       phase = "";
       if (name === "flight-fault") {
         for (let i = 0; i < 190; i++) tick(game, 0.1);
+      }
+      if (name === "flight-co2") {
+        const deck = game.returnMission.flight!.deck!;
+        deck.nextEvent = flightEvents.findIndex((event) => event.kind === "air");
+        deck.time = flightEvents[deck.nextEvent].at;
+        deck.guidance[0] = true;
+        deck.course = { x: 0, y: 0 };
+        tick(game, 0.1);
+        Object.assign(game.players[id], flightStations.air);
+        world.yaw = 0;
+        world.pitch = 0.03;
       }
       if (name === "flight-cockpit") Object.assign(game.players[id], flightStations.helm);
       if (name === "flight-crew") {
@@ -2676,7 +2704,7 @@ if (import.meta.env.DEV)
       game.result = "Mission complete!";
     }
     draw();
-    if (name === "flight-approach") pause();
+    if (name === "flight-approach" || name === "flight-co2") pause();
     world.update(game, id, 0.016);
   };
 menu();
@@ -2695,6 +2723,7 @@ if (import.meta.env.DEV) {
       "ship-launch",
       "flight",
       "flight-fault",
+      "flight-co2",
       "flight-approach",
       "flight-arrival",
       "flight-cockpit",
