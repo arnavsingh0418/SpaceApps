@@ -400,3 +400,9 @@ to{opacity:0}
 
 .screen-dust { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
 body:has(.screen-dust:not([hidden])) #ui { z-index: 3; }
+
+.solar-deploy small {
+  margin-left: 8px;
+  color: var(--text-dim);
+  font-size: 11px;
+}

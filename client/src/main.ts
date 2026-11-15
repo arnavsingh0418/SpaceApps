@@ -85,6 +85,7 @@ import {
   total,
   type Game,
   type Action,
+  itemNames,
   type Item,
   type Allocation,
 } from "../../shared/src/sim";
@@ -921,7 +922,7 @@ function nearest(): Nearby | null {
       type: "pick",
       target: i.id,
       pos: i,
-      text: `Pick up ${({ scrap: "scrap", ice: "ice", soil: "soil", glass: "panels", seeds: "seeds", antenna: "antenna", battery: "battery", circuit: "circuit", food: "food" } as Record<Item, string>)[i.kind]}`,
+      text: `Pick up ${itemNames[i.kind].toLowerCase()}`,
     });
   for (const [k, pos] of Object.entries(stations))
     all.push({
@@ -938,6 +939,27 @@ function nearest(): Nearby | null {
       .sort((a, b) => distance(p, a.pos) - distance(p, b.pos))[0] || null
   );
 }
+function canDeploySolar() {
+  const player = game.players[id];
+  return !!player && game.phase === "day" && !modal && !player.hab && !player.gust &&
+    roverSeat(roverState(game), id) < 0 && equippedItem(player) === "solarKit";
+}
+function deploySolar() {
+  if (!canDeploySolar()) return;
+  if (!world.terrain.ready) return toast("Wait for the terrain to load.");
+  const player = game.players[id];
+  const x = player.x - Math.sin(world.yaw) * 4, z = player.z - Math.cos(world.yaw) * 4;
+  const height = world.terrain.groundAt(x, z);
+  for (const dx of [-2.6, 0, 2.6]) {
+    for (const dz of [-1.6, 0, 1.6]) {
+      const ground = world.terrain.groundAt(x + dx, z + dz);
+      if (Math.abs(ground - height) > 0.65 || world.terrain.collides(x + dx, z + dz, ground, 0.45, 3))
+        return toast("Aim at clear, level ground ahead.");
+    }
+  }
+  if (act({ type: "deploySolar", x, z }) && !connection) toast("Solar array online");
+  draw();
+}
 function interact() {
   if (modal) return;
   if (game.phase === "flight") {
@@ -947,6 +969,7 @@ function interact() {
   if (game.phase !== "day") return;
   const n = nearest();
   if (!n) {
+    if (canDeploySolar()) return deploySolar();
     toast("Move closer to an object.");
     return;
   }
@@ -976,10 +999,11 @@ function interact() {
     return;
   }
   if (n.type === "pick") {
+    const isSolarKit = game.items.find(item => item.id === n.target)?.kind === "solarKit";
     if (act({ type: "pick", target: n.target })) {
       cue("pickup", n.target);
       pickupUntil = game.elapsed + 0.7;
-      toast("Supplies collected");
+      toast(isSolarKit ? "Array packed. Deploy on level ground." : "Supplies collected");
     }
   }
   if (n.type === "bench") bench();
@@ -1045,6 +1069,7 @@ function draw() {
     trackedSalvage,
     hint: "",
     prompt: !modal && game.phase === "day" ? n?.text || "" : "",
+    deploySolar: canDeploySolar(),
     unread,
     bounce: game.elapsed < pickupUntil,
     previous: game.elapsed < gaugeUntil ? gaugeFrom : current,
@@ -1634,6 +1659,9 @@ document.addEventListener("click", (e) => {
     }
     case "clean":
       task("clean", d.target);
+      break;
+    case "deploySolar":
+      deploySolar();
       break;
     case "cover":
       act({ type: "cover", target: d.target });
@@ -2403,7 +2431,7 @@ if (import.meta.env.DEV)
     }
     if (name === "solar-reward") {
       Object.assign(game.players[id], { x: solarRewardSite.x - 3, z: solarRewardSite.z + 2 });
-      game.panels.push({ id: "panel-field-reward", ...solarRewardSite, clean: 1, covered: false });
+      game.items.push({ id: "solar-reward-kit", kind: "solarKit", ...solarRewardSite, count: 1, damaged: false });
       world.yaw = 1.1; world.pitch = 0.48; world.zoom = 15;
     }
     if (name === "crew-rover-reward") {

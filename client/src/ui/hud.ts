@@ -19,6 +19,7 @@ export type HudView = {
   trackedSalvage?: string;
   hint: string;
   prompt: string;
+  deploySolar?: boolean;
   unread: number;
   bounce: boolean;
   pickupProgress: number;
@@ -67,5 +68,5 @@ export function hud(s: Game, id: string, v: HudView) {
           "chat-drawer",
         )
       : ""
-  }</section>${p.hab ? habMap(s,id) : miniMap(s, id, v.trackedMission, v.trackedSalvage)}${p.hab ? "" : guide}<section class="hotbar-group" data-hud="hotbar">${!riding && v.prompt ? `<button class="interaction" data-do="interact">${KeyChip("E")} ${escape(v.prompt)}</button>` : ""}${riding ? roverDashboard(s,id) : hotbar(s, id, v.selected, v.bounce, v.pickupProgress)}</section><div id="touch"><div id="joystick"><i></i></div><button data-do="interact" aria-label="Interact">E</button>${roverSeatIndex === 0 ? '<button class="rover-brake" data-do="roverBrake" aria-label="Brake rover">STOP</button>' : ""}</div>${eventBanner(s)}`;
+  }</section>${p.hab ? habMap(s,id) : miniMap(s, id, v.trackedMission, v.trackedSalvage)}${p.hab ? "" : guide}<section class="hotbar-group" data-hud="hotbar">${v.deploySolar ? `<button class="interaction solar-deploy" data-do="deploySolar">${v.prompt ? "" : KeyChip("E")} Deploy array <small>Open ground ahead</small></button>` : ""}${!riding && v.prompt ? `<button class="interaction" data-do="interact">${KeyChip("E")} ${escape(v.prompt)}</button>` : ""}${riding ? roverDashboard(s,id) : hotbar(s, id, v.selected, v.bounce, v.pickupProgress)}</section><div id="touch"><div id="joystick"><i></i></div><button data-do="interact" aria-label="Interact">E</button>${roverSeatIndex === 0 ? '<button class="rover-brake" data-do="roverBrake" aria-label="Brake rover">STOP</button>' : ""}</div>${eventBanner(s)}`;
 }

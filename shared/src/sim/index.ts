@@ -10,7 +10,8 @@ import {
   missionSector,
   type FieldProgress,
 } from "../expedition";
-import { type ReturnProgress } from "../returnMission";
+import { equippedItem } from "../inventory";
+import { crashShip, type ReturnProgress } from "../returnMission";
 import { returnAction, scoreLesson, updateFlight } from "./returnActions";
 import { type AlienProgress } from "../alien";
 import { alienAction } from "./alienActions";
@@ -19,7 +20,7 @@ import { solarRewardSite } from "../expedition";
 import { deckSpawn, flightAction, tickDeckFlight } from "../flight";
 import { movePastPlayers } from "../playerCollision";
 import { blowDustDevil, type Gust } from "../dustDevil";
-import { resolveRoverSurface } from "../surfacePhysics";
+import { HAB_FOOTPRINT, resolveRoverSurface } from "../surfacePhysics";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -31,7 +32,8 @@ export type Item =
   | "antenna"
   | "battery"
   | "circuit"
-  | "food";
+  | "food"
+  | "solarKit";
 export const itemNames: Record<Item, string> = {
   scrap: "Scrap",
   ice: "Ice",
@@ -42,6 +44,7 @@ export const itemNames: Record<Item, string> = {
   battery: "Battery",
   circuit: "Circuit",
   food: "Food crate",
+  solarKit: "Portable solar array",
 };
 export const icons: Record<Item, string> = {
   scrap: "🔩",
@@ -53,6 +56,7 @@ export const icons: Record<Item, string> = {
   battery: "🔋",
   circuit: "🧩",
   food: "🥔",
+  solarKit: "☀️",
 };
 export type Bag = Partial<Record<Item, number>>;
 export type Point = { x: number; z: number };
@@ -581,17 +585,13 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (a.answer !== m.correct)
       return fail("Recheck the evidence. " + m.explanation);
     f.completed.push(m.id);
-    if (m.id === "solar-test") {
-      s.panels.push({ id: "panel-field-reward", ...solarRewardSite, clean: 1, covered: false });
-      s.power = budget(s);
-      log(s, "Solar array online. It powers the habitat and charges the return ship.");
-    }
     const partReward = fieldPartRewards[m.id];
     if (partReward) recoverPart(s, partReward.part, partReward.rarity);
     scoreLesson(s, id, "field", m.id);
     const site = missionSector(m);
     Object.entries(m.reward).forEach(([kind, count], index) => {
-      spawn(s, kind as Item, count, site.x + 3, site.z + 2 + index * 2);
+      const at = kind === "solarKit" ? solarRewardSite : { x: site.x + 3, z: site.z + 2 + index * 2 };
+      spawn(s, kind as Item, count, at.x, at.z);
     });
     log(s, `FIELD JOURNAL: ${m.title}. ${m.debrief}`);
     return;
@@ -619,6 +619,27 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
     if (!it.count) s.items.splice(i, 1);
     return;
   }
+  if (a.type === "deploySolar") {
+    if (p.gust) return fail("Land before deploying the array.");
+    if (equippedItem(p) !== "solarKit") return fail("Select a portable solar array first.");
+    if (typeof a.x !== "number" || typeof a.z !== "number" || !Number.isFinite(a.x) || !Number.isFinite(a.z))
+      return fail("Choose a spot on the ground.");
+    const at = { x: a.x, z: a.z };
+    if (distance(p, at) < 2.9 || distance(p, at) > 5 || distance(at, WORLD) > WORLD.r - 3)
+      return fail("Choose open ground a few steps ahead.");
+    if (distance(at, HAB_FOOTPRINT) < HAB_FOOTPRINT.r + 4 || distance(at, crashShip) < 17 ||
+      distance(at, stations.workbench) < 5 || s.panels.some(panel => distance(panel, at) < 6) ||
+      Object.values(s.players).some(player => !player.hab && distance(player, at) < 2.9) ||
+      (!r.locked && distance(r, at) < 6))
+      return fail("Leave more room around the array.");
+    const remaining = (p.bag.solarKit ?? 1) - 1;
+    if (remaining) p.bag.solarKit = remaining;
+    else delete p.bag.solarKit;
+    s.panels.push({ id: `panel-deployed-${++s.serial}`, ...at, clean: 1, covered: false });
+    s.power = budget(s);
+    log(s, "Solar array online. It powers the habitat and charges the return ship.");
+    return;
+  }
   if (a.type === "drop") {
     const k = a.kind as Item;
     if (!((p.bag[k] || 0) > 0)) return;
@@ -633,6 +654,7 @@ export function dispatch(s: Game, id: string, a: Action): string | undefined {
       B.storageCapacity -
       Object.values(s.stock).reduce((n, v) => n + (v || 0), 0);
     for (const [k, v] of Object.entries(p.bag)) {
+      if (k === "solarKit") continue;
       const take = Math.min(v, room);
       s.stock[k as Item] = (s.stock[k as Item] || 0) + take;
       p.bag[k as Item] = v - take;
@@ -832,7 +854,7 @@ function storm(s: Game) {
       );
   });
   s.items = s.items.filter((it) => {
-    if (random(s) > B.looseItemRisk) return true;
+    if (it.kind === "solarKit" || random(s) > B.looseItemRisk) return true;
     if (random(s) < 0.5) return false;
     it.count = Math.ceil(it.count / 2);
     it.damaged = true;

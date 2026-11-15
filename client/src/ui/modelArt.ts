@@ -5,6 +5,7 @@ export const artURL = (file: string) =>
 export const art = (name: string, cls = "model-icon") =>
   `<img class="${cls}" src="${artURL(`icons/${name}.png`)}" alt="" aria-hidden="true" width="32" height="32">`;
 const items: Partial<Record<Item, string>> = {
+  solarKit: "build_solar_panel",
   scrap: "scrap_metal",
   ice: "ice_chunk",
   soil: "soil_bag",

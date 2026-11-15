@@ -223,8 +223,8 @@ export const fieldMissions: FieldMission[] = [
     explanation:
       "Dust intercepts sunlight before it reaches a panel. Facing the Sun helps, but dust, weather and daylight still matter.",
     debrief:
-      "Array test complete. The cache contains clear glazing for construction. Next: read the weather before planning a long trip.",
-    reward: { glass: 3 },
+      "Collect the portable solar array and glazing at Sunward Flats. Select the array in your bag, then deploy it on clear ground near base or elsewhere.",
+    reward: { glass: 3, solarKit: 1 },
     source: "https://science.nasa.gov/mission/insight/",
     sourceName: "NASA · InSight and solar power",
   },
@@ -423,7 +423,7 @@ export const fieldMissions: FieldMission[] = [
     explanation:
       "Earth–Mars signal delay varies with the planets' positions. A real-time joystick from Earth cannot control every landing or emergency.",
     debrief:
-      "Earth's message is recovered. Head back to base to inspect the base flight terminal and send a clear readiness report.",
+      "Signal restored at Echo Station. Collect the antenna and battery, then inspect the flight terminal back at base and send a clear readiness report.",
     reward: { antenna: 1, battery: 1 },
     source:
       "https://www.jpl.nasa.gov/news/press_kits/mars_2020/landing/mission/",

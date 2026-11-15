@@ -63,6 +63,7 @@ const colors = {
   antenna: 0xd1d5db,
   battery: 0xfacc15,
   circuit: 0x34d399,
+  solarKit: 0x8adccc,
   food: 0xfca5a5,
 };
 /** Where the hab and the crashed lander sit (metres, game coordinates). */
@@ -583,6 +584,7 @@ export class World {
           battery: "Battery",
           circuit: "Circuit_Board",
           food: "Supply_Crate",
+          solarKit: "Solar_Panels_Clean",
         }[i.kind as Exclude<Item, "glass">];
         if (asset)
           void replaceVisual(itemVisual, asset, { size: 1.25, batch: true });

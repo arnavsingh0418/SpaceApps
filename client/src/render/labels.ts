@@ -3,6 +3,7 @@ import { sectors } from "../../../shared/src/expedition";
 import {
   distance,
   icons,
+  itemNames,
   type Game,
   type Player,
 } from "../../../shared/src/sim";
@@ -71,7 +72,7 @@ export function placeLabels(
       l.el.classList.add("name-tag");
     } else if (key === nearest || key === hovered) {
       l.el.textContent = item
-        ? `${({ scrap: "Scrap", ice: "Ice", soil: "Soil", glass: "Clear panels", seeds: "Seeds", antenna: "Antenna", battery: "Battery", circuit: "Circuit", food: "Food" } as const)[item.kind]} ×${item.count}`
+        ? `${itemNames[item.kind]} ×${item.count}`
         : titles[key] || (key === "salvage-return" ? "Return ship" : key.startsWith("salvage-") ? "Salvage cache" : "Use");
     } else {
       l.el.textContent = item ? icons[item.kind] : "🔹";

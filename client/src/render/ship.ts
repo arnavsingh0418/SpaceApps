@@ -1,5 +1,6 @@
 import * as T from "three";
 import {
+  partNames,
   partSlots,
   returnProgress,
   type Part,
@@ -94,6 +95,29 @@ export function shipPartModel(slot: Part, broken = false) {
   return g;
 }
 
+function partNameplate(part: Part) {
+  if (typeof document === "undefined") return null;
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 96;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.fillStyle = "#102129";
+  ctx.fillRect(0, 0, 512, 96);
+  ctx.fillStyle = partDetails[part].color;
+  ctx.fillRect(0, 88, 512, 8);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 46px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(partNames[part], 256, 45);
+  const texture = new T.CanvasTexture(canvas);
+  texture.colorSpace = T.SRGBColorSpace;
+  const sign = new T.Sprite(new T.SpriteMaterial({ map: texture, toneMapped: false, sizeAttenuation: false }));
+  sign.scale.set(0.15, 0.028, 1);
+  return sign;
+}
+
 export class ShipAssembly {
   private slots = new Map<
     Part,
@@ -101,6 +125,7 @@ export class ShipAssembly {
       good: T.Group;
       broken: T.Group;
       display: T.Group;
+      stand: T.Group;
       mount: T.Vector3;
       from: T.Vector3;
       rarity: string;
@@ -126,12 +151,12 @@ export class ShipAssembly {
       broken.position.copy(mount);
       good.visible = false;
       const from = new T.Vector3(
-        -12 + (i % 2) * 3,
-        1.5,
-        10 + Math.floor(i / 2) * 3.2,
+        -22 + i * 5.8,
+        1.35,
+        13,
       );
       display.position.copy(from);
-      display.scale.setScalar(0.65);
+      display.scale.setScalar(0.54);
       display.visible = false;
       const pedestal = new T.Mesh(
         new T.CylinderGeometry(1.05, 1.25, 0.3, 8),
@@ -151,12 +176,21 @@ export class ShipAssembly {
       const scale = slot === "booster" ? 1.7 : slot === "hull" ? 1.04 : 0.9;
       good.userData.fullScale = scale;
       good.scale.setScalar(scale);
-      broken.scale.setScalar(scale);
-      parent.add(good, broken, display, pedestal, ring);
+      broken.scale.setScalar(scale * 0.55);
+      const stand = new T.Group();
+      stand.add(display, pedestal, ring);
+      const sign = partNameplate(slot);
+      if (sign) {
+        sign.position.copy(from).setY(2.9);
+        stand.add(sign);
+      }
+      stand.visible = false;
+      parent.add(good, broken, stand);
       this.slots.set(slot, {
         good,
         broken,
         display,
+        stand,
         mount,
         from,
         rarity: "",
@@ -190,6 +224,7 @@ export class ShipAssembly {
       entry.display.visible =
         !!progress.recovered[slot] &&
         (!installed || installed !== progress.recovered[slot]);
+      entry.stand.visible = entry.display.visible;
       entry.display.rotation.y = reduced ? 0.35 : time * 0.45;
       entry.display.position.y =
         entry.from.y + (reduced ? 0 : Math.sin(time * 2) * 0.12);

@@ -141,7 +141,7 @@ export function expeditionMap(
     ${
       done
         ? `<div class="journal-note"><b>YOUR SCIENCE NOTE</b><p>${e(m.explanation)}</p><a href="${m.source}" target="_blank" rel="noopener noreferrer">${m.sourceName} ↗</a></div>`
-        : `<div class="mission-steps"><span>01 · Travel to the field terminal</span><span>02 · ${m.tool === "scan" ? "Inspect all readings" : m.tool === "tune" ? "Tune the instrument" : "Arrange the procedure"}</span><span>03 · Explain what the evidence means</span></div><div class="mission-reward">Rewards <b>${rewardText(m)}${m.id === "solar-test" ? " · Working solar array" : ""}</b></div>${
+        : `<div class="mission-steps"><span>01 · Travel to the field terminal</span><span>02 · ${m.tool === "scan" ? "Inspect all readings" : m.tool === "tune" ? "Tune the instrument" : "Arrange the procedure"}</span><span>03 · Explain what the evidence means</span></div><div class="mission-reward">Rewards <b>${rewardText(m)}</b></div>${
             available
               ? `<button class="button" data-do="trackMission" data-mission="${m.id}">${tracked === m.id ? "FOLLOW PINNED MISSION ↗" : "PIN MISSION & EXPLORE ↗"}</button>`
               : `<p class="mission-locked">Complete first: ${m.requires

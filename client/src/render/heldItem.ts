@@ -11,6 +11,7 @@ const assets: Partial<Record<Item, string>> = {
   battery: "Battery",
   circuit: "Circuit_Board",
   food: "Supply_Crate",
+  solarKit: "Solar_Panels_Clean",
 };
 const colors: Record<Item, number> = {
   scrap: 0x9ba7b0,
@@ -22,6 +23,7 @@ const colors: Record<Item, number> = {
   battery: 0xffcc47,
   circuit: 0x3ea46d,
   food: 0xe4bd75,
+  solarKit: 0x8adccc,
 };
 /** Per-actor wrapper and request revision prevent another slot's async model replacing this one. */
 export function updateHeldItem(actor: T.Object3D, p: Player) {

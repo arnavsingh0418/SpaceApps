@@ -129,10 +129,27 @@ describe("field expedition", () => {
       s = JSON.parse(JSON.stringify(s));
     }
     expect(fieldProgress(s).completed).toHaveLength(12);
-    expect(s.panels.filter((panel) => panel.id === "panel-field-reward")).toHaveLength(1);
+    const solarKits = s.items.filter(item => item.kind === "solarKit");
+    expect(solarKits).toHaveLength(1);
+    expect(s.panels).toHaveLength(0);
+    const kit = solarKits[0];
+    Object.assign(s.players.a, { x: kit.x, z: kit.z });
+    expect(dispatch(s, "a", { type: "pick", target: kit.id })).toBeUndefined();
+    expect(s.players.a.bag.solarKit).toBe(1);
+    Object.assign(s.players.a, { x: 20, z: 14 });
+    const deploy = { type: "deploySolar", x: 24, z: 14 };
+    const oldPower = s.power;
+    expect(dispatch(s, "a", { ...deploy, x: 120 })).toMatch(/ahead/);
+    expect(s.players.a.bag.solarKit).toBe(1);
+    expect(dispatch(s, "a", deploy)).toBeUndefined();
+    expect(s.panels).toMatchObject([{ x: 24, z: 14, clean: 1, covered: false }]);
+    expect(s.power).toBeGreaterThan(oldPower);
+    expect(s.players.a.bag.solarKit).toBeUndefined();
+    expect(dispatch(s, "a", deploy)).toMatch(/Select/);
+    expect(s.panels).toHaveLength(1);
     expect(s.returnMission?.recovered).toEqual({booster:"Standard", air:"Rare", hull:"Rare", nav:"Rare"});
     expect(nextFieldMission(s)).toBeUndefined();
-    expect(s.messages.at(-1)).toContain("EXPEDITION COMPLETE");
+    expect(s.messages.some(message => message.includes("EXPEDITION COMPLETE"))).toBe(true);
   });
   it("migrates an old save lazily without losing survival progress", () => {
     const s = setup();

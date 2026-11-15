@@ -6,7 +6,7 @@ export function missionBriefing() {
     <p>Recover four parts to repair the crashed ship at base before Sol 15 ends. Follow the gold marker to get started, then open the map for field tasks and salvage.</p>
     <div class="brief-cards"><article><span>01 ↗</span><h3>Recover & learn</h3><p>Follow the gold marker to supplies. Cyan beacons teach the science that unlocks building recipes.</p></article><article><span>02 ⌂</span><h3>Build your base</h3><p>Bring supplies to the habitat's workbench. Make a greenhouse, radiation shelter, and radio.</p></article><article><span>03 ☀</span><h3>Keep everyone safe</h3><p>Share electricity between air, plants, heat, and radio. Protect the crew when storms and flares arrive.</p></article></div>
     <div class="brief-keyline"><span>${KeyChip("WASD")} / arrows: walk</span><span>${KeyChip("E")} use nearby objects</span><span>${KeyChip("Q")} map</span><span>${KeyChip("Esc")} pause & guide</span><span>Touch: joystick + E button</span></div>
-    <p>Restore the array at Sunward Flats to power the habitat and charge the return ship.</p>
+    <p>Earn a portable array at Sunward Flats. Collect it, select it in your bag, and deploy it on open ground to power the habitat and charge the ship.</p>
     <div class="brief-actions"><small>Mission paused until you're ready. A sol is one Mars day.</small>${Button("LET'S EXPLORE ↗", "beginExplore")}</div>
   </section></div>`;
 }
