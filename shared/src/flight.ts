@@ -1,3 +1,4 @@
+import { SHIP_LAYOUT, walkableShip, moveOnShip } from "./flightLayout";
 import type { Action, Game, Player } from "./sim";
 import { movePastPlayers } from "./playerCollision";
 import { awardPoints, returnChance, returnProgress } from "./returnMission";
@@ -5,20 +6,8 @@ import { awardPoints, returnChance, returnProgress } from "./returnMission";
 export const flightDuration = 180;
 export const arrivalDuration = 12;
 export const deckSpeed = 4;
-export const deckRooms = [
-  { name: "FLIGHT DECK", x: 0, z: -7, w: 11, d: 6, color: "#76d7ef" },
-  { name: "CORRIDOR", x: 0, z: 0.5, w: 4.8, d: 11, color: "#98a8bc" },
-  { name: "ELECTRICAL", x: -7, z: 0.5, w: 10.8, d: 8, color: "#ffc86d" },
-  { name: "LIFE SUPPORT", x: 7, z: 0.5, w: 10.8, d: 8, color: "#84e3bd" },
-  { name: "ENGINEERING", x: 0, z: 7, w: 24, d: 6, color: "#bd9bef" },
-] as const;
-export const flightStations = {
-  helm: { name: "Helm", x: 0, z: -8, color: "#76d7ef" },
-  power: { name: "Electrical", x: -8, z: 0, color: "#ffc86d" },
-  air: { name: "Life support", x: 8, z: 0, color: "#84e3bd" },
-  hull: { name: "Hull repair", x: -8, z: 7, color: "#f19898" },
-  engine: { name: "Engine cooling", x: 6, z: 7, color: "#bd9bef" },
-} as const;
+export const deckRooms = SHIP_LAYOUT.rooms;
+export const flightStations = SHIP_LAYOUT.stations;
 export type FlightStation = keyof typeof flightStations;
 export type FailureKind = Exclude<FlightStation, "helm">;
 export const flightEvents: { at: number; kind: FailureKind; title: string }[] =
@@ -40,6 +29,8 @@ export type FlightIncident = {
   repairedBy?: string;
 };
 export type DeckFlight = {
+  /** Versioned so occupied cutaway saves can migrate without losing systems progress. */
+  layoutVersion?: number;
   time: number;
   hull: number;
   oxygen: number;
@@ -61,12 +52,20 @@ export type DeckFlight = {
 };
 const clamp = (v: number, min = 0, max = 100) =>
   Math.max(min, Math.min(max, v));
-export function walkableDeck(x: number, z: number, radius = 0.35) {
-  return deckRooms.some(
-    (r) =>
-      Math.abs(x - r.x) <= r.w / 2 - radius &&
-      Math.abs(z - r.z) <= r.d / 2 - radius,
-  );
+export const walkableDeck = walkableShip;
+/** Move an old occupied deck into the new corridor while retaining the ongoing flight. */
+export function ensureFlightLayout(s: Game) {
+  const d = s.returnMission?.flight?.deck;
+  if (!d || d.layoutVersion === SHIP_LAYOUT.version) return;
+  d.layoutVersion = SHIP_LAYOUT.version;
+  d.pilot = "";
+  d.steer = { x: 0, y: 0 };
+  Object.values(s.players).forEach((p, i) => {
+    Object.assign(p, deckSpawn(i));
+    p.move = { x: 0, z: 0 };
+    delete p.task;
+    delete p.posAt;
+  });
 }
 export function deckNear(p: { x: number; z: number }, station: FlightStation) {
   const pos = flightStations[station];
@@ -92,7 +91,7 @@ export function startingFlightPower(s: Game) {
   return clamp(65 + solarCharge);
 }
 export function deckSpawn(index: number) {
-  return { x: (index - 1.5) * 0.9, z: 2 };
+  return { ...SHIP_LAYOUT.spawns[index % SHIP_LAYOUT.spawns.length] };
 }
 export function startDeckFlight(s: Game) {
   const progress = (s.returnMission ??= returnProgress(s));
@@ -102,6 +101,7 @@ export function startDeckFlight(s: Game) {
     passed: [],
     baseChance: returnChance(s),
     deck: {
+      layoutVersion: SHIP_LAYOUT.version,
       time: 0,
       hull: startingHull(s),
       oxygen: 100,
@@ -146,6 +146,7 @@ export function tickDeckFlight(s: Game, dt: number) {
     return;
   }
   if (!s.returnMission?.flight?.deck) startDeckFlight(s); // migrate an older in-flight save
+  ensureFlightLayout(s);
   const f = s.returnMission!.flight!,
     d = f.deck!;
   if (d.arrived) return;
@@ -160,11 +161,7 @@ export function tickDeckFlight(s: Game, dt: number) {
     const before = { x: p.x, z: p.z };
     const nx = p.x + p.move.x * deckSpeed * dt,
       nz = p.z + p.move.z * deckSpeed * dt;
-    if (walkableDeck(nx, nz)) {
-      p.x = nx;
-      p.z = nz;
-    } else if (walkableDeck(nx, p.z)) p.x = nx;
-    else if (walkableDeck(p.x, nz)) p.z = nz;
+    Object.assign(p, moveOnShip(before, { x: nx, z: nz }));
     const next = movePastPlayers(
       before,
       p,
@@ -263,6 +260,7 @@ export function flightAction(
   id: string,
   a: Action,
 ): string | undefined {
+  ensureFlightLayout(s);
   const d = s.returnMission?.flight?.deck,
     p = s.players[id];
   if (s.phase !== "flight" || !d) return "The ship is not in flight.";

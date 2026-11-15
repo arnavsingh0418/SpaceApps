@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { WebSocket } from "ws";
+import { flightStations } from "../shared/src/flight";
 import { salvageSites, launchSite } from "../shared/src/returnMission";
 import type { Game, Action } from "../shared/src/sim";
 const url = process.env.TEST_SERVER || "ws://127.0.0.1:2572";
@@ -139,9 +140,8 @@ try {
     `host launch (${a.state!.phase}, elapsed ${a.state!.elapsed})`,
   );
   await b.until(() => b.state!.phase === "flight", "shared launch");
-  await deckWalk(a, 0, -8);
-  await deckWalk(b, 1.35, 0);
-  await deckWalk(b, -8, 0);
+  await deckWalk(a, flightStations.helm.x, flightStations.helm.z);
+  await deckWalk(b, flightStations.power.x, flightStations.power.z);
   a.action({ type: "takeHelm" });
   await b.until(
     () => b.state!.returnMission!.flight!.deck!.pilot === a.id,

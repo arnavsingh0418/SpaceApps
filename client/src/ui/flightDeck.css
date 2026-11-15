@@ -549,3 +549,38 @@
     animation: none !important;
   }
 }
+
+/* Keep the enclosed corridor visible beneath compact flight instruments. */
+@media (min-width: 1101px) {
+  .flight-top {
+    width: 290px;
+    padding: 12px 15px;
+  }
+  .flight-top h1 {
+    font-size: 25px;
+    margin: 6px 0 10px;
+  }
+  .flight-jobs {
+    width: 250px;
+    padding: 12px;
+  }
+  .flight-jobs p {
+    font-size: 12px;
+  }
+  .flight-job {
+    padding: 9px 0;
+  }
+  .flight-job b {
+    font-size: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .flight-look-hint {
+    display: none;
+  }
+  .flight-controls {
+    white-space: normal;
+    text-align: center;
+    max-width: 92vw;
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "eyeHeight": 2.3,
+  "height": 3.8,
+  "rooms": [
+    {
+      "name": "SERVICE CORRIDOR",
+      "x": 0,
+      "z": -2.35,
+      "w": 6,
+      "d": 25.7,
+      "color": "#d4d8cf"
+    },
+    {
+      "name": "FLIGHT DECK",
+      "x": 0,
+      "z": -21.1,
+      "w": 8.4,
+      "d": 12,
+      "color": "#8bcbb8"
+    }
+  ],
+  "spawns": [
+    { "x": -0.8, "z": 8.1 },
+    { "x": 0.8, "z": 8.1 },
+    { "x": -0.8, "z": 9.6 },
+    { "x": 0.8, "z": 9.6 }
+  ],
+  "stations": {
+    "helm": { "name": "Helm", "x": 0, "z": -23.7, "color": "#76d7ef" },
+    "power": { "name": "Electrical", "x": -1, "z": -2, "color": "#ffc86d" },
+    "air": { "name": "Life support", "x": -1, "z": 3.6, "color": "#84e3bd" },
+    "hull": { "name": "Hull repair", "x": 1.4, "z": -7, "color": "#f19898" },
+    "engine": {
+      "name": "Engine cooling",
+      "x": -1,
+      "z": -11,
+      "color": "#bd9bef"
+    }
+  },
+  "colliders": [
+    { "id": "Cabin_pump", "x": -2.35, "z": 6.4, "w": 0.6, "d": 0.7 },
+    { "id": "Oxygen_service", "x": -2.55, "z": 3.6, "w": 0.65, "d": 1.5 },
+    { "id": "Electrical_terminal", "x": -2.4, "z": -2, "w": 0.9, "d": 2.4 },
+    { "id": "Hull_panel", "x": 2.7, "z": -7, "w": 0.35, "d": 2.3 },
+    { "id": "Cooling_rack", "x": -2.4, "z": -11, "w": 0.9, "d": 2.2 },
+    { "id": "Crew_stowage", "x": 2.55, "z": -11, "w": 0.65, "d": 2.6 },
+    { "id": "Bridge_console", "x": 0, "z": -25.4, "w": 5.6, "d": 1.1 },
+    { "id": "Port_chair", "x": -2.5, "z": -21, "w": 1.05, "d": 1.1 },
+    { "id": "Starboard_chair", "x": 2.5, "z": -21, "w": 1.05, "d": 1.1 },
+    { "id": "Port_locker", "x": -3.6, "z": -18, "w": 0.7, "d": 1.9 },
+    { "id": "Starboard_locker", "x": 3.6, "z": -18, "w": 0.7, "d": 1.9 }
+  ]
+}

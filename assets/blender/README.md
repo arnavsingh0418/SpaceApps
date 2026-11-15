@@ -15,3 +15,7 @@ Regenerate with `build_sandstorm.py` (see the runtime [VFX guide](../../client/p
 ## Ares habitat interior
 
 `Mars_Hab_Interior.blend` contains the furnished four-crew interior, with a cutaway preview in `Mars_Hab_Interior_Preview.png`. Regenerate with `build_hab_interior.py`; layout footprints come from `shared/src/data/hab-layout.json`. The [runtime guide](../../client/public/mars/interiors/README.md) documents the zone hierarchy, controls, integration and design references. Roof and front pressure panels are hidden in the saved review view; the GLB retains them for the runtime cutaway camera.
+
+## Enclosed return ship
+
+`Mars_Return_Ship_Interior.blend` recreates the SpaceApps service corridor and cockpit as original Blender geometry. The saved eye-level camera is used for `Mars_Return_Ship_Interior_Preview.png`. Regenerate with `build_return_ship.py`; shared floor and furniture footprints are in `shared/src/data/flight-layout.json`. The ceiling remains present in the runtime model. See the [return-ship guide](../../client/public/mars/interiors/RETURN_SHIP.md) for controls, hierarchy and validation.
