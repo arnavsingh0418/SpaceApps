@@ -1,5 +1,6 @@
 import type { Game, Action } from "./sim";
 import type { Gust } from "./dustDevil";
+import { resolveRoverSurface } from "./surfacePhysics";
 
 export const ROVER = {
   spawn: { x: 14, z: -17 },
@@ -160,14 +161,9 @@ export function roverAction(
       dz *= k;
       d = r.credit;
     }
-    const nx = r.x + dx,
-      nz = r.z + dz;
-    if (Math.hypot(nx - bounds.x, nz - bounds.z) > bounds.r - 5) {
-      r.speed = 0;
-      return;
-    }
-    r.x = nx;
-    r.z = nz;
+    const next = resolveRoverSurface({x:r.x+dx,z:r.z+dz,heading:r.heading},undefined,bounds);
+    r.x = next.x;
+    r.z = next.z;
     r.credit = Math.max(0, r.credit - d);
     r.odometer += d;
     const turn = (d / ROVER.wheelbase) * 0.8;

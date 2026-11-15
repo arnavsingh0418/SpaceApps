@@ -18,6 +18,7 @@ import { fieldPartRewards, recoverPart } from "../shipRewards";
 import { deckSpawn, flightAction, tickDeckFlight } from "../flight";
 import { movePastPlayers } from "../playerCollision";
 import { blowDustDevil, type Gust } from "../dustDevil";
+import { resolveRoverSurface } from "../surfacePhysics";
 export { B, recipes, facts, flares };
 export type Role = "Engineer" | "Scientist" | "Medic" | "Comms";
 export type Item =
@@ -851,17 +852,14 @@ export function tick(s: Game, dt: number, advanceSurface = true) {
   };
   const rover = s.rover;
   if (rover) {
-    blowDustDevil(rover, s.devil, s.elapsed, dt, true);
-    if (rover.gust) {
-      const edge = { ...WORLD, r: WORLD.r - 5 };
-      const dx = rover.x - edge.x, dz = rover.z - edge.z;
-      const distance = Math.hypot(dx, dz);
-      if (distance > edge.r) {
-        rover.x = edge.x + dx / distance * edge.r;
-        rover.z = edge.z + dz / distance * edge.r;
-      }
-      rover.heading += dt * Math.min(2.6, Math.hypot(rover.gust.vx, rover.gust.vz) * 0.18);
+    const wasBlown = !!rover.gust;
+    blowDustDevil(rover, s.devil, s.elapsed, dt, true, (_from,to,gust) =>
+      resolveRoverSurface({...to,heading:rover.heading},gust));
+    if (rover.gust || wasBlown) {
+      // Wind translates the chassis; do not spin its collision hull independently of contacts.
       rover.speed = 0;
+      rover.credit = 0.8;
+      rover.reportAt = s.elapsed;
       tickRover(s);
     }
   }

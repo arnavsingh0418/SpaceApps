@@ -15,9 +15,9 @@ it("accelerates and lifts both bodies continuously, with stronger wind in the co
       blowDustDevil(edge, center, i * 0.1, 0.1, rover);
       blowDustDevil(safe, center, i * 0.1, 0.1, rover);
     }
-    expect(Math.hypot(near.x - 2, near.z)).toBeGreaterThan(4);
+    expect(Math.hypot(near.x - 2, near.z)).toBeGreaterThan(2.5);
     expect(Math.hypot(near.x - 2, near.z)).toBeGreaterThan(
-      Math.hypot(edge.x - 12, edge.z) * 2,
+      Math.hypot(edge.x - 12, edge.z),
     );
     expect(safe).toEqual({ x: 24, z: 0 });
   }

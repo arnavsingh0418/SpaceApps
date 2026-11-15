@@ -35,6 +35,8 @@ export class Terrain {
   group = new THREE.Group();
   ready = false;
   private cells = new Map<number, Tri[]>();
+  private statics = new Set<THREE.Object3D>();
+  private staticIndex?: Terrain;
   private walls = new Map<number, Wall[]>();
   /** Solid meshes the camera must stay in front of. */
   private solids: THREE.Mesh[] = [];
@@ -116,10 +118,17 @@ export class Terrain {
    */
   heightAt(x: number, z: number, fromY?: number) {
     if (!this.ready) return 0;
-    return this.rawAt(x, z, fromY);
+    const floor = this.rawAt(x, z, fromY);
+    const top = this.staticIndex?.rawAt(x, z, fromY, -Infinity) ?? -Infinity;
+    return top > floor && (fromY === undefined || top <= fromY + STEP_UP) ? top : floor;
   }
 
-  private rawAt(x: number, z: number, fromY?: number) {
+  /** Terrain and natural rocks only: buildings can never become rover ground. */
+  groundAt(x: number, z: number, fromY?: number) {
+    return this.ready ? this.rawAt(x, z, fromY) : 0;
+  }
+
+  private rawAt(x: number, z: number, fromY?: number, empty = 0) {
     const list = this.cells.get(this.key(Math.floor(x / CELL), Math.floor(z / CELL)));
     let best = -Infinity,
       top = -Infinity;
@@ -132,7 +141,7 @@ export class Terrain {
         if (y <= limit && y > best) best = y;
       }
     if (best === -Infinity) best = top; // nothing below you: stand on whatever is there
-    return best === -Infinity ? 0 : best;
+    return best === -Infinity ? empty : best;
   }
 
   /**
@@ -140,23 +149,36 @@ export class Terrain {
    * final size even if it is mid build-animation.
    */
   addStatic(obj: THREE.Object3D) {
-    const scale = obj.scale.clone();
-    obj.scale.setScalar(1);
-    obj.updateMatrixWorld(true);
-    this.index(obj);
-    obj.scale.copy(scale);
-    obj.updateMatrixWorld(true);
+    this.statics.add(obj);
+    this.rebuildStatics();
+    const ready = obj.userData.marsPromise as Promise<unknown> | undefined;
+    ready?.then(() => { if (this.statics.has(obj)) this.rebuildStatics(); });
+  }
+  removeStatic(obj: THREE.Object3D) {
+    if (this.statics.delete(obj)) this.rebuildStatics();
+  }
+  private rebuildStatics() {
+    const index = new Terrain();
+    for (const obj of this.statics) {
+      if (obj.userData.marsDisposed) continue;
+      const scale = obj.scale.clone();
+      obj.scale.setScalar(1);
+      index.index(obj);
+      obj.scale.copy(scale);
+      obj.updateMatrixWorld(true);
+    }
+    this.staticIndex = index;
   }
 
   /**
    * Distance along a ray to the first solid surface (terrain, rocks, cave, buildings),
    * or null if nothing is hit within `far`.
    */
-  rayHit(origin: THREE.Vector3, dir: THREE.Vector3, far: number) {
+  rayHit(origin: THREE.Vector3, dir: THREE.Vector3, far: number): number | null {
     this.ray.set(origin, dir);
     this.ray.far = far;
     (this.ray as unknown as { firstHitOnly: boolean }).firstHitOnly = true;
-    let best: number | null = null;
+    let best: number | null = this.staticIndex?.rayHit(origin, dir, far) ?? null;
     for (const m of this.solids) {
       const g = m.geometry as THREE.BufferGeometry & { boundsTree?: unknown };
       if (!g.boundsTree) prepareForBVH(g); // props added later build theirs on first use
@@ -172,6 +194,7 @@ export class Terrain {
    * than a step but below head height (rock tops, the dome, the rocket hull).
    */
   collides(x: number, z: number, y: number, r = RADIUS, height = BODY, step = STEP_UP) {
+    if (this.staticIndex?.collides(x,z,y,r,height,step)) return true;
     const lo = y + step,
       hi = y + height;
     const i0 = Math.floor((x - r) / CELL),
