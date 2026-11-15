@@ -1,0 +1,122 @@
+{
+  "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "started": true,
+  "modal": "",
+  "tutorial": 4,
+  "sol": 1,
+  "phase": "day",
+  "seconds": 1,
+  "player": {
+    "id": "solo",
+    "name": "Explorer",
+    "x": -10,
+    "z": 2,
+    "color": 16347926,
+    "role": "Engineer",
+    "bag": {},
+    "move": {
+      "x": 0,
+      "z": 0
+    },
+    "joined": 0
+  },
+  "nearby": [
+    {
+      "id": "item-3",
+      "kind": "soil",
+      "count": 4,
+      "x": -12,
+      "z": 3,
+      "damaged": false
+    }
+  ],
+  "resources": {
+    "power": 11,
+    "air": 85,
+    "food": 95,
+    "dose": 0
+  },
+  "learned": [
+    "shield"
+  ],
+  "built": [],
+  "event": {
+    "kind": "supply",
+    "at": 65,
+    "resolved": false
+  },
+  "hudGroups": 3,
+  "nearest": {
+    "type": "learn",
+    "target": "shield",
+    "pos": {
+      "x": -10,
+      "z": 2
+    },
+    "text": "Scan beacon"
+  },
+  "stock": {},
+  "panels": [
+    {
+      "id": "panel-0",
+      "x": -8,
+      "z": 7,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-1",
+      "x": -5,
+      "z": 7,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-2",
+      "x": -2,
+      "z": 7,
+      "clean": 1,
+      "covered": false
+    }
+  ],
+  "radio": 0,
+  "aligned": false,
+  "watering": false,
+  "leakFixed": false,
+  "audio": {
+    "muted": false,
+    "volume": 23,
+    "ready": 9,
+    "loops": []
+  },
+  "motion": {
+    "storm": 0,
+    "structures": [
+      {
+        "key": "hab",
+        "scale": 1
+      }
+    ],
+    "particles": 21,
+    "reduced": false,
+    "scans": 0,
+    "flights": 0,
+    "actors": [
+      {
+        "id": "solo",
+        "y": 0,
+        "scaleY": 1.3237874748352663,
+        "arm": -9.583002188710159e-8,
+        "leg": 5.321683319330162e-32,
+        "heading": 4.58174161424241,
+        "carrying": false
+      }
+    ]
+  },
+  "render": {
+    "drawCalls": 98,
+    "triangles": 31252,
+    "stepFps": 13,
+    "frameMs": 8
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "coordinates": "meters; +x right, +z toward camera; origin at hab",
+  "cabin": null,
+  "started": true,
+  "arrival": null,
+  "modal": "hangar",
+  "tutorial": 4,
+  "sol": 1,
+  "phase": "day",
+  "seconds": 0,
+  "player": {
+    "id": "solo",
+    "name": "Explorer",
+    "x": 267,
+    "z": -216,
+    "color": 16347926,
+    "role": "Engineer",
+    "bag": {},
+    "move": {
+      "x": 0,
+      "z": 0
+    },
+    "joined": 0,
+    "gait": "walk",
+    "posAt": 0
+  },
+  "nearby": [],
+  "resources": {
+    "power": 11,
+    "air": 85,
+    "food": 95,
+    "dose": 0
+  },
+  "learned": [],
+  "expedition": {
+    "completed": [],
+    "surveyed": [],
+    "observations": {}
+  },
+  "alienQuest": {
+    "accepted": false,
+    "delivered": {},
+    "contributions": {},
+    "brushed": false,
+    "completed": false
+  },
+  "alienVoice": {
+    "speaking": false,
+    "mode": "device"
+  },
+  "nemi": {
+    "speaking": false,
+    "mouth": 0.22,
+    "water": 0.2074260943531812
+  },
+  "shipAssembly": {
+    "installing": "",
+    "slots": [
+      {
+        "part": "booster",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "hull",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "nav",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "air",
+        "broken": true,
+        "installed": false,
+        "display": false
+      }
+    ]
+  },
+  "returnMission": {
+    "points": 0,
+    "crewPoints": {},
+    "lessonTimers": {},
+    "caches": {},
+    "recovered": {},
+    "installed": {}
+  },
+  "trackedMission": "blackbox",
+  "built": [],
+  "event": {
+    "kind": "supply",
+    "at": 65,
+    "resolved": false
+  },
+  "hudGroups": 4,
+  "nearest": {
+    "type": "hangar",
+    "target": "return",
+    "pos": {
+      "x": 267,
+      "z": -216
+    },
+    "text": "Rebuild return ship"
+  },
+  "stock": {},
+  "panels": [
+    {
+      "id": "panel-0",
+      "x": -17.6,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-1",
+      "x": -11,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-2",
+      "x": -4.4,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    }
+  ],
+  "radio": 0,
+  "aligned": false,
+  "watering": false,
+  "leakFixed": false,
+  "audio": {
+    "muted": false,
+    "volume": 35,
+    "ready": 9,
+    "loops": []
+  },
+  "motion": {
+    "storm": 0,
+    "structures": [
+      {
+        "key": "hab",
+        "scale": 1
+      }
+    ],
+    "particles": 32,
+    "reduced": false,
+    "scans": 0,
+    "flights": 0,
+    "actors": [
+      {
+        "id": "solo",
+        "x": 267,
+        "y": -2.3839780357712255,
+        "z": -216,
+        "scaleY": 1.35,
+        "arm": 0.031518530531573004,
+        "leg": 3.0165968840275476e-165,
+        "heading": -3.141592527925139,
+        "carrying": false
+      }
+    ]
+  },
+  "render": {
+    "drawCalls": 356,
+    "triangles": 372918,
+    "stepFps": 12,
+    "frameMs": 12.4
+  }
+}

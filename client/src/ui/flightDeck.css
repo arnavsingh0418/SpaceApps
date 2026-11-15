@@ -1,0 +1,586 @@
+.flight-top {
+  position: fixed;
+  left: 24px;
+  top: 18px;
+  width: 360px;
+  background: #112537ed;
+  border: 1px solid #8bbacf55;
+  border-radius: 12px;
+  padding: 16px 18px;
+  color: #e8f4f3;
+}
+.flight-top > div:first-child {
+  padding-right: 35px;
+}
+.flight-top small {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #b7d6e6;
+}
+.flight-top h1 {
+  font:
+    800 30px/1 "Barlow Condensed",
+    sans-serif;
+  margin: 7px 0 13px;
+}
+.flight-top > button {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 35px;
+  height: 35px;
+  background: #24445b;
+  border: 1px solid #8bbacf55;
+  border-radius: 7px;
+  color: white;
+  font-weight: 800;
+}
+.flight-route {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: #e7c58b;
+}
+.flight-route progress {
+  flex: 1;
+  height: 7px;
+  accent-color: #7ee4ce;
+}
+.flight-top .flight-time {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0;
+  margin-top: 9px;
+}
+.flight-meters {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  background: #112537ed;
+  border: 1px solid #8bbacf44;
+  border-radius: 10px;
+  padding: 10px;
+}
+.flight-meters > div {
+  width: 62px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+}
+.flight-meters span {
+  font-size: 11px;
+  color: #c9dce8;
+}
+.flight-meters b {
+  font-size: 19px;
+  color: #f0f8e9;
+}
+.flight-meters progress {
+  width: 100%;
+  height: 4px;
+  accent-color: #8fdcc4;
+}
+.flight-meters .critical b {
+  color: #ffab94;
+}
+.flight-meters .critical progress {
+  accent-color: #ff806e;
+}
+.flight-jobs {
+  position: fixed;
+  right: 24px;
+  top: 18px;
+  width: 290px;
+  background: #112537ed;
+  border: 1px solid #8bbacf44;
+  border-radius: 12px;
+  padding: 15px;
+  color: #ebf3ec;
+}
+.flight-jobs header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: #ffcf8e;
+  letter-spacing: 0.08em;
+}
+.flight-jobs header span {
+  color: #c9dbe5;
+  letter-spacing: 0;
+}
+.flight-jobs p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #d0dfe9;
+}
+.flight-job {
+  display: flex;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #8bbacf30;
+}
+.flight-job > span {
+  color: #ff987c;
+}
+.flight-job b {
+  font-size: 14px;
+  display: block;
+}
+.flight-job small {
+  font-size: 12px;
+  color: #ffd6b6;
+  display: block;
+  margin-top: 4px;
+}
+.flight-job.late {
+  color: #ffb49f;
+}
+.flight-pilot {
+  display: grid;
+  gap: 4px;
+  margin-top: 13px;
+  font-size: 12px;
+}
+.flight-pilot span {
+  color: #bed6e5;
+}
+.flight-jobs > button {
+  border: 0;
+  background: transparent;
+  padding: 12px 0 0;
+  color: #a6dbf1;
+  font-size: 12px;
+  cursor: pointer;
+}
+.flight-bottom {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: 95vw;
+}
+.flight-bottom .interaction {
+  position: static;
+  margin: 0;
+  transform: none;
+  min-width: 180px;
+  max-width: 95vw;
+  background: #142c3fee;
+  border-color: #91c6d4;
+  color: #fff3de;
+}
+.flight-controls {
+  background: #112537de;
+  color: #e7f0ef;
+  padding: 9px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.arrival-message {
+  position: fixed;
+  left: 50%;
+  bottom: 11%;
+  transform: translateX(-50%);
+  padding: 16px 24px;
+  background: #10253bd9;
+  border: 1px solid #98c3d6;
+  color: #e6f4f0;
+  border-radius: 10px;
+  font-size: 18px;
+  text-align: center;
+  width: min(600px, 90vw);
+}
+.modal.deck-modal {
+  width: min(470px, 100%);
+  background: #11273af5;
+  border-color: #8bc2d466;
+  color: #f1f8f1;
+}
+.deck-modal > h2 {
+  font:
+    800 34px/1 "Barlow Condensed",
+    sans-serif;
+}
+.scrim:has(.deck-modal) {
+  justify-items: start;
+  padding: 24px;
+  background: linear-gradient(90deg, #05132299, transparent 80%);
+}
+.deck-modal p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #c8dce9;
+}
+.deck-modal .button {
+  background: #a6e8d1;
+  color: #173440;
+  border-color: #7bbfae;
+  font-size: 14px;
+}
+.deck-modal .flight-feedback:empty {
+  display: none;
+}
+.flight-feedback {
+  font-size: 14px;
+  color: #ffc7a3 !important;
+  padding: 9px;
+  background: #66493666;
+  border-radius: 6px;
+}
+.helm-target {
+  height: 210px;
+  border: 1px solid #7fc6dc66;
+  background: radial-gradient(circle, #244760 1%, #112336 72%);
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
+.helm-target:before,
+.helm-target:after {
+  content: "";
+  position: absolute;
+  background: #8cb1c13d;
+}
+.helm-target:before {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+}
+.helm-target:after {
+  height: 1px;
+  width: 100%;
+  top: 50%;
+}
+.helm-ring {
+  width: 44px;
+  height: 44px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #8ee1bb;
+  border-radius: 50%;
+}
+#course-marker {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #ffd078;
+  border: 2px solid #fff0bc;
+  border-radius: 3px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  z-index: 1;
+}
+.helm-target i {
+  position: absolute;
+  left: 10px;
+  bottom: 9px;
+  color: #aac8d8;
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+.helm-pad {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 12px 0;
+}
+.helm-pad button {
+  width: 56px;
+  height: 43px;
+  background: #2a4f68;
+  border: 1px solid #7fc6dc80;
+  border-radius: 8px;
+  color: #f5e9c5;
+  font-size: 25px;
+  touch-action: none;
+}
+.helm-pad button:active {
+  background: #386d83;
+}
+.helm-owner {
+  color: #ffdf9a !important;
+  font-size: 12px !important;
+}
+.flight-task-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  color: #a7e7d6;
+}
+.deck-modal h3 {
+  font:
+    800 28px/1.1 "Barlow Condensed",
+    sans-serif;
+}
+.deck-wires {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+}
+.deck-wires > div {
+  display: grid;
+  gap: 14px;
+}
+.deck-wires button {
+  width: 105px;
+  height: 48px;
+  font-size: 24px;
+  border: 2px solid #f1a28e;
+  background: #75483d;
+  color: #ffe2c2;
+  border-radius: 8px;
+}
+.deck-wires .circuit-1 {
+  border-color: #84bfea;
+  background: #2d526f;
+}
+.deck-wires .circuit-2 {
+  border-color: #f8d479;
+  background: #6e5f33;
+}
+.deck-wires button.selected {
+  outline: 3px solid #fff;
+}
+.deck-wires button.done {
+  opacity: 0.45;
+}
+.deck-valves {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+}
+.deck-valves button {
+  padding: 16px;
+  border: 1px solid #95cbbc;
+  background: #234e59;
+  color: #e6f7ee;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 800;
+}
+.deck-valves button.done {
+  background: #326d5b;
+}
+.deck-leaks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px;
+  background: #284354;
+  border-radius: 10px;
+}
+.deck-leaks button {
+  height: 80px;
+  background: #6e493f;
+  border: 2px solid #ffad8d;
+  color: #bfe9ff;
+  font-size: 30px;
+  border-radius: 8px;
+}
+.deck-leaks button.done {
+  background: #326555;
+  border-color: #92e3b9;
+  color: #d9ffdf;
+}
+.repair-timing {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #c5daea;
+  margin: 18px 0;
+}
+.coolant-flow {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  background: #284354;
+  border-radius: 10px;
+  color: #bfe4ef;
+  font-size: 12px;
+}
+.coolant-flow input {
+  width: 100%;
+  accent-color: #9ae0c8;
+}
+.coolant-flow output {
+  font-size: 30px;
+  color: #ffdb95;
+}
+.flight-guide li {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 12px 0;
+  color: #d6e8ec;
+}
+.flight-guide ul {
+  padding-left: 20px;
+}
+@media (max-width: 1100px) {
+  .flight-top {
+    width: 290px;
+  }
+  .flight-jobs {
+    width: 245px;
+  }
+  .flight-meters > div {
+    width: 45px;
+  }
+  .flight-meters {
+    left: 51%;
+  }
+}
+@media (max-width: 760px) {
+  .flight-top {
+    left: 10px;
+    top: 10px;
+    width: calc(100% - 20px);
+    padding: 11px 14px;
+  }
+  .flight-top h1 {
+    font-size: 24px;
+    margin: 5px 0 8px;
+  }
+  .flight-top small {
+    font-size: 8px;
+  }
+  .flight-top .flight-time {
+    font-size: 10px;
+    margin-top: 5px;
+  }
+  .flight-meters {
+    left: 10px;
+    top: 135px;
+    transform: none;
+    padding: 8px;
+    gap: 10px;
+  }
+  .flight-meters > div {
+    width: 43px;
+  }
+  .flight-meters b {
+    font-size: 16px;
+  }
+  .flight-meters span {
+    font-size: 10px;
+  }
+  .flight-jobs {
+    right: 10px;
+    top: 135px;
+    width: calc(100% - 232px);
+    padding: 9px;
+    max-height: 195px;
+    overflow: auto;
+  }
+  .flight-jobs header {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+  .flight-jobs header span {
+    display: none;
+  }
+  .flight-job {
+    padding: 8px 0;
+    gap: 5px;
+  }
+  .flight-job b {
+    font-size: 11px;
+  }
+  .flight-job small {
+    font-size: 10px;
+  }
+  .flight-jobs p {
+    font-size: 11px;
+  }
+  .flight-pilot {
+    font-size: 10px;
+  }
+  .flight-jobs > button {
+    font-size: 10px;
+  }
+  .flight-bottom {
+    bottom: 138px;
+  }
+  .flight-controls {
+    font-size: 10px;
+    padding: 7px;
+  }
+  .flight-bottom .interaction {
+    font-size: 13px;
+    min-height: 42px;
+  }
+  .scrim:has(.deck-modal) {
+    justify-items: center;
+    padding: 12px;
+    background: #0b1935aa;
+  }
+  .modal.deck-modal {
+    padding: 23px;
+    max-height: calc(100dvh - 24px);
+  }
+  .deck-modal p {
+    font-size: 13px;
+  }
+  .helm-target {
+    height: 185px;
+  }
+  .arrival-message {
+    font-size: 16px;
+    bottom: 15%;
+  }
+  .deck-wires button {
+    width: 90px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flight-job,
+  .helm-target {
+    animation: none !important;
+  }
+}
+
+/* Keep the enclosed corridor visible beneath compact flight instruments. */
+@media (min-width: 1101px) {
+  .flight-top {
+    width: 290px;
+    padding: 12px 15px;
+  }
+  .flight-top h1 {
+    font-size: 25px;
+    margin: 6px 0 10px;
+  }
+  .flight-jobs {
+    width: 250px;
+    padding: 12px;
+  }
+  .flight-jobs p {
+    font-size: 12px;
+  }
+  .flight-job {
+    padding: 9px 0;
+  }
+  .flight-job b {
+    font-size: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .flight-look-hint {
+    display: none;
+  }
+  .flight-controls {
+    white-space: normal;
+    text-align: center;
+    max-width: 92vw;
+  }
+}

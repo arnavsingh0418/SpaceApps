@@ -1,0 +1,256 @@
+{
+  "coordinates": "ship deck meters; +x right, +z aft; helm at (0,-8)",
+  "cabin": {
+    "earthScale": 5.057824074073931,
+    "progress": 0.7138888888888721,
+    "arrival": 0,
+    "starsMoving": true,
+    "actors": [
+      {
+        "id": "solo",
+        "x": -0.14999999999999847,
+        "z": -8.399999999994678
+      }
+    ]
+  },
+  "started": true,
+  "arrival": null,
+  "modal": "helm",
+  "tutorial": 4,
+  "sol": 1,
+  "phase": "flight",
+  "seconds": 0,
+  "player": {
+    "id": "solo",
+    "name": "Explorer",
+    "x": -0.14999999999999847,
+    "z": -8.400000000000002,
+    "color": 16347926,
+    "role": "Engineer",
+    "bag": {},
+    "move": {
+      "x": 0,
+      "z": 0
+    },
+    "joined": 0
+  },
+  "nearby": [],
+  "resources": {
+    "power": 11,
+    "air": 85,
+    "food": 95,
+    "dose": 0
+  },
+  "learned": [],
+  "expedition": {
+    "completed": [],
+    "surveyed": [],
+    "observations": {}
+  },
+  "alienQuest": {
+    "accepted": false,
+    "delivered": {},
+    "contributions": {},
+    "brushed": false,
+    "completed": false
+  },
+  "alienVoice": {
+    "speaking": false,
+    "mode": "subtitles"
+  },
+  "nemi": {
+    "speaking": false,
+    "mouth": 0.22,
+    "water": 0.15
+  },
+  "shipAssembly": {
+    "installing": "",
+    "slots": [
+      {
+        "part": "booster",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "hull",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "nav",
+        "broken": true,
+        "installed": false,
+        "display": false
+      },
+      {
+        "part": "air",
+        "broken": true,
+        "installed": false,
+        "display": false
+      }
+    ]
+  },
+  "returnMission": {
+    "points": 600,
+    "crewPoints": {
+      "solo": 600
+    },
+    "lessonTimers": {},
+    "caches": {},
+    "recovered": {},
+    "installed": {
+      "booster": "Rare",
+      "hull": "Rare",
+      "nav": "Prototype",
+      "air": "Rare"
+    },
+    "flight": {
+      "stage": 2,
+      "deadline": 180,
+      "passed": [],
+      "baseChance": 68,
+      "deck": {
+        "time": 128.499999999997,
+        "hull": 91.65000000000032,
+        "oxygen": 100,
+        "power": 100,
+        "heat": 25,
+        "course": {
+          "x": -0.026913955125928524,
+          "y": 0.015045365805470603
+        },
+        "steer": {
+          "x": 0,
+          "y": 0
+        },
+        "pilot": "solo",
+        "pilotAt": 128.499999999997,
+        "autopilot": 0,
+        "guidance": [
+          true,
+          false
+        ],
+        "incidents": [
+          {
+            "at": 18,
+            "kind": "power",
+            "title": "Power relay shorted",
+            "id": "fault-1",
+            "deadline": 54,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          },
+          {
+            "at": 47,
+            "kind": "air",
+            "title": "Oxygen valve stuck",
+            "id": "fault-2",
+            "deadline": 83,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          },
+          {
+            "at": 79,
+            "kind": "hull",
+            "title": "Cabin seal leaking",
+            "id": "fault-3",
+            "deadline": 115,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          },
+          {
+            "at": 112,
+            "kind": "engine",
+            "title": "Coolant pump overheated",
+            "id": "fault-4",
+            "deadline": 148,
+            "fixed": true,
+            "late": false,
+            "repairedBy": "solo"
+          }
+        ],
+        "nextEvent": 4,
+        "repaired": 4,
+        "missed": 0
+      }
+    }
+  },
+  "trackedMission": "blackbox",
+  "built": [],
+  "event": {
+    "kind": "supply",
+    "at": 65,
+    "resolved": false
+  },
+  "hudGroups": 3,
+  "nearest": {
+    "type": "shipStation",
+    "target": "helm",
+    "pos": {
+      "name": "Helm",
+      "x": 0,
+      "z": -8,
+      "color": "#76d7ef"
+    },
+    "text": "Use Helm"
+  },
+  "stock": {},
+  "panels": [
+    {
+      "id": "panel-0",
+      "x": -17.6,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-1",
+      "x": -11,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-2",
+      "x": -4.4,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    }
+  ],
+  "radio": 0,
+  "aligned": false,
+  "watering": false,
+  "leakFixed": false,
+  "audio": {
+    "muted": false,
+    "volume": 35,
+    "ready": 9,
+    "loops": []
+  },
+  "motion": {
+    "storm": 0,
+    "structures": [
+      {
+        "key": "hab",
+        "scale": 1
+      }
+    ],
+    "particles": 0,
+    "reduced": false,
+    "scans": 0,
+    "flights": 0,
+    "actors": []
+  },
+  "render": {
+    "drawCalls": 161,
+    "triangles": 19592,
+    "stepFps": 60,
+    "frameMs": 0
+  }
+}

@@ -1,14 +1,38 @@
-name: Validate outpost
-on: [push, pull_request]
+name: Check mission
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
-  check:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Check cooperative server
+        run: |
+          npm run server > /tmp/outpost-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:2567/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:net
+          TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/alien-multiplayer.ts
+          TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/flight-multiplayer.ts
+          TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/rover-multiplayer.ts
+          TEST_SERVER=ws://127.0.0.1:2567 node --import tsx tests/hab-multiplayer.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: outpost-down-client
+          path: dist

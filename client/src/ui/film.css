@@ -1,0 +1,254 @@
+.arrival {
+  background: linear-gradient(
+    #061016aa,
+    transparent 30%,
+    transparent 63%,
+    #061016c9
+  );
+}
+.arrival-header {
+  padding: 18px 28px;
+  background: #071218e8;
+  z-index: 5;
+}
+.arrival-brand small {
+  font-size: 8px;
+}
+.arrival nav button {
+  padding: 9px 12px;
+  font-size: 11px;
+}
+.film-act {
+  position: absolute;
+  left: 28px;
+  top: 94px;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #9ebdbb;
+}
+.arrival-location {
+  top: 121px;
+  left: 28px;
+}
+.arrival-location h1 {
+  font-size: clamp(28px, 3vw, 44px);
+  max-width: 18ch;
+  line-height: 1.05;
+}
+.arrival-location > span {
+  font-size: 8px;
+  color: #ebc988;
+}
+.arrival-crosshair {
+  display: none;
+}
+.arrival-footer {
+  z-index: 5;
+  background: linear-gradient(transparent, #061117f5 18%);
+  padding: 24px 28px 14px;
+  gap: 12px 32px;
+}
+.arrival-captions p {
+  font-size: 16px;
+  line-height: 1.55;
+  max-width: 66ch;
+}
+.arrival-eyebrow {
+  font-size: 8px;
+  letter-spacing: 0.15em;
+}
+.arrival-fact {
+  opacity: 0.78;
+}
+.arrival-fact p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.arrival-fact > span {
+  font-size: 8px;
+}
+.arrival-bottom > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.film-time {
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: #a6c0b9;
+  margin-right: 6px;
+}
+.arrival-bottom button {
+  min-height: 32px;
+  font-size: 10px;
+  padding: 6px 10px;
+}
+.arrival-timeline {
+  gap: 3px;
+}
+.film-curtain {
+  position: absolute;
+  inset: 75px 0 0;
+  background: #02070b;
+  opacity: var(--cut, 0);
+  pointer-events: none;
+  z-index: 3;
+}
+.film-vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 150px #03101a80;
+  pointer-events: none;
+}
+.film-telemetry {
+  position: absolute;
+  right: 40px;
+  top: 36%;
+  font-family: "Barlow Condensed";
+  white-space: pre-line;
+  color: #f1d598;
+  font-size: 20px;
+  text-align: right;
+  line-height: 1.3;
+  border-right: 2px solid #f0cd8177;
+  padding-right: 12px;
+}
+.film-telemetry:empty {
+  display: none;
+}
+.arrival[data-view="countdown"] .film-telemetry {
+  font-size: 72px;
+  top: 38%;
+  right: 14%;
+  border: 0;
+}
+.arrival[data-view="braking"] .film-telemetry {
+  color: #ffb499;
+  border-color: #db795f;
+}
+.arrival[data-view="resolve"] .arrival-location {
+  top: 25%;
+  max-width: 600px;
+}
+.arrival[data-view="resolve"] .arrival-location h1 {
+  font-size: clamp(44px, 6vw, 80px);
+  max-width: 12ch;
+}
+.arrival-film-edge {
+  inset: 90px 14px 200px;
+}
+.arrival[data-view="orbit"] .arrival-location {
+  max-width: 480px;
+}
+@media (max-width: 760px) {
+  .arrival-header {
+    padding: 12px;
+    gap: 8px;
+  }
+  .arrival-brand {
+    font-size: 9px;
+    gap: 4px;
+    max-width: 125px;
+  }
+  .arrival-brand small {
+    font-size: 6px;
+    line-height: 1.4;
+  }
+  .arrival nav {
+    max-width: 200px;
+    gap: 4px;
+  }
+  .arrival nav button {
+    font-size: 9px;
+    min-height: 30px;
+    padding: 5px 8px;
+  }
+  .film-act {
+    top: 95px;
+    left: 18px;
+    font-size: 7px;
+  }
+  .arrival-location {
+    top: 115px;
+    left: 18px;
+  }
+  .arrival-location h1 {
+    font-size: 27px;
+    max-width: 15ch;
+  }
+  .arrival-location > span {
+    font-size: 7px;
+  }
+  .arrival-footer {
+    padding: 18px 16px 12px;
+    gap: 10px;
+  }
+  .arrival-captions p {
+    font-size: 13px;
+    min-height: 4.5em;
+    line-height: 1.45;
+  }
+  .arrival-fact p {
+    font-size: 10px;
+  }
+  .arrival-fact > span {
+    font-size: 7px;
+  }
+  .arrival-bottom > span {
+    max-width: 45%;
+    font-size: 7px;
+    line-height: 1.4;
+  }
+  .film-time {
+    display: none;
+  }
+  .arrival-bottom button {
+    font-size: 9px;
+    padding: 5px 7px;
+  }
+  .arrival-timeline {
+    gap: 2px;
+  }
+  .film-telemetry {
+    top: 37%;
+    right: 20px;
+    font-size: 15px;
+  }
+  .arrival[data-view="countdown"] .film-telemetry {
+    font-size: 48px;
+  }
+  .arrival[data-view="resolve"] .arrival-location h1 {
+    font-size: 44px;
+  }
+}
+@media (max-height: 600px) and (min-width: 761px) {
+  .film-act {
+    top: 80px;
+  }
+  .arrival-location {
+    top: 98px;
+  }
+  .arrival-location h1 {
+    font-size: 26px;
+  }
+  .arrival-footer {
+    padding-top: 15px;
+  }
+  .arrival-captions p {
+    font-size: 12px;
+  }
+  .arrival-fact {
+    display: none;
+  }
+  .arrival-footer {
+    grid-template-columns: 1fr;
+  }
+  .arrival-header {
+    padding: 12px 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-curtain {
+    opacity: 0 !important;
+  }
+}

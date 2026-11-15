@@ -1,0 +1,221 @@
+{
+  "coordinates": "ship deck meters; +x right, +z aft; helm at (0,-8)",
+  "cabin": {
+    "earthScale": 2.000312962962963,
+    "progress": 0.007222222222222223,
+    "arrival": 0,
+    "starsMoving": true,
+    "actors": [
+      {
+        "id": "solo",
+        "x": -1.35,
+        "z": 2
+      }
+    ]
+  },
+  "started": true,
+  "arrival": null,
+  "modal": "",
+  "tutorial": 4,
+  "sol": 1,
+  "phase": "flight",
+  "seconds": 0,
+  "player": {
+    "id": "solo",
+    "name": "Explorer",
+    "x": -1.35,
+    "z": 2,
+    "color": 16347926,
+    "role": "Engineer",
+    "bag": {},
+    "move": {
+      "x": 0,
+      "z": 0
+    },
+    "joined": 0,
+    "gait": "walk"
+  },
+  "nearby": [],
+  "resources": {
+    "power": 11,
+    "air": 85,
+    "food": 95,
+    "dose": 0
+  },
+  "learned": [],
+  "expedition": {
+    "completed": [],
+    "surveyed": [],
+    "observations": {}
+  },
+  "alienQuest": {
+    "accepted": false,
+    "delivered": {},
+    "contributions": {},
+    "brushed": false,
+    "completed": false
+  },
+  "alienVoice": {
+    "speaking": false,
+    "mode": "device"
+  },
+  "nemi": {
+    "speaking": false,
+    "mouth": 0.22,
+    "water": 0.15007566033784212
+  },
+  "shipAssembly": {
+    "installing": "",
+    "slots": [
+      {
+        "part": "booster",
+        "broken": false,
+        "installed": true,
+        "display": false
+      },
+      {
+        "part": "hull",
+        "broken": false,
+        "installed": true,
+        "display": false
+      },
+      {
+        "part": "nav",
+        "broken": false,
+        "installed": true,
+        "display": false
+      },
+      {
+        "part": "air",
+        "broken": false,
+        "installed": true,
+        "display": false
+      }
+    ]
+  },
+  "returnMission": {
+    "points": 0,
+    "crewPoints": {},
+    "lessonTimers": {},
+    "caches": {},
+    "recovered": {
+      "booster": "Rare",
+      "hull": "Rare",
+      "air": "Rare",
+      "nav": "Prototype"
+    },
+    "installed": {
+      "booster": "Rare",
+      "hull": "Rare",
+      "nav": "Prototype",
+      "air": "Rare"
+    },
+    "flight": {
+      "stage": 0,
+      "deadline": 180,
+      "passed": [],
+      "baseChance": 68,
+      "deck": {
+        "time": 1.3,
+        "hull": 85.2,
+        "oxygen": 100,
+        "power": 100,
+        "heat": 25,
+        "course": {
+          "x": 0.3505091055397562,
+          "y": -0.19220884230806912
+        },
+        "steer": {
+          "x": 0,
+          "y": 0
+        },
+        "pilot": "",
+        "pilotAt": 0,
+        "autopilot": 0,
+        "guidance": [
+          false,
+          false
+        ],
+        "incidents": [],
+        "nextEvent": 0,
+        "repaired": 0,
+        "missed": 0
+      }
+    }
+  },
+  "trackedMission": "blackbox",
+  "built": [],
+  "event": {
+    "kind": "supply",
+    "at": 65,
+    "resolved": false
+  },
+  "hudGroups": 3,
+  "nearest": null,
+  "stock": {},
+  "panels": [
+    {
+      "id": "panel-0",
+      "x": -17.6,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-1",
+      "x": -11,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    },
+    {
+      "id": "panel-2",
+      "x": -4.4,
+      "z": 15.400000000000002,
+      "clean": 1,
+      "covered": false
+    }
+  ],
+  "radio": 0,
+  "aligned": false,
+  "watering": false,
+  "leakFixed": false,
+  "audio": {
+    "muted": false,
+    "volume": 35,
+    "ready": 9,
+    "loops": []
+  },
+  "motion": {
+    "storm": 0,
+    "structures": [
+      {
+        "key": "hab",
+        "scale": 1
+      }
+    ],
+    "particles": 50,
+    "reduced": false,
+    "scans": 0,
+    "flights": 0,
+    "actors": [
+      {
+        "id": "solo",
+        "x": 267,
+        "y": -2.3839780357712255,
+        "z": -216,
+        "scaleY": 1.35,
+        "arm": 0.02818740099275714,
+        "leg": 6.119358449902057e-304,
+        "heading": -3.141592527925139,
+        "carrying": false
+      }
+    ]
+  },
+  "render": {
+    "drawCalls": 165,
+    "triangles": 26996,
+    "stepFps": 11,
+    "frameMs": 15.5
+  }
+}
